@@ -1,5 +1,5 @@
-# Smers
-### Application for smer notes. Technologies Used
+# SpeechDB
+### Application for speech db. Technologies Used
 - React
 - Typescript
 - Golang
@@ -15,7 +15,7 @@
 - `goose up` — Применить миграции
 
 #### Examples:
-`goose postgres "user=postgres dbname=stack sslmode=disable" up`
+`goose postgres "user=postgres dbname=speeckdb sslmode=disable" up`
 
 ### Flow
 - New branch (#issue)</li>
@@ -37,8 +37,8 @@
 - _**style**_: (formatting, missing semi colons, etc; no production code change)
 
 #### Examples:
-`feat: ID column for smers table`
-`refactor: smers dialog`
+`feat: ID column for speakers table`
+`refactor: speaker dialog`
 `style: formatted by eslint`
 
 ### Project Status
