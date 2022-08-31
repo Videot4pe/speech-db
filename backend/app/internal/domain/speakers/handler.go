@@ -1,6 +1,7 @@
 package speakers
 
 import (
+	"backend/internal/domain/roles"
 	"backend/pkg/auth"
 	"backend/pkg/client/postgresql/model"
 	"backend/pkg/logging"
@@ -33,10 +34,10 @@ func NewSpeakersHandler(ctx context.Context, storage *Storage, logger *logging.L
 }
 
 func (h *Handler) Register(router *httprouter.Router) {
-	router.GET(usersURL, auth.RequireAuth(h.All))
-	router.GET(userURL, auth.RequireAuth(h.View))
-	router.POST(usersURL, auth.RequireAuth(h.Create))
-	router.PATCH(usersURL, auth.RequireAuth(h.Update))
+	router.GET(usersURL, auth.RequireAuth(h.All, nil))
+	router.GET(userURL, auth.RequireAuth(h.View, nil))
+	router.POST(usersURL, auth.RequireAuth(h.Create, []string{roles.EditSpeakers}))
+	router.PATCH(usersURL, auth.RequireAuth(h.Update, []string{roles.EditSpeakers}))
 }
 
 func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

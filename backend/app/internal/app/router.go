@@ -6,6 +6,7 @@ import (
 	"backend/internal/config"
 	"backend/internal/domain/files"
 	"backend/internal/domain/records"
+	"backend/internal/domain/roles"
 	"backend/internal/domain/smer"
 	"backend/internal/domain/speakers"
 	"backend/internal/domain/user"
@@ -42,6 +43,10 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	router.ServeFiles("/uploads/*filepath", http.Dir("uploads"))
 
 	filesStorage := files.NewFilesStorage(ctx, pgClient, logger)
+
+	rolesStorage := roles.NewRolesStorage(ctx, pgClient, logger)
+	rolesHandler := roles.NewRolesHandler(ctx, rolesStorage, logger)
+	rolesHandler.Register(router)
 
 	userStorage := user.NewUserStorage(ctx, pgClient, logger)
 	userHandler := user.NewUserHandler(ctx, userStorage, logger, filesStorage)

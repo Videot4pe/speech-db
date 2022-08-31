@@ -1,7 +1,13 @@
 import { lazy } from "react";
+import { FiFile, FiSpeaker, FiUser } from "react-icons/all";
+import { FiHome } from "react-icons/fi";
+import type { IconType } from "react-icons/lib";
 import type { PathRouteProps } from "react-router-dom";
 
 import Layout from "../layout";
+import { Permission } from "../models/common";
+
+import Page from "./names";
 
 const Signin = lazy(() => import("../pages/auth/Signin"));
 const Signup = lazy(() => import("../pages/auth/Signup"));
@@ -11,7 +17,14 @@ const Records = lazy(() => import("../pages/records/Records"));
 const Users = lazy(() => import("../pages/users/Users"));
 const Home = lazy(() => import("../pages/home/Home"));
 
-export const routes: Array<PathRouteProps> = [
+export interface IRoutes extends PathRouteProps {
+  permissions?: string[];
+  auth?: boolean;
+  icon?: IconType;
+  name?: string;
+}
+
+const routes: Array<IRoutes> = [
   {
     path: "/signin",
     element: <Signin />,
@@ -20,40 +33,52 @@ export const routes: Array<PathRouteProps> = [
     path: "/signup",
     element: <Signup />,
   },
-];
-
-export const privateRoutes: Array<PathRouteProps> = [
   {
     path: "/",
+    icon: FiHome,
+    name: Page.Home,
     element: (
       <Layout>
         <Home />
       </Layout>
     ),
+    auth: true,
   },
   {
     path: "/speakers",
+    icon: FiSpeaker,
+    name: Page.Speakers,
     element: (
       <Layout>
         <Speakers />
       </Layout>
     ),
+    auth: true,
+    permissions: [Permission.EDIT_SPEAKERS],
   },
   {
     path: "/records",
+    icon: FiFile,
+    name: Page.Records,
     element: (
       <Layout>
         <Records />
       </Layout>
     ),
+    auth: true,
+    permissions: [Permission.EDIT_RECORDS],
   },
   {
     path: "/users",
+    icon: FiUser,
+    name: Page.Users,
     element: (
       <Layout>
         <Users />
       </Layout>
     ),
+    auth: true,
+    permissions: [Permission.EDIT_RECORDS],
   },
   {
     path: "/profile",
@@ -64,3 +89,5 @@ export const privateRoutes: Array<PathRouteProps> = [
     ),
   },
 ];
+
+export default routes;

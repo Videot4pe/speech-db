@@ -2,6 +2,7 @@ package records
 
 import (
 	"backend/internal/domain/files"
+	"backend/internal/domain/roles"
 	"backend/pkg/auth"
 	"backend/pkg/client/postgresql/model"
 	"backend/pkg/client/s3"
@@ -39,10 +40,10 @@ func NewRecordsHandler(ctx context.Context, storage *Storage, filesStorage *file
 }
 
 func (h *Handler) Register(router *httprouter.Router) {
-	router.GET(listURL, auth.RequireAuth(h.All))
-	router.GET(viewURL, auth.RequireAuth(h.View))
-	router.POST(listURL, auth.RequireAuth(h.Create))
-	router.PATCH(listURL, auth.RequireAuth(h.Update))
+	router.GET(listURL, auth.RequireAuth(h.All, nil))
+	router.GET(viewURL, auth.RequireAuth(h.View, nil))
+	router.POST(listURL, auth.RequireAuth(h.Create, []string{roles.EditRecords}))
+	router.PATCH(listURL, auth.RequireAuth(h.Update, []string{roles.EditRecords}))
 }
 
 func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

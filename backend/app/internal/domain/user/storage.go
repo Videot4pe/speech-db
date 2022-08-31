@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/dchest/uniuri"
+	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"math"
 
@@ -145,9 +146,13 @@ func (s *Storage) GetById(id uint16) (*User, error) {
 
 	var user User
 
-	query := s.queryBuilder.Select("id", "email", "username", "name", "surname", "patronymic", "is_active", "avatar_id").
-		From("users").
-		Where(sq.Eq{"id": id})
+	query := s.queryBuilder.Select("u.id", "u.email", "u.username", "u.name", "u.surname", "u.patronymic", "u.is_active", "u.avatar_id", "array_agg(p.name)").
+		From("users as u").
+		Where(sq.Eq{"u.id": id}).
+		Join("roles as r on r.id = u.role_id").
+		Join("roles_permissions as rp on rp.role_id = r.id").
+		Join("permissions as p on rp.permission_id = p.id").
+		GroupBy("u.id")
 
 	sql, args, err := query.ToSql()
 	logger := s.queryLogger(sql, table, args)
@@ -160,7 +165,7 @@ func (s *Storage) GetById(id uint16) (*User, error) {
 	logger.Trace("do query")
 	row := s.client.QueryRow(s.ctx, sql, args...)
 
-	if err = row.Scan(&user.Id, &user.Email, &user.Username, &user.Name, &user.Surname, &user.Patronymic, &user.IsActive, &user.AvatarId); err != nil {
+	if err = row.Scan(&user.Id, &user.Email, &user.Username, &user.Name, &user.Surname, &user.Patronymic, &user.IsActive, &user.AvatarId, (*pq.StringArray)(&user.Permissions)); err != nil {
 		err = db.ErrScan(err)
 		logger.Error(err)
 		return nil, err
@@ -169,38 +174,42 @@ func (s *Storage) GetById(id uint16) (*User, error) {
 	return &user, nil
 }
 
-func (s *Storage) GetByCredentials(email, password string) (uint16, bool, error) {
+func (s *Storage) GetByCredentials(email, password string) (uint16, bool, []string, error) {
 
 	var user User
 
-	query := s.queryBuilder.Select("id", "password", "is_active", "is_verified").
-		From("users").
-		Where(sq.Eq{"email": email})
+	query := s.queryBuilder.Select("u.id", "u.password", "u.is_active", "u.is_verified", "array_agg(p.name)").
+		From("users as u").
+		Where(sq.Eq{"u.email": email}).
+		Join("roles as r on r.id = u.role_id").
+		Join("roles_permissions as rp on rp.role_id = r.id").
+		Join("permissions as p on rp.permission_id = p.id").
+		GroupBy("u.id")
 
 	sql, args, err := query.ToSql()
 	logger := s.queryLogger(sql, table, args)
 	if err != nil {
 		err = db.ErrCreateQuery(err)
 		logger.Error(err)
-		return 0, false, err
+		return 0, false, nil, err
 	}
 
 	logger.Trace("do query")
 	row := s.client.QueryRow(s.ctx, sql, args...)
 
-	if err = row.Scan(&user.Id, &user.Password, &user.IsActive, &user.IsVerified); err != nil {
+	if err = row.Scan(&user.Id, &user.Password, &user.IsActive, &user.IsVerified, (*pq.StringArray)(&user.Permissions)); err != nil {
 		err = db.ErrScan(err)
 		logger.Error(err)
-		return 0, false, err
+		return 0, false, nil, err
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		err = db.ErrScan(err)
 		logger.Error(err)
-		return 0, false, err
+		return 0, false, nil, err
 	}
 
-	return user.Id, user.IsVerified, nil
+	return user.Id, user.IsVerified, user.Permissions, nil
 }
 
 func (s *Storage) Update(id uint16, user User) error {

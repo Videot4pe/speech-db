@@ -10,21 +10,16 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useAtom } from "jotai";
+import * as R from "ramda";
 import type { ReactElement } from "react";
 import type React from "react";
 import type { IconType } from "react-icons";
-import {
-  FiFile,
-  FiList,
-  FiSpeaker,
-  FiUser,
-  ImExit,
-  ImProfile,
-} from "react-icons/all";
-import { FiHome } from "react-icons/fi";
+import { ImExit, ImProfile } from "react-icons/all";
 import { useLocation, useNavigate, Link as ReachLink } from "react-router-dom";
 
-import { jwtToken } from "../store";
+import type { IRoutes } from "../router/routes";
+import routes from "../router/routes";
+import { jwtToken, selfAtom } from "../store";
 
 import ThemeToggle from "./ThemeToggle";
 
@@ -34,22 +29,14 @@ interface ISidebarItem {
   href: string;
 }
 
-const SidebarItems: Array<ISidebarItem> = [
-  { name: "Главная", icon: FiHome, href: "/" },
-  { name: "Разметки", icon: FiList, href: "/markups" },
-  { name: "Спикеры", icon: FiSpeaker, href: "/speakers" },
-  { name: "Записи", icon: FiFile, href: "/records" },
-  { name: "Пользователи", icon: FiUser, href: "/users" },
-];
-
 interface SidebarItemProps extends BoxProps {
-  item: ISidebarItem;
+  item: IRoutes;
 }
 
 const SidebarItem: React.FC<SidebarItemProps> = ({
   item,
 }: SidebarItemProps): ReactElement => {
-  const { name, icon, href } = item;
+  const { name, icon, path } = item;
   // TODO fix
   const location = useLocation();
   const { pathname } = location;
@@ -59,8 +46,8 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
       <Link
         as={ReachLink}
         _hover={{ color: "red.600" }}
-        color={href === pathname ? "red.600" : undefined}
-        to={href}
+        color={path === pathname ? "red.600" : undefined}
+        to={path}
         height="100%"
       >
         <Flex>
@@ -75,6 +62,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
 const Header = () => {
   const navigate = useNavigate();
   const [, setToken] = useAtom(jwtToken);
+  const [self] = useAtom(selfAtom);
   const handleToSignin = () => navigate("/signin");
 
   const logOut = () => {
@@ -97,9 +85,16 @@ const Header = () => {
         </Heading>
       </Link>
       <Flex>
-        {SidebarItems.map((item) => (
-          <SidebarItem key={item.name} item={item} />
-        ))}
+        {routes
+          .filter((route) => route.name && route.icon)
+          .filter(
+            (route) =>
+              !route.permissions ||
+              R.intersection(route.permissions, self?.permissions || []).length
+          )
+          .map((item) => (
+            <SidebarItem key={item.name} item={item} />
+          ))}
       </Flex>
 
       <Box marginLeft="auto">

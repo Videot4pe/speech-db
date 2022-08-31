@@ -39,7 +39,8 @@ func (oap *OAuthProvider) OAuth(authUser goth.User, w http.ResponseWriter, r *ht
 		return
 	}
 
-	jwtClaims := auth.NewJwtClaims(newUser.Email, userId)
+	// TODO permissions (?)
+	jwtClaims := auth.NewJwtClaims(newUser.Email, userId, newUser.Permissions)
 	token, err := jwtClaims.EncodeJwt()
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusUnauthorized, err.Error())
