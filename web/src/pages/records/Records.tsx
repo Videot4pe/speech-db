@@ -11,7 +11,6 @@ import {
 import { useState } from "react";
 
 import RecordsApi from "../../api/records-api";
-import SmersApi from "../../api/smers-api";
 import StyledTable from "../../components/table/StyledTable";
 import StyledTablePagination from "../../components/table/StyledTablePagination";
 import { useTableData } from "../../hooks/use-table-data";

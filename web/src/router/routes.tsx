@@ -1,11 +1,12 @@
 import { lazy } from "react";
-import { FiFile, FiSpeaker, FiUser } from "react-icons/all";
+import { FiFile, FiMousePointer, FiSpeaker, FiUser } from "react-icons/all";
 import { FiHome } from "react-icons/fi";
 import type { IconType } from "react-icons/lib";
 import type { PathRouteProps } from "react-router-dom";
 
 import Layout from "../layout";
 import { Permission } from "../models/common";
+import Markups from "../pages/markups/Markups";
 
 import Page from "./names";
 
@@ -67,6 +68,17 @@ const routes: Array<IRoutes> = [
     ),
     auth: true,
     permissions: [Permission.EDIT_RECORDS],
+  },
+  {
+    path: "/markups",
+    icon: FiMousePointer,
+    name: Page.Markups,
+    element: (
+      <Layout>
+        <Markups />
+      </Layout>
+    ),
+    auth: true,
   },
   {
     path: "/users",

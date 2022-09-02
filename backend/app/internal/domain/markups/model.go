@@ -1,26 +1,17 @@
 package markups
 
-import (
-	"backend/internal/domain/files"
-	"backend/internal/domain/speakers"
-	"time"
-)
+import "time"
 
 type Markup struct {
-	Id        uint16           `json:"id" sql:"id"`
-	Name      string           `json:"name" sql:"name"`
-	Speaker   speakers.Speaker `json:"speaker"`
-	File      files.File       `json:"file"`
-	CreatedAt time.Time        `json:"createdAt" sql:"created_at"`
+	Id        uint16    `json:"id" sql:"id"`
+	Record    string    `json:"record"`
+	CreatedAt time.Time `json:"createdAt" sql:"created_at"`
+	CreatedBy string    `json:"createdBy" sql:"created_by"`
 }
 
-type Entity struct {
-	Id         uint16    `json:"id" sql:"id"`
-	Markup     Markup    `json:"markup"`
-	Value      string    `json:"value" sql:"value"`
-	BeginTime  time.Time `json:"beginTime" sql:"begin_time"`
-	EndTime    time.Time `json:"endTime" sql:"end_time"`
-	Properties struct {
-	} `json:"properties" sql:"properties"`
+type NewMarkup struct {
+	Id        uint16    `json:"id" sql:"id"`
+	Record    uint16    `json:"record"`
 	CreatedAt time.Time `json:"createdAt" sql:"created_at"`
+	CreatedBy uint16    `json:"createdBy" sql:"created_by"`
 }

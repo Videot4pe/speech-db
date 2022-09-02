@@ -5,6 +5,7 @@ import (
 	"backend/internal/auth"
 	"backend/internal/config"
 	"backend/internal/domain/files"
+	"backend/internal/domain/markups"
 	"backend/internal/domain/records"
 	"backend/internal/domain/roles"
 	"backend/internal/domain/smer"
@@ -43,6 +44,10 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	router.ServeFiles("/uploads/*filepath", http.Dir("uploads"))
 
 	filesStorage := files.NewFilesStorage(ctx, pgClient, logger)
+
+	markupsStorage := markups.NewStorage(ctx, pgClient, logger)
+	markupsHandler := markups.NewHandler(ctx, markupsStorage, logger)
+	markupsHandler.Register(router)
 
 	rolesStorage := roles.NewRolesStorage(ctx, pgClient, logger)
 	rolesHandler := roles.NewRolesHandler(ctx, rolesStorage, logger)
