@@ -8,7 +8,9 @@ import {
   Tr,
   useDisclosure,
 } from "@chakra-ui/react";
+import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import MarkupsApi from "../../api/markups-api";
 import RecordsApi from "../../api/records-api";
@@ -45,8 +47,7 @@ const Markups = () => {
   };
 
   const onEdit = (id: number) => {
-    setActiveId(id);
-    onOpen();
+    window.location.href = `/markup/${id}`;
   };
 
   const columns = tableColumns(onRemove, onEdit);

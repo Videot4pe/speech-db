@@ -19,7 +19,7 @@ import { useLocation, useNavigate, Link as ReachLink } from "react-router-dom";
 
 import type { IRoutes } from "../router/routes";
 import routes from "../router/routes";
-import { jwtToken, selfAtom } from "../store";
+import { jwtToken, refreshJwtToken, selfAtom } from "../store";
 
 import ThemeToggle from "./ThemeToggle";
 
@@ -62,11 +62,13 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
 const Header = () => {
   const navigate = useNavigate();
   const [, setToken] = useAtom(jwtToken);
+  const [, setRefreshJwt] = useAtom(refreshJwtToken);
   const [self] = useAtom(selfAtom);
   const handleToSignin = () => navigate("/signin");
 
   const logOut = () => {
     setToken(undefined);
+    setRefreshJwt(undefined);
     handleToSignin();
   };
 
@@ -86,7 +88,7 @@ const Header = () => {
       </Link>
       <Flex>
         {routes
-          .filter((route) => route.name && route.icon)
+          .filter((route) => route.name && route.icon && !route.internal)
           .filter(
             (route) =>
               !route.permissions ||

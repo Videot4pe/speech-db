@@ -1,42 +1,51 @@
 package markups
 
 import (
+	entity2 "backend/internal/domain/entity"
 	"backend/pkg/auth"
 	"backend/pkg/client/postgresql/model"
 	"backend/pkg/logging"
 	"backend/pkg/utils"
+	websocket2 "backend/pkg/websocket"
 	"context"
 	"encoding/json"
+	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 type Handler struct {
-	logger  *logging.Logger
-	storage *Storage
-	ctx     context.Context
+	logger        *logging.Logger
+	storage       *Storage
+	entityStorage *entity2.Storage
+	ctx           context.Context
+	clients       map[*websocket.Conn]bool
 }
 
 const (
 	listURL = "/api/markups"
-	viewURL = "/api/markups/:markupId"
+	viewURL = "/api/markups/:id"
 )
 
-func NewHandler(ctx context.Context, storage *Storage, logger *logging.Logger) *Handler {
+func NewHandler(ctx context.Context, storage *Storage, entityStorage *entity2.Storage, logger *logging.Logger) *Handler {
 	return &Handler{
-		storage: storage,
-		logger:  logger,
-		ctx:     ctx,
+		storage:       storage,
+		entityStorage: entityStorage,
+		logger:        logger,
+		ctx:           ctx,
+		clients:       make(map[*websocket.Conn]bool, 0),
 	}
 }
 
 func (h *Handler) Register(router *httprouter.Router) {
 	router.GET(listURL, auth.RequireAuth(h.All, nil))
-	router.GET(viewURL, auth.RequireAuth(h.View, nil))
 	router.POST(listURL, auth.RequireAuth(h.Create, []string{}))
 	router.POST(viewURL, auth.RequireAuth(h.Update, []string{}))
+	// TODO AUTH!!!
+	router.GET(viewURL, h.Websocket)
 }
 
 func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -119,4 +128,57 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 		return
 	}
 	utils.WriteResponse(w, http.StatusOK, id)
+}
+
+func (h *Handler) InitWebsocket(_ http.ResponseWriter, _ *http.Request, ps httprouter.Params) func(ws *websocket2.Websocket) error {
+	id, err := strconv.ParseUint(ps.ByName("id"), 16, 16)
+	if err != nil {
+		h.logger.Error(err)
+	}
+
+	return func(ws *websocket2.Websocket) error {
+		entities, _, err := h.entityStorage.All(uint16(id))
+		if err != nil {
+			h.logger.Error(err)
+		}
+		byteArray, err := json.Marshal(entities)
+		if err != nil {
+			h.logger.Error(err)
+		}
+		ws.Write(1, byteArray)
+		return nil
+	}
+}
+
+func (h *Handler) Write(ws websocket2.Websocket, messageType int, data interface{}) error {
+	err := ws.Write(messageType, data)
+	// TODO log
+	return err
+}
+
+func (h *Handler) Read(message []byte) error {
+	var entity entity2.Entity
+	err := json.Unmarshal(message, &entity)
+	if err != nil {
+		h.logger.Error(err)
+		return err
+	}
+	h.logger.Println(entity)
+	_, err = h.entityStorage.Create(entity)
+	if err != nil {
+		h.logger.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	ws := websocket2.New(h.logger, h.InitWebsocket, h.Read, h.Write)
+	err := ws.Connect(w, r, ps)
+	if err != nil {
+		h.logger.Error(err)
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 }

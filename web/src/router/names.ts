@@ -3,6 +3,7 @@ const enum Page {
   Records = "Записи",
   Speakers = "Дикторы",
   Markups = "Разметки",
+  Markup = "Разметка",
   Users = "Пользователи",
 }
 

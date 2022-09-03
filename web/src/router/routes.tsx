@@ -6,7 +6,6 @@ import type { PathRouteProps } from "react-router-dom";
 
 import Layout from "../layout";
 import { Permission } from "../models/common";
-import Markups from "../pages/markups/Markups";
 
 import Page from "./names";
 
@@ -17,12 +16,15 @@ const Speakers = lazy(() => import("../pages/speakers/Speakers"));
 const Records = lazy(() => import("../pages/records/Records"));
 const Users = lazy(() => import("../pages/users/Users"));
 const Home = lazy(() => import("../pages/home/Home"));
+const Markups = lazy(() => import("../pages/markups/Markups"));
+const Markup = lazy(() => import("../pages/markup/Markup"));
 
 export interface IRoutes extends PathRouteProps {
   permissions?: string[];
   auth?: boolean;
   icon?: IconType;
   name?: string;
+  internal?: boolean;
 }
 
 const routes: Array<IRoutes> = [
@@ -76,6 +78,18 @@ const routes: Array<IRoutes> = [
     element: (
       <Layout>
         <Markups />
+      </Layout>
+    ),
+    auth: true,
+  },
+  {
+    path: "/markup/:id",
+    icon: FiMousePointer,
+    name: Page.Markup,
+    internal: true,
+    element: (
+      <Layout>
+        <Markup />
       </Layout>
     ),
     auth: true,
