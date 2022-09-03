@@ -4,8 +4,11 @@ import (
 	_ "backend/docs"
 	"backend/internal/auth"
 	"backend/internal/config"
+	entity2 "backend/internal/domain/entity"
 	"backend/internal/domain/files"
+	"backend/internal/domain/markups"
 	"backend/internal/domain/records"
+	"backend/internal/domain/roles"
 	"backend/internal/domain/smer"
 	"backend/internal/domain/speakers"
 	"backend/internal/domain/user"
@@ -42,6 +45,16 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	router.ServeFiles("/uploads/*filepath", http.Dir("uploads"))
 
 	filesStorage := files.NewFilesStorage(ctx, pgClient, logger)
+
+	entityStorage := entity2.NewStorage(ctx, pgClient, logger)
+
+	markupsStorage := markups.NewStorage(ctx, pgClient, logger)
+	markupsHandler := markups.NewHandler(ctx, markupsStorage, entityStorage, logger)
+	markupsHandler.Register(router)
+
+	rolesStorage := roles.NewRolesStorage(ctx, pgClient, logger)
+	rolesHandler := roles.NewRolesHandler(ctx, rolesStorage, logger)
+	rolesHandler.Register(router)
 
 	userStorage := user.NewUserStorage(ctx, pgClient, logger)
 	userHandler := user.NewUserHandler(ctx, userStorage, logger, filesStorage)

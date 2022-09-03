@@ -16,6 +16,7 @@ export interface UserInfo {
   id: number;
   username: string;
   email: string;
+  permissions: string[];
 }
 
 export interface ShortUser {

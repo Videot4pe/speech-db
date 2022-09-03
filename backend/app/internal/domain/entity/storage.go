@@ -1,14 +1,12 @@
-package markups
+package entity
 
 import (
 	"backend/pkg/client/postgresql"
+	db "backend/pkg/client/postgresql/model"
 	"backend/pkg/logging"
 	"backend/pkg/utils"
 	"context"
 	"fmt"
-	"math"
-
-	db "backend/pkg/client/postgresql/model"
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -30,7 +28,7 @@ func NewStorage(ctx context.Context, client postgresql.Client, logger *logging.L
 
 const (
 	scheme = "public"
-	table  = "markups"
+	table  = "entities"
 )
 
 func (s *Storage) queryLogger(sql, table string, args []interface{}) *logging.Logger {
@@ -41,18 +39,17 @@ func (s *Storage) queryLogger(sql, table string, args []interface{}) *logging.Lo
 	})
 }
 
-func (s *Storage) All(params *db.Params) ([]Markup, *utils.Meta, error) {
+func (s *Storage) All(markupId uint16) ([]Entity, *utils.Meta, error) {
 	query := s.queryBuilder.Select(
-		"m.id",
-		"f.path",
-		"m.created_at",
-		"u.email",
-	).From(fmt.Sprintf("%v as m", table)).
-		Join("records as r on r.id = m.record_id").
-		Join("files as f on f.id = r.file_id").
-		Join("users as u on u.id = m.created_by")
-
-	query = params.Apply(query)
+		"id",
+		"markup_id",
+		"value",
+		"begin_time",
+		"end_time",
+		"created_at",
+	).
+		From(scheme + "." + table).
+		Where(sq.Eq{"markup_id": markupId})
 
 	sql, args, err := query.ToSql()
 	logger := s.queryLogger(sql, table, args)
@@ -72,12 +69,12 @@ func (s *Storage) All(params *db.Params) ([]Markup, *utils.Meta, error) {
 
 	defer rows.Close()
 
-	list := make([]Markup, 0)
+	list := make([]Entity, 0)
 
 	for rows.Next() {
-		p := Markup{}
+		p := Entity{}
 		if err = rows.Scan(
-			&p.Id, &p.Record, &p.CreatedAt, &p.CreatedBy,
+			&p.Id, &p.MarkupId, &p.Value, &p.BeginTime, &p.EndTime, &p.CreatedAt,
 		); err != nil {
 			err = db.ErrScan(err)
 			logger.Error(err)
@@ -97,19 +94,19 @@ func (s *Storage) All(params *db.Params) ([]Markup, *utils.Meta, error) {
 	}
 	meta := &utils.Meta{
 		TotalItems: count,
-		TotalPages: uint64(math.Ceil(float64(count) / float64(params.Pagination.Limit))),
+		TotalPages: 0,
 	}
 
 	return list, meta, nil
 }
 
-func (s *Storage) Create(markup NewMarkup) (uint16, error) {
+func (s *Storage) Create(entity Entity) (uint16, error) {
 
 	lastInsertId := uint16(0)
 
 	query := s.queryBuilder.Insert(table).
-		Columns("record_id", "created_by").
-		Values(markup.Record, markup.CreatedBy).
+		Columns("markup_id", "value", "begin_time", "end_time").
+		Values(entity.MarkupId, entity.Value, entity.BeginTime, entity.EndTime).
 		Suffix("RETURNING id")
 
 	sql, args, err := query.ToSql()
@@ -131,38 +128,13 @@ func (s *Storage) Create(markup NewMarkup) (uint16, error) {
 	return lastInsertId, nil
 }
 
-func (s *Storage) GetById(id uint16) (*NewMarkup, error) {
-
-	var markup NewMarkup
-
-	query := s.queryBuilder.Select("id", "record_id", "created_at", "created_by").
-		From(fmt.Sprintf(table)).
-		Where(sq.Eq{"id": id})
-
-	sql, args, err := query.ToSql()
-	logger := s.queryLogger(sql, table, args)
-	if err != nil {
-		err = db.ErrCreateQuery(err)
-		logger.Error(err)
-		return nil, err
-	}
-
-	row := s.client.QueryRow(s.ctx, sql, args...)
-
-	s.logger.Trace(id)
-	if err = row.Scan(&markup.Id, &markup.Record, &markup.CreatedAt, &markup.CreatedBy); err != nil {
-		err = db.ErrScan(err)
-		logger.Error(err)
-		return nil, err
-	}
-
-	return &markup, nil
-}
-
-func (s *Storage) Update(id uint16, markup NewMarkup) error {
+func (s *Storage) Update(id uint16, entity Entity) error {
 
 	query := s.queryBuilder.Update(table).
-		Set("record_id", markup.Record).
+		Set("markup_id", entity.MarkupId).
+		Set("value", entity.Value).
+		Set("begin_time", entity.BeginTime).
+		Set("end_time", entity.EndTime).
 		Where(sq.Eq{"id": id})
 
 	sql, args, err := query.ToSql()
