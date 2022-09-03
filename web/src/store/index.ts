@@ -1,17 +1,10 @@
 import { atom } from "jotai";
 
 import AuthApi from "../api/auth-api";
-import RolesApi from "../api/roles-api";
-import type { ShortUser, UserInfo } from "../models/user";
+import type { ShortUser } from "../models/user";
 
-const token = atom<string | undefined>(
-  localStorage.getItem("jwt-token") ?? undefined
-);
-const refreshToken = atom<string | undefined>(
-  localStorage.getItem("jwt-token") ?? undefined
-);
-const permissions = atom<string[]>([]);
-const self = atom<UserInfo | undefined>(undefined);
+const token = atom(localStorage.getItem("jwt-token") ?? undefined);
+const refreshToken = atom(localStorage.getItem("jwt-token") ?? undefined);
 
 export const jwtToken = atom(
   (get) => get(token),
@@ -37,33 +30,15 @@ export const refreshJwtToken = atom(
   }
 );
 
-export const selfAtom = atom(
-  (get) => {
-    // TODO fix (?)
-    const selfString = localStorage.getItem("self");
-    return selfString ? JSON.parse(selfString) : get(self);
-  },
-  async (_get, set) => {
+export const signinAtom = atom(
+  (get) => get(jwtToken),
+  async (_get, set, user: ShortUser) => {
     try {
-      const userInfo = await AuthApi.self();
-      set(self, userInfo);
-      localStorage.setItem("self", JSON.stringify(userInfo));
+      const newToken = await AuthApi.signin(user);
+      set(jwtToken, newToken);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
-    }
-  }
-);
-
-export const permissionsAtom = atom(
-  (get) => get(permissions),
-  async (_get, set) => {
-    try {
-      const list = await RolesApi.permissions();
-      set(permissions, list);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log(error);
     }
   }
 );

@@ -62,7 +62,7 @@ func (h *Handler) Register(router *httprouter.Router) {
 	router.GET(activateURL, h.Activate)
 	router.POST(passwordResetURL, h.PasswordReset)
 	router.GET(passwordResetWebhookURL, h.PasswordResetWebhook)
-	router.GET(selfURL, auth.RequireAuth(h.GetSelf, nil))
+	router.GET(selfURL, auth.RequireAuth(h.GetSelf))
 }
 
 func (h *Handler) Signin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -80,7 +80,7 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 		return
 	}
 
-	userId, isVerified, permissions, err := h.storage.GetByCredentials(credentials.Email, credentials.Password)
+	userId, isVerified, err := h.storage.GetByCredentials(credentials.Email, credentials.Password)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusUnauthorized, err.Error())
 		return
@@ -90,10 +90,10 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 		return
 	}
 
-	jwtClaims := auth.NewJwtClaims(credentials.Email, userId, permissions)
+	jwtClaims := auth.NewJwtClaims(credentials.Email, userId)
 	token, err := jwtClaims.EncodeJwt()
 
-	refreshJwtClaims := auth.NewJwtClaims(token, userId, permissions)
+	refreshJwtClaims := auth.NewJwtClaims(token, userId)
 	refreshToken, err := refreshJwtClaims.EncodeJwt()
 
 	err = h.storage.UpdateRefreshToken(refreshToken, userId)
@@ -139,7 +139,6 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	}
 
 	userId, err := h.storage.IsRefreshTokenActual(payload.Token)
-	user, err := h.storage.GetById(userId)
 	if err != nil {
 		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusUnauthorized, err.Error())
@@ -157,10 +156,10 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.P
 		return
 	}
 
-	jwtClaims := auth.NewJwtClaims(userInfo.Email, userId, user.Permissions)
+	jwtClaims := auth.NewJwtClaims(userInfo.Email, userId)
 	payload.Token, err = jwtClaims.EncodeJwt()
 
-	refreshJwtClaims := auth.NewJwtClaims(payload.Token, userId, user.Permissions)
+	refreshJwtClaims := auth.NewJwtClaims(payload.Token, userId)
 	refreshToken, err := refreshJwtClaims.EncodeJwt()
 
 	err = h.storage.UpdateRefreshToken(refreshToken, userId)

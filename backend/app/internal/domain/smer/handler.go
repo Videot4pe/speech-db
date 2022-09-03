@@ -34,11 +34,11 @@ func NewSmerHandler(ctx context.Context, storage *Storage, logger *logging.Logge
 }
 
 func (h *Handler) Register(router *httprouter.Router) {
-	router.GET(smersURL, auth.RequireAuth(h.GetSmers, nil))
-	router.POST(smersURL, auth.RequireAuth(h.CreateSmer, nil))
-	router.GET(smerURL, auth.RequireAuth(h.GetSmer, nil))
-	router.PATCH(smerURL, auth.RequireAuth(h.UpdateSmer, nil))
-	router.DELETE(smerURL, auth.RequireAuth(h.DeleteSmer, nil))
+	router.GET(smersURL, auth.RequireAuth(h.GetSmers))
+	router.POST(smersURL, auth.RequireAuth(h.CreateSmer))
+	router.GET(smerURL, auth.RequireAuth(h.GetSmer))
+	router.PATCH(smerURL, auth.RequireAuth(h.UpdateSmer))
+	router.DELETE(smerURL, auth.RequireAuth(h.DeleteSmer))
 }
 
 func (h *Handler) GetSmers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

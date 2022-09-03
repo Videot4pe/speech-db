@@ -9,6 +9,7 @@ import EnvironmentPlugin from "vite-plugin-environment";
 export default defineConfig({
   plugins: [
     react({ babel: { plugins: [jotaiDebugLabel, jotaiReactRefresh] } }),
+    EnvironmentPlugin(["SERVER_URL"]),
   ],
   resolve: {
     alias: {

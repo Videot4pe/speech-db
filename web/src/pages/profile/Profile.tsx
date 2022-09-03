@@ -83,7 +83,7 @@ const Profile = (props: HTMLChakraProps<"form">) => {
             height={200}
             src={
               user.avatarId
-                ? `${import.meta.env.VITE_SERVER_URL}/${user.avatar}`
+                ? `${process.env.SERVER_URL}/${user.avatar}`
                 : user.avatar
             }
             onClick={onOpen}
@@ -102,7 +102,7 @@ const Profile = (props: HTMLChakraProps<"form">) => {
                     onClose={onCloseImage}
                     src={
                       user.avatarId && user.avatar
-                        ? `${import.meta.env.VITE_SERVER_URL}/${user.avatar}`
+                        ? `${process.env.SERVER_URL}/${user.avatar}`
                         : user.avatar
                     }
                   />

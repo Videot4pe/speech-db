@@ -9,19 +9,17 @@ import (
 
 type JwtClaims struct {
 	jwt.StandardClaims
-	Email       string   `json:"email,omitempty"`
-	Id          uint16   `json:"id,omitempty"`
-	Permissions []string `json:"permissions"`
+	Email string `json:"email,omitempty"`
+	Id    uint16 `json:"id,omitempty"`
 }
 
-func NewJwtClaims(email string, id uint16, permissions []string) *JwtClaims {
+func NewJwtClaims(email string, id uint16) *JwtClaims {
 
 	expireToken := time.Now().Add(time.Minute * 10).Unix()
 
 	return &JwtClaims{
-		Email:       email,
-		Id:          id,
-		Permissions: permissions,
+		Email: email,
+		Id:    id,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expireToken,
 			Issuer:    "smer-auth",

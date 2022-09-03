@@ -8,44 +8,30 @@
  * - https://reactrouter.com/docs/en/v6/upgrading/v5#note-on-link-to-values
  */
 
-import { useAtom } from "jotai";
-import { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 
 import RequireAuth from "../components/auth/RequireAuth";
 import Page404 from "../pages/404/Page404";
-import { permissionsAtom, selfAtom } from "../store";
 
-import type { IRoutes } from "./routes";
-import routes from "./routes";
+import { routes, privateRoutes } from "./routes";
 
 const Routings = () => {
-  const [, setPermissions] = useAtom(permissionsAtom);
-  const [, setSelf] = useAtom(selfAtom);
-
-  useEffect(() => {
-    setPermissions().catch(console.error);
-    setSelf().catch(console.error);
-  }, []);
-
   return (
     <Routes>
-      {routes.map((route: IRoutes) => (
+      {routes.map((routeProps) => (
+        <Route {...routeProps} key={routeProps.path as string} />
+      ))}
+      {privateRoutes.map(({ element, ...privateRouteProps }) => (
         <Route
-          {...route}
           element={
-            route.auth === true ? (
-              <RequireAuth
-                redirectTo={`/signin?redirectTo=${route.path}`}
-                permissions={route.permissions}
-              >
-                {route.element}
-              </RequireAuth>
-            ) : (
-              route.element
-            )
+            <RequireAuth
+              redirectTo={`/signin?redirectTo=${privateRouteProps.path}`}
+            >
+              {element}
+            </RequireAuth>
           }
-          key={`${route.path as string}`}
+          {...privateRouteProps}
+          key={`privateRoute-${privateRouteProps.path}`}
         />
       ))}
       <Route path="*" element={<Page404 />} />

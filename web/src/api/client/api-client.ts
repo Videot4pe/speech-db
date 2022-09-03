@@ -6,7 +6,7 @@ import AuthApi from "../auth-api";
 import type { JsonApiDocument } from "./json-api-document";
 
 export const getClient = (url: string) => {
-  const baseUrl = import.meta.env.VITE_SERVER_URL;
+  const baseUrl = process.env.SERVER_URL;
   const options: AxiosRequestConfig = {
     // WithCredentials: true,
     baseURL: `${baseUrl}/api/${url}`,

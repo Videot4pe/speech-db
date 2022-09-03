@@ -1,7 +1,6 @@
 package user
 
 import (
-	"backend/internal/domain/roles"
 	"backend/pkg/auth"
 	"backend/pkg/client/postgresql/model"
 	"backend/pkg/logging"
@@ -43,11 +42,11 @@ func NewUserHandler(ctx context.Context, storage *Storage, logger *logging.Logge
 }
 
 func (h *Handler) Register(router *httprouter.Router) {
-	router.GET(usersURL, auth.RequireAuth(h.GetUsers, []string{roles.EditUsers}))
-	router.GET(userURL, auth.RequireAuth(h.GetUser, []string{roles.EditUsers}))
-	router.PATCH(usersURL, auth.RequireAuth(h.UpdateUser, []string{roles.EditUsers}))
-	router.PATCH(userURL, auth.RequireAuth(h.UpdateUser, []string{roles.EditUsers}))
-	router.DELETE(usersURL, auth.RequireAuth(h.DeleteUser, []string{roles.EditUsers}))
+	router.GET(usersURL, auth.RequireAuth(h.GetUsers))
+	router.GET(userURL, auth.RequireAuth(h.GetUser))
+	router.PATCH(usersURL, auth.RequireAuth(h.UpdateUser))
+	router.PATCH(userURL, auth.RequireAuth(h.UpdateUser))
+	router.DELETE(usersURL, auth.RequireAuth(h.DeleteUser))
 }
 
 func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
