@@ -1,10 +1,14 @@
-import { Button, Container } from "@chakra-ui/react";
+import { Button, Container, useToast } from "@chakra-ui/react";
 import { useAtom } from "jotai";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
+import MarkupsApi from "../../api/markups-api";
+import Waveform from "../../lib/waveform/Waveform";
+import type { MarkupDto } from "../../models/markup";
 import { jwtToken } from "../../store";
+import { useErrorHandler } from "../../utils/handle-get-error";
 
 const Markup = () => {
   const onCreateEntity = () => {};
@@ -12,9 +16,27 @@ const Markup = () => {
   const { id } = params;
   const [jwt] = useAtom(jwtToken);
 
+  const [markup, setMarkup] = useState<MarkupDto | undefined>();
+  const [isLoading, setIsLoading] = useState(false);
+  const errorHandler = useErrorHandler();
+  const waveform = useMemo(() => new Waveform(), []);
+
+  useEffect(() => {
+    if (id) {
+      setIsLoading(true);
+      MarkupsApi.view(+id)
+        .then((payload) => {
+          setMarkup(payload);
+          waveform.setFile(payload.record);
+        })
+        .catch(errorHandler)
+        .finally(() => setIsLoading(false));
+    }
+  }, [id]);
+
   const socketUrl = `${import.meta.env.VITE_WS}${
     import.meta.env.VITE_WS_URL
-  }/api/markups/${id}?token=${jwt}`;
+  }/api/ws/markups/${id}?token=${jwt}`;
 
   const [messageHistory, setMessageHistory] = useState([]);
 
@@ -57,6 +79,8 @@ const Markup = () => {
         disabled={readyState !== ReadyState.OPEN}
       >
         Click Me to send 'Hello'
+        {waveform.fileUrl}
+        {waveform.fileObject}
       </button>
       <span>The WebSocket is currently {connectionStatus}</span>
       {lastMessage ? <span>Last message: {lastMessage.data}</span> : null}

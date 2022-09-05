@@ -13,6 +13,13 @@ type Message struct {
 	Data        interface{} `json:"data"`
 }
 
+/*
+clients - соединения
+init - функция высшего порядка, возвращает функцию, вызываемую при соединении
+read - функция, вызываемая при новом сообщении
+write - функция, вызываемая при отправке сообщения
+*/
+
 type Websocket struct {
 	upgrader websocket.Upgrader
 	logger   *logging.Logger
@@ -75,6 +82,9 @@ func (ws *Websocket) Connect(w http.ResponseWriter, r *http.Request, ps httprout
 }
 
 func (ws *Websocket) Write(messageType int, data interface{}) error {
+
+	// TODO реализовать messageType enum
+
 	message := &Message{
 		MessageType: messageType,
 		Data:        data,
