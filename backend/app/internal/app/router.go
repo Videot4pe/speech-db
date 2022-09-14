@@ -57,7 +57,7 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	rolesHandler.Register(router)
 
 	userStorage := user.NewUserStorage(ctx, pgClient, logger)
-	userHandler := user.NewUserHandler(ctx, userStorage, logger, filesStorage)
+	userHandler := user.NewUserHandler(ctx, userStorage, logger, filesStorage, s3Client)
 	userHandler.Register(router)
 
 	authHandler := auth.NewAuthHandler(ctx, userStorage, filesStorage, logger, config)

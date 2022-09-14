@@ -131,13 +131,16 @@ func (s *Storage) Create(markup NewMarkup) (uint16, error) {
 	return lastInsertId, nil
 }
 
-func (s *Storage) GetById(id uint16) (*NewMarkup, error) {
+func (s *Storage) GetById(id uint16) (*Markup, error) {
 
-	var markup NewMarkup
+	var markup Markup
 
-	query := s.queryBuilder.Select("id", "record_id", "created_at", "created_by").
-		From(fmt.Sprintf(table)).
-		Where(sq.Eq{"id": id})
+	query := s.queryBuilder.Select("m.id", "f.path", "m.created_at", "u.email").
+		From(fmt.Sprintf("%v as m", table)).
+		Where(sq.Eq{"m.id": id}).
+		Join("records as r on r.id = m.record_id").
+		Join("files as f on f.id = r.file_id").
+		Join("users as u on u.id = m.created_by")
 
 	sql, args, err := query.ToSql()
 	logger := s.queryLogger(sql, table, args)

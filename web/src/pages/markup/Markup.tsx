@@ -1,10 +1,15 @@
-import { Button, Container } from "@chakra-ui/react";
+import { Container } from "@chakra-ui/react";
 import { useAtom } from "jotai";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
+import MarkupsApi from "../../api/markups-api";
+import Waveform from "../../components/waveform/Waveform";
+import AudioWaveform from "../../lib/waveform/audio-waveform";
+import type { MarkupDto } from "../../models/markup";
 import { jwtToken } from "../../store";
+import { useErrorHandler } from "../../utils/handle-get-error";
 
 const Markup = () => {
   const onCreateEntity = () => {};
@@ -12,9 +17,25 @@ const Markup = () => {
   const { id } = params;
   const [jwt] = useAtom(jwtToken);
 
+  const [markup, setMarkup] = useState<MarkupDto | undefined>();
+  const [isLoading, setIsLoading] = useState(false);
+  const errorHandler = useErrorHandler();
+
+  useEffect(() => {
+    if (id) {
+      setIsLoading(true);
+      MarkupsApi.view(+id)
+        .then((payload) => {
+          setMarkup(payload);
+        })
+        .catch(errorHandler)
+        .finally(() => setIsLoading(false));
+    }
+  }, [id]);
+
   const socketUrl = `${import.meta.env.VITE_WS}${
     import.meta.env.VITE_WS_URL
-  }/api/markups/${id}?token=${jwt}`;
+  }/api/ws/markups/${id}?token=${jwt}`;
 
   const [messageHistory, setMessageHistory] = useState([]);
 
@@ -49,22 +70,25 @@ const Markup = () => {
 
   return (
     <Container>
-      <div>Markup {params.id} </div>
-      <Button onClick={onCreateEntity}>Add entity</Button>
+      <Waveform url={markup?.record} />
+      {/* <div>Markup {params.id} </div> */}
+      {/* <Button onClick={onCreateEntity}>Add entity</Button> */}
 
-      <button
-        onClick={handleClickSendMessage}
-        disabled={readyState !== ReadyState.OPEN}
-      >
-        Click Me to send 'Hello'
-      </button>
-      <span>The WebSocket is currently {connectionStatus}</span>
-      {lastMessage ? <span>Last message: {lastMessage.data}</span> : null}
-      <ul>
-        {messageHistory.map((message, idx) => (
-          <span key={idx}>{message ? message.data : null}</span>
-        ))}
-      </ul>
+      {/* <button */}
+      {/*  onClick={handleClickSendMessage} */}
+      {/*  disabled={readyState !== ReadyState.OPEN} */}
+      {/* > */}
+      {/*  Click Me to send 'Hello' */}
+      {/*  {waveform.fileUrl} */}
+      {/*  {waveform.fileObject} */}
+      {/* </button> */}
+      {/* <span>The WebSocket is currently {connectionStatus}</span> */}
+      {/* {lastMessage ? <span>Last message: {lastMessage.data}</span> : null} */}
+      {/* <ul> */}
+      {/*  {messageHistory.map((message, idx) => ( */}
+      {/*    <span key={idx}>{message ? message.data : null}</span> */}
+      {/*  ))} */}
+      {/* </ul> */}
     </Container>
   );
 };

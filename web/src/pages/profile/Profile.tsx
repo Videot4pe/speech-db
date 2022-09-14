@@ -26,6 +26,7 @@ import UsersApi from "../../api/users-api";
 import type { User } from "../../models/user";
 import { useErrorHandler } from "../../utils/handle-get-error";
 import { useSuccessHandler } from "../../utils/handle-success";
+import { AiOutlineUser } from "react-icons/ai";
 
 const Profile = (props: HTMLChakraProps<"form">) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -81,11 +82,8 @@ const Profile = (props: HTMLChakraProps<"form">) => {
           <UserAvatar
             width={200}
             height={200}
-            src={
-              user.avatarId
-                ? `${import.meta.env.VITE_SERVER_URL}/${user.avatar}`
-                : user.avatar
-            }
+            src={user.avatar}
+            icon={<AiOutlineUser fontSize="1.5rem" />}
             onClick={onOpen}
           />
           <Modal isOpen={isOpen} onClose={onClose}>
@@ -100,11 +98,7 @@ const Profile = (props: HTMLChakraProps<"form">) => {
                     height={250}
                     onCrop={onCropImage}
                     onClose={onCloseImage}
-                    src={
-                      user.avatarId && user.avatar
-                        ? `${import.meta.env.VITE_SERVER_URL}/${user.avatar}`
-                        : user.avatar
-                    }
+                    src={user.avatar}
                   />
                 </Center>
               </ModalBody>

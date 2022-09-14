@@ -16,7 +16,7 @@ const BaseCrud = <TTable, T>(url: string) => {
           return stringify(params);
         },
       }),
-    view: (id: number) => client.get<T>(`/${id}`),
+    view: (id: number) => client.get<TTable>(`/${id}`),
     create: (data: T) => client.post<number>("", data),
     update: (id: number, data: T) => client.patch<number>(`/${id}`, data),
     remove: (id: number) => client.delete<number>(`/${id}`),

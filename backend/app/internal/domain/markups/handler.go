@@ -26,8 +26,9 @@ type Handler struct {
 }
 
 const (
-	listURL = "/api/markups"
-	viewURL = "/api/markups/:id"
+	listURL      = "/api/markups"
+	viewURL      = "/api/markups/:markupId"
+	websocketURL = "/api/ws/markups/:id"
 )
 
 func NewHandler(ctx context.Context, storage *Storage, entityStorage *entity2.Storage, logger *logging.Logger) *Handler {
@@ -42,10 +43,11 @@ func NewHandler(ctx context.Context, storage *Storage, entityStorage *entity2.St
 
 func (h *Handler) Register(router *httprouter.Router) {
 	router.GET(listURL, auth.RequireAuth(h.All, nil))
+	router.GET(viewURL, auth.RequireAuth(h.View, nil))
 	router.POST(listURL, auth.RequireAuth(h.Create, []string{}))
 	router.POST(viewURL, auth.RequireAuth(h.Update, []string{}))
 	// TODO AUTH!!!
-	router.GET(viewURL, h.Websocket)
+	router.GET(websocketURL, h.Websocket)
 }
 
 func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -71,14 +73,17 @@ func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 }
 
 func (h *Handler) View(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	id := r.Context().Value("userId").(uint16)
-	user, err := h.storage.GetById(id)
-
+	id, err := strconv.ParseUint(ps.ByName("markupId"), 16, 16)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	markup, err := h.storage.GetById(uint16(id))
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 		return
 	}
-	utils.WriteResponse(w, http.StatusOK, user)
+	utils.WriteResponse(w, http.StatusOK, markup)
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
