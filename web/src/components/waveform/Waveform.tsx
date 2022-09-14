@@ -23,18 +23,18 @@ const Waveform = ({ url }: { url: string | undefined }) => {
 
   useEffect(() => {
     // Create our scales to map our data values(domain) to coordinate values(range)
-    let xScale = d3.scaleLinear().domain([0, 15]).range([0, 300]);
-    let yScale = d3.scaleLinear().domain([0, 100]).range([300, 0]); // Since the SVG y starts at the top, we are inverting the 0 and 300.
+    const xScale = d3.scaleLinear().domain([0, 15]).range([0, 300]);
+    const yScale = d3.scaleLinear().domain([0, 100]).range([300, 0]); // Since the SVG y starts at the top, we are inverting the 0 and 300.
 
     // Generate a path with D3 based on the scaled data values
-    let line = d3
+    const line = d3
       .line()
       .x((dt) => xScale(dt))
       .y((dt) => yScale(dt));
 
     // Generate the x and y Axis based on these scales
-    let xAxis = d3.axisBottom(xScale);
-    let yAxis = d3.axisLeft(yScale);
+    const xAxis = d3.axisBottom(xScale);
+    const yAxis = d3.axisLeft(yScale);
 
     // Create the horizontal base line
     d3.select("#LineChart")
@@ -56,7 +56,7 @@ const Waveform = ({ url }: { url: string | undefined }) => {
     // Append the Axis to our LineChart svg
     d3.select("#LineChart")
       .append("g")
-      .attr("transform", "translate(0, " + 300 + ")")
+      .attr("transform", `translate(0, ${300})`)
       .call(xAxis);
 
     d3.select("#LineChart")

@@ -89,21 +89,21 @@ class ApiClient {
       .catch((error) => Promise.reject(error));
   }
 
-  post<T>(url: string, data = {}, conf = {}) {
+  post<T>(url: string, data: any = {}, conf = {}) {
     return this.client
       .post<JsonApiDocument<T>>(this.client.defaults.baseURL + url, data, conf)
       .then((response) => Promise.resolve(response.data.data))
       .catch((error) => Promise.reject(error));
   }
 
-  put<T>(url: string, data = {}, conf = {}) {
+  put<T>(url: string, data: any = {}, conf = {}) {
     return this.client
       .put<T>(this.client.defaults.baseURL + url, data, conf)
       .then((response) => Promise.resolve(response.data))
       .catch((error) => Promise.reject(error));
   }
 
-  patch<T>(url: string, data = {}, conf = {}) {
+  patch<T>(url: string, data: any = {}, conf = {}) {
     return this.client
       .patch<T>(this.client.defaults.baseURL + url, data, conf)
       .then((response) => Promise.resolve(response.data))

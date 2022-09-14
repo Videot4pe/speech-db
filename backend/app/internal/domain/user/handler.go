@@ -47,7 +47,6 @@ func NewUserHandler(ctx context.Context, storage *Storage, logger *logging.Logge
 func (h *Handler) Register(router *httprouter.Router) {
 	router.GET(usersURL, auth.RequireAuth(h.List, []string{roles.EditUsers}))
 	router.GET(userURL, auth.RequireAuth(h.View, []string{roles.EditUsers}))
-	router.PATCH(usersURL, auth.RequireAuth(h.Update, []string{roles.EditUsers}))
 	router.PATCH(userURL, auth.RequireAuth(h.Update, []string{roles.EditUsers}))
 	router.DELETE(usersURL, auth.RequireAuth(h.Delete, []string{roles.EditUsers}))
 }
@@ -128,7 +127,11 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request, _ httproute
 }
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	id := r.Context().Value("userId").(uint16)
+	id, err := strconv.ParseUint(ps.ByName("userId"), 16, 16)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	var user User
 

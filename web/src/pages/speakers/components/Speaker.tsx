@@ -1,6 +1,4 @@
-import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
-  Box,
   Button,
   FormControl,
   FormLabel,

@@ -20,13 +20,13 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import Avatar from "react-avatar-edit";
+import { AiOutlineUser } from "react-icons/ai";
 
 import AuthApi from "../../api/auth-api";
 import UsersApi from "../../api/users-api";
 import type { User } from "../../models/user";
 import { useErrorHandler } from "../../utils/handle-get-error";
 import { useSuccessHandler } from "../../utils/handle-success";
-import { AiOutlineUser } from "react-icons/ai";
 
 const Profile = (props: HTMLChakraProps<"form">) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -82,7 +82,7 @@ const Profile = (props: HTMLChakraProps<"form">) => {
           <UserAvatar
             width={200}
             height={200}
-            src={user.avatar}
+            src={user.avatar || undefined}
             icon={<AiOutlineUser fontSize="1.5rem" />}
             onClick={onOpen}
           />
@@ -98,7 +98,7 @@ const Profile = (props: HTMLChakraProps<"form">) => {
                     height={250}
                     onCrop={onCropImage}
                     onClose={onCloseImage}
-                    src={user.avatar}
+                    src={user.avatar || undefined}
                   />
                 </Center>
               </ModalBody>
@@ -122,6 +122,7 @@ const Profile = (props: HTMLChakraProps<"form">) => {
               name="email"
               type="email"
               autoComplete="email"
+              disabled={true}
               required
             />
           </FormControl>

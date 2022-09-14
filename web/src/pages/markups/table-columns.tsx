@@ -1,7 +1,6 @@
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { Center, IconButton, Link } from "@chakra-ui/react";
 import moment from "moment";
-import type { Column } from "react-table";
 
 import type { MarkupDto } from "../../models/markup";
 
@@ -9,7 +8,8 @@ const tableColumns = (
   onRemove: (id: number) => void,
   onEdit: (id: number) => void
 ) => {
-  const columns: Column[] = [
+  // TODO fix any type (!)
+  const columns: any[] = [
     {
       Header: "Id",
       accessor: "id",

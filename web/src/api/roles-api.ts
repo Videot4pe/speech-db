@@ -3,5 +3,7 @@ import { ApiClient } from "./client/api-client";
 const client = new ApiClient("roles");
 
 export default {
-  permissions: () => client.get<string[]>("/permissions"),
+  list: () =>
+    client.get<{ id: number; name: string; permissions: number[] }[]>(""),
+  permissions: () => client.get<{ id: number; name: string }[]>("/permissions"),
 };

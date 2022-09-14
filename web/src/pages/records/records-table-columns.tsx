@@ -1,7 +1,6 @@
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { Center, IconButton } from "@chakra-ui/react";
 import moment from "moment";
-import type { Column } from "react-table";
 
 import type { RecordDto } from "../../models/record";
 
@@ -9,7 +8,7 @@ const recordsTableColumns = (
   onRemove: (id: number) => void,
   onEdit: (id: number) => void
 ) => {
-  const columns: Column[] = [
+  const columns: any[] = [
     {
       Header: "Id",
       accessor: "id",
@@ -37,18 +36,19 @@ const recordsTableColumns = (
       Header: "Actions",
       // TODO fix data type
       Cell: (data: any) => {
+        const { id } = data.row.original;
         return (
           <Center display="flex">
             <IconButton
               aria-label="edit"
               icon={<EditIcon />}
-              onClick={() => onEdit(data.row.original.id)}
+              onClick={() => onEdit(id)}
             />
             <IconButton
               ml={2}
               aria-label="remove"
               icon={<DeleteIcon />}
-              onClick={() => onRemove(data.row.original.id)}
+              onClick={() => onRemove(id)}
             />
           </Center>
         );

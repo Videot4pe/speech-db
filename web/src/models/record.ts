@@ -12,4 +12,5 @@ export interface RecordDto {
   name: string;
   file?: string;
   speaker?: SpeakerDto;
+  createdAt?: string;
 }
