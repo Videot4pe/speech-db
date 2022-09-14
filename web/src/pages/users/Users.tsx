@@ -21,6 +21,7 @@ import type { SpeakerDto } from "../../models/speaker";
 import { useErrorHandler } from "../../utils/handle-get-error";
 
 import usersTableColumns from "./users-table-columns";
+import { User } from "../../models/user";
 
 const Users = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -31,7 +32,7 @@ const Users = () => {
   const { queryParams, setPage, setLimit } = useTablePagination();
   const { sortParams, setSortParams } = useTableSort();
   const { filterParams, arrayFilterParams, setFilterParams } = useTableFilter();
-  const { data, meta, isLoading, fetch } = useTableData<SpeakerDto>(
+  const { data, meta, isLoading, fetch } = useTableData<User>(
     UsersApi.list,
     queryParams,
     arrayFilterParams,

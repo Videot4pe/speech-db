@@ -1,6 +1,7 @@
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import { Center, IconButton } from "@chakra-ui/react";
+import { Avatar, Center, IconButton } from "@chakra-ui/react";
 import moment from "moment";
+import { AiOutlineUser } from "react-icons/ai";
 import type { Column } from "react-table";
 
 import type { SmerDto } from "../../models/smer";
@@ -11,6 +12,19 @@ const usersTableColumns = (
   onEdit: (id: number) => void
 ) => {
   const columns: Column[] = [
+    {
+      Header: "Avatar",
+      Cell: (data: any) => {
+        return (
+          <Center>
+            <Avatar
+              src={data.row.original.avatar}
+              icon={<AiOutlineUser fontSize="1.5rem" />}
+            />
+          </Center>
+        );
+      },
+    },
     {
       Header: "Id",
       accessor: "id",
@@ -32,13 +46,6 @@ const usersTableColumns = (
       Header: "Email",
       accessor: "email",
       name: "email",
-      filter: true,
-    },
-    {
-      Header: "Created at",
-      name: "createdAt",
-      accessor: (row: User) =>
-        moment(row.createdAt).local().format("DD.MM.YYYY hh:mm:ss"),
       filter: true,
     },
     {
