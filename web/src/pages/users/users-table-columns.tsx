@@ -13,15 +13,14 @@ const usersTableColumns = (
 ) => {
   const columns: Column[] = [
     {
-      Header: "Avatar",
+      Header: "Ava",
+      width: "48px",
       Cell: (data: any) => {
         return (
-          <Center>
-            <Avatar
-              src={data.row.original.avatar}
-              icon={<AiOutlineUser fontSize="1.5rem" />}
-            />
-          </Center>
+          <Avatar
+            src={data.row.original.avatar}
+            icon={<AiOutlineUser fontSize="1.5rem" />}
+          />
         );
       },
     },
