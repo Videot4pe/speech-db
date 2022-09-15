@@ -1,9 +1,9 @@
 package roles
 
 type Role struct {
-	Id          uint16  `json:"id" sql:"id"`
-	Name        string  `json:"name" sql:"name"`
-	Permissions []int32 `json:"permissions"`
+	Id          uint16   `json:"id" sql:"id"`
+	Name        string   `json:"name" sql:"name"`
+	Permissions []string `json:"permissions"`
 }
 
 type Permission struct {

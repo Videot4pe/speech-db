@@ -2,6 +2,7 @@ package roles
 
 import (
 	"backend/pkg/auth"
+	"backend/pkg/client/postgresql/model"
 	"backend/pkg/logging"
 	"backend/pkg/utils"
 	"context"
@@ -34,13 +35,23 @@ func (h *Handler) Register(router *httprouter.Router) {
 }
 
 func (h *Handler) Roles(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	roles, err := h.storage.Roles()
+	pagination, err := model.NewPagination(r)
+	sorts, err := model.NewSorts(r)
+	filters, err := model.NewFilters(r)
+
+	params := model.NewParams(filters, sorts, pagination)
+
+	list, meta, err := h.storage.Roles(params)
+
 	if err != nil {
 		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	utils.WriteResponse(w, http.StatusOK, roles)
+	utils.WriteResponse(w, http.StatusOK, utils.MetaData{
+		Data: list,
+		Meta: meta,
+	})
 }
 
 func (h *Handler) Permissions(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

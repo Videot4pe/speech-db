@@ -21,23 +21,28 @@ const usersTableColumns = (
       Header: "Id",
       accessor: "id",
       name: "id",
+      sortable: true,
+      filter: true,
     },
     {
       Header: "Name",
       accessor: "name",
       name: "name",
+      sortable: true,
       filter: true,
     },
     {
       Header: "Surname",
       accessor: "surname",
       name: "surname",
+      sortable: true,
       filter: true,
     },
     {
       Header: "Email",
       accessor: "email",
       name: "email",
+      sortable: true,
       filter: true,
     },
     {

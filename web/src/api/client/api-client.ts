@@ -36,14 +36,15 @@ export const getClient = (url: string) => {
         originalRequest.retry = true;
         const refreshToken = localStorage.getItem("refresh-token");
         if (refreshToken) {
-          await AuthApi.refresh(refreshToken)
-            .then((payload) => {
-              localStorage.setItem("jwt-token", payload.token);
-              localStorage.setItem("refresh-token", payload.refreshToken);
-            })
-            .catch(() => {
-              window.location.href = "localhost:3000/signin";
-            });
+          try {
+            const payload = await AuthApi.refresh(refreshToken);
+            localStorage.setItem("jwt-token", payload.token);
+            localStorage.setItem("refresh-token", payload.refreshToken);
+          } catch (error) {
+            window.location.href = `${
+              import.meta.env.VITE_FRONTEND_URL
+            }/signin`;
+          }
           return client(originalRequest);
         }
       }

@@ -43,15 +43,15 @@ func (s *Storage) queryLogger(sql, table string, args []interface{}) *logging.Lo
 
 func (s *Storage) All(userId uint16, filters []*db.Filter, pagination *db.Pagination, sorts ...*db.Sort) ([]Record, *utils.Meta, error) {
 	query := s.queryBuilder.Select(
-		"r.id",
-		"r.name",
-		"s.name",
-		"f.path",
-		"r.created_at",
-		"r.created_by",
-	).From("records as r").
-		Join("speakers as s on s.id = r.speaker_id").
-		Join("files as f on f.id = r.file_id")
+		"records.id",
+		"records.name",
+		"speakers.name",
+		"files.path",
+		"records.created_at",
+		"records.created_by",
+	).From("records").
+		Join("speakers on speakers.id = speaker_id").
+		Join("files on files.id = file_id")
 
 	for _, filter := range filters {
 		s.logger.Trace(filter)

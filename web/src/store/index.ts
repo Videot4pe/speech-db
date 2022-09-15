@@ -73,8 +73,8 @@ export const rolesAtom = atom(
   (get) => get(roles),
   async (_get, set) => {
     try {
-      const list = await RolesApi.list();
-      set(roles, list);
+      const list = await RolesApi.roles.list({});
+      set(roles, list.data);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log(error);

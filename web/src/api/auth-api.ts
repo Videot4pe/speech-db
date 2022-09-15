@@ -15,4 +15,5 @@ export default {
   refresh: (token: string) => client.post<JwtPayload>("/refresh", { token }),
   reset: (email: string) => client.post<number>("/password-reset", email),
   self: () => client.get<UserDto>("/self"),
+  selfUpdate: (data: UserDto) => client.patch<number>("/self", data),
 };

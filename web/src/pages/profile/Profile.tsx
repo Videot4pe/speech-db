@@ -24,13 +24,13 @@ import { AiOutlineUser } from "react-icons/ai";
 
 import AuthApi from "../../api/auth-api";
 import UsersApi from "../../api/users-api";
-import type { User } from "../../models/user";
 import { useErrorHandler } from "../../utils/handle-get-error";
 import { useSuccessHandler } from "../../utils/handle-success";
+import { UserDto } from "../../models/user";
 
 const Profile = (props: HTMLChakraProps<"form">) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [user, setUser] = useState<User>({
+  const [user, setUser] = useState<UserDto>({
     avatar: null,
     email: "",
     name: "",
@@ -59,7 +59,7 @@ const Profile = (props: HTMLChakraProps<"form">) => {
   };
 
   const updateUser = () => {
-    UsersApi.selfUpdate(user)
+    AuthApi.selfUpdate(user)
       .then(() => {
         successHandler("User updated successfully");
         fetchUser();

@@ -69,7 +69,9 @@ const StyledTable = ({
                 <Th
                   whiteSpace="nowrap"
                   scope="col"
-                  {...column.getHeaderProps(column.getSortByToggleProps())}
+                  {...column.getHeaderProps(
+                    column.sortable && column.getSortByToggleProps()
+                  )}
                   isNumeric={column.isNumeric}
                 >
                   {column.render("Header")}

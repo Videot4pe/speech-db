@@ -14,15 +14,18 @@ import {
   ModalHeader,
   ModalOverlay,
   Select,
+  Skeleton,
+  SkeletonCircle,
+  SkeletonText,
   Stack,
   useToast,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import { UserDto } from "../../../models/user";
-import { useErrorHandler } from "../../../utils/handle-get-error";
-import UsersApi from "../../../api/users-api";
+import { UserDto } from "../../../../models/user";
+import { useErrorHandler } from "../../../../utils/handle-get-error";
+import UsersApi from "../../../../api/users-api";
 import { useAtom } from "jotai";
-import { rolesAtom } from "../../../store";
+import { rolesAtom } from "../../../../store";
 
 interface UserProps {
   isOpen: boolean;
@@ -65,7 +68,6 @@ const User = ({ onClose, onUserSave, isOpen, activeId }: UserProps) => {
   };
 
   const onSave = () => {
-    console.log("save");
     setIsLoading(true);
     if (activeId) {
       UsersApi.update(activeId, user)
@@ -97,62 +99,80 @@ const User = ({ onClose, onUserSave, isOpen, activeId }: UserProps) => {
         }}
       >
         <ModalContent maxH="calc(100% - 120px)">
-          <ModalHeader>{user.email}</ModalHeader>
+          <ModalHeader>
+            <SkeletonText isLoaded={!isLoading}>{user.email}</SkeletonText>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody overflowY="scroll">
             <Center>
-              <Avatar width={200} height={200} src={user.avatar} />
+              <SkeletonCircle isLoaded={!isLoading} size="200">
+                <Avatar width={200} height={200} src={user.avatar} />
+              </SkeletonCircle>
             </Center>
             <FormControl mb={4} id="email">
               <FormLabel>Role</FormLabel>
-              <Select
-                value={user.role}
-                onChange={(e) => setUser({ ...user, role: +e.target.value })}
-              >
-                {roles.map((role) => (
-                  <option value={role.id}>{role.name}</option>
-                ))}
-              </Select>
+              <Skeleton isLoaded={!isLoading}>
+                <Select
+                  value={user.role}
+                  onChange={(e) => setUser({ ...user, role: +e.target.value })}
+                >
+                  {roles.map((role) => (
+                    <option value={role.id}>{role.name}</option>
+                  ))}
+                </Select>
+              </Skeleton>
             </FormControl>
             <FormControl mb={4} id="name">
               <FormLabel>Name</FormLabel>
-              <Input
-                value={user.name}
-                onChange={(event) =>
-                  setUser({ ...user, name: event.target.value })
-                }
-                name="name"
-                type="name"
-                autoComplete="name"
-              />
+              <Skeleton isLoaded={!isLoading}>
+                <Input
+                  value={user.name}
+                  onChange={(event) =>
+                    setUser({ ...user, name: event.target.value })
+                  }
+                  name="name"
+                  type="name"
+                  autoComplete="name"
+                />
+              </Skeleton>
             </FormControl>
             <FormControl mb={4} id="name">
               <FormLabel>Surname</FormLabel>
-              <Input
-                value={user.surname}
-                onChange={(event) =>
-                  setUser({ ...user, surname: event.target.value })
-                }
-                name="surname"
-                type="surname"
-                autoComplete="surname"
-              />
+              <Skeleton isLoaded={!isLoading}>
+                <Input
+                  value={user.surname}
+                  onChange={(event) =>
+                    setUser({ ...user, surname: event.target.value })
+                  }
+                  name="surname"
+                  type="surname"
+                  autoComplete="surname"
+                />
+              </Skeleton>
             </FormControl>
             <FormControl mb={4} id="username">
               <FormLabel>Username</FormLabel>
-              <Input
-                value={user.username}
-                onChange={(event) =>
-                  setUser({ ...user, username: event.target.value })
-                }
-                name="username"
-                type="username"
-                autoComplete="username"
-              />
+              <Skeleton isLoaded={!isLoading}>
+                <Input
+                  value={user.username}
+                  onChange={(event) =>
+                    setUser({ ...user, username: event.target.value })
+                  }
+                  name="username"
+                  type="username"
+                  autoComplete="username"
+                />
+              </Skeleton>
             </FormControl>
           </ModalBody>
           <ModalFooter>
-            <Button type="submit" colorScheme="blue" size="lg" fontSize="md">
+            <Button
+              type="submit"
+              colorScheme="blue"
+              size="lg"
+              fontSize="md"
+              isLoading={isLoading}
+            >
               Update
             </Button>
           </ModalFooter>

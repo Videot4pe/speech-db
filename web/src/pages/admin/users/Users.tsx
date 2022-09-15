@@ -1,18 +1,18 @@
 import { Box, Heading, useDisclosure } from "@chakra-ui/react";
 import { useState } from "react";
 
-import UsersApi from "../../api/users-api";
-import StyledTable from "../../components/table/StyledTable";
-import StyledTablePagination from "../../components/table/StyledTablePagination";
-import { useTableData } from "../../hooks/use-table-data";
-import { useTableFilter } from "../../hooks/use-table-filter";
-import { useTablePagination } from "../../hooks/use-table-pagination";
-import { useTableSort } from "../../hooks/use-table-sort";
-import type { UserDto } from "../../models/user";
-import { useErrorHandler } from "../../utils/handle-get-error";
+import UsersApi from "../../../api/users-api";
+import StyledTable from "../../../components/table/StyledTable";
+import StyledTablePagination from "../../../components/table/StyledTablePagination";
+import { useTableData } from "../../../hooks/use-table-data";
+import { useTableFilter } from "../../../hooks/use-table-filter";
+import { useTablePagination } from "../../../hooks/use-table-pagination";
+import { useTableSort } from "../../../hooks/use-table-sort";
+import type { UserDto } from "../../../models/user";
+import { useErrorHandler } from "../../../utils/handle-get-error";
 
 import usersTableColumns from "./users-table-columns";
-import Record from "../records/components/Record";
+import Record from "../../records/components/Record";
 import User from "./components/User";
 
 const Users = () => {

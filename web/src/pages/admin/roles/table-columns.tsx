@@ -1,10 +1,10 @@
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import { Center, IconButton } from "@chakra-ui/react";
-import moment from "moment";
+import { Avatar, Center, IconButton } from "@chakra-ui/react";
+import { AiOutlineUser } from "react-icons/ai";
+import { translate } from "../../../utils/translate";
+import { RoleDto } from "../../../models/role";
 
-import type { RecordDto } from "../../models/record";
-
-const recordsTableColumns = (
+const tableColumns = (
   onRemove: (id: number) => void,
   onEdit: (id: number) => void
 ) => {
@@ -12,31 +12,23 @@ const recordsTableColumns = (
     {
       Header: "Id",
       accessor: "id",
-      name: "records.id",
+      name: "id",
       sortable: true,
-      filter: true,
     },
     {
       Header: "Name",
       accessor: "name",
-      name: "records.name",
+      name: "roles.name",
       sortable: true,
       filter: true,
     },
     {
-      Header: "Speaker",
-      accessor: "speaker",
-      name: "speakers.name",
-      sortable: true,
-      filter: true,
-    },
-    {
-      Header: "Created at",
-      name: "records.created_at",
-      sortable: true,
-      filter: true,
-      accessor: (row: RecordDto) =>
-        moment(row.createdAt).local().format("DD.MM.YYYY hh:mm:ss"),
+      Header: "Permissions",
+      accessor: (row: RoleDto) =>
+        row.permissions
+          .map((permission: string) => translate(permission))
+          .join(", "),
+      name: "permissions",
     },
     {
       Header: "Actions",
@@ -64,4 +56,4 @@ const recordsTableColumns = (
   return columns;
 };
 
-export default recordsTableColumns;
+export default tableColumns;
