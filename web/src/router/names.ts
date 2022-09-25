@@ -4,7 +4,7 @@ const enum Page {
   Speakers = "Дикторы",
   Markups = "Разметки",
   Markup = "Разметка",
-  Users = "Пользователи",
+  Admin = "Админка",
 }
 
 export default Page;

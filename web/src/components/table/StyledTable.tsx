@@ -17,7 +17,9 @@ import type { Column } from "react-table";
 import { useSortBy, useTable } from "react-table";
 
 import type { InternalTableFilter } from "../../hooks/use-table-filter";
-import type { TableSort } from "../../hooks/use-table-sort";
+import type { ReactTableSort, TableSort } from "../../hooks/use-table-sort";
+
+class DebouncedFunc<T> {}
 
 interface StyledTableProps {
   columns: Column[];
@@ -25,15 +27,14 @@ interface StyledTableProps {
   isLoading: boolean;
   children?: ReactNode;
   filterParams: InternalTableFilter;
-  setSortParams: (params: TableSort[]) => void;
-  setFilterParams: (params: InternalTableFilter) => void;
+  setSortParams: DebouncedFunc<(params: ReactTableSort[]) => void>;
+  setFilterParams: DebouncedFunc<(column: string, value: string) => void>;
 }
 
 const StyledTable = ({
   children,
   columns,
   data,
-  filterParams,
   isLoading,
   setSortParams,
   setFilterParams,
@@ -68,7 +69,9 @@ const StyledTable = ({
                 <Th
                   whiteSpace="nowrap"
                   scope="col"
-                  {...column.getHeaderProps(column.getSortByToggleProps())}
+                  {...column.getHeaderProps(
+                    column.sortable && column.getSortByToggleProps()
+                  )}
                   isNumeric={column.isNumeric}
                 >
                   {column.render("Header")}

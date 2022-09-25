@@ -14,17 +14,19 @@ import { Routes, Route } from "react-router-dom";
 
 import RequireAuth from "../components/auth/RequireAuth";
 import Page404 from "../pages/404/Page404";
-import { permissionsAtom, selfAtom } from "../store";
+import { permissionsAtom, rolesAtom, selfAtom } from "../store";
 
 import type { IRoutes } from "./routes";
 import routes from "./routes";
 
 const Routings = () => {
   const [, setPermissions] = useAtom(permissionsAtom);
+  const [, setRoles] = useAtom(rolesAtom);
   const [, setSelf] = useAtom(selfAtom);
 
   useEffect(() => {
     setPermissions().catch(console.error);
+    setRoles().catch(console.error);
     setSelf().catch(console.error);
   }, []);
 

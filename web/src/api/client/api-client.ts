@@ -36,14 +36,15 @@ export const getClient = (url: string) => {
         originalRequest.retry = true;
         const refreshToken = localStorage.getItem("refresh-token");
         if (refreshToken) {
-          await AuthApi.refresh(refreshToken)
-            .then((payload) => {
-              localStorage.setItem("jwt-token", payload.token);
-              localStorage.setItem("refresh-token", payload.refreshToken);
-            })
-            .catch(() => {
-              window.location.href = "localhost:3000/signin";
-            });
+          try {
+            const payload = await AuthApi.refresh(refreshToken);
+            localStorage.setItem("jwt-token", payload.token);
+            localStorage.setItem("refresh-token", payload.refreshToken);
+          } catch (error) {
+            window.location.href = `${
+              import.meta.env.VITE_FRONTEND_URL
+            }/signin`;
+          }
           return client(originalRequest);
         }
       }
@@ -89,21 +90,21 @@ class ApiClient {
       .catch((error) => Promise.reject(error));
   }
 
-  post<T>(url: string, data = {}, conf = {}) {
+  post<T>(url: string, data: any = {}, conf = {}) {
     return this.client
       .post<JsonApiDocument<T>>(this.client.defaults.baseURL + url, data, conf)
       .then((response) => Promise.resolve(response.data.data))
       .catch((error) => Promise.reject(error));
   }
 
-  put<T>(url: string, data = {}, conf = {}) {
+  put<T>(url: string, data: any = {}, conf = {}) {
     return this.client
       .put<T>(this.client.defaults.baseURL + url, data, conf)
       .then((response) => Promise.resolve(response.data))
       .catch((error) => Promise.reject(error));
   }
 
-  patch<T>(url: string, data = {}, conf = {}) {
+  patch<T>(url: string, data: any = {}, conf = {}) {
     return this.client
       .patch<T>(this.client.defaults.baseURL + url, data, conf)
       .then((response) => Promise.resolve(response.data))

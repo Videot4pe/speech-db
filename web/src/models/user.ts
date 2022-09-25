@@ -1,7 +1,10 @@
-export interface User {
+export interface UserDto {
   id?: number;
   avatar?: string | null;
   avatarId?: number | null;
+
+  role?: number;
+
   username: string;
   name: string;
   surname: string;

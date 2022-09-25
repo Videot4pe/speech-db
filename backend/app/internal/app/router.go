@@ -60,7 +60,7 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	userHandler := user.NewUserHandler(ctx, userStorage, logger, filesStorage, s3Client)
 	userHandler.Register(router)
 
-	authHandler := auth.NewAuthHandler(ctx, userStorage, filesStorage, logger, config)
+	authHandler := auth.NewAuthHandler(ctx, userStorage, filesStorage, s3Client, logger, config)
 	authHandler.Register(router)
 
 	oauthProvider := oauth.GetOAuthProvider(logger, config, userStorage)

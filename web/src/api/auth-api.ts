@@ -1,4 +1,4 @@
-import type { ShortUser, UserInfo, User } from "../models/user";
+import type { ShortUser, UserDto } from "../models/user";
 
 import { ApiClient } from "./client/api-client";
 
@@ -14,5 +14,6 @@ export default {
   signup: (user: ShortUser) => client.post<number>("/signup", user),
   refresh: (token: string) => client.post<JwtPayload>("/refresh", { token }),
   reset: (email: string) => client.post<number>("/password-reset", email),
-  self: () => client.get<UserInfo>("/self"),
+  self: () => client.get<UserDto>("/self"),
+  selfUpdate: (data: UserDto) => client.patch<number>("/self", data),
 };

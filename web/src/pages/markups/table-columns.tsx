@@ -1,17 +1,15 @@
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import { Center, IconButton } from "@chakra-ui/react";
+import { Center, IconButton, Link } from "@chakra-ui/react";
 import moment from "moment";
-import type { Column } from "react-table";
 
 import type { MarkupDto } from "../../models/markup";
-import type { SmerDto } from "../../models/smer";
-import type { SpeakerDto } from "../../models/speaker";
 
 const tableColumns = (
   onRemove: (id: number) => void,
   onEdit: (id: number) => void
 ) => {
-  const columns: Column[] = [
+  // TODO fix any type (!)
+  const columns: any[] = [
     {
       Header: "Id",
       accessor: "id",
@@ -20,9 +18,13 @@ const tableColumns = (
     },
     {
       Header: "Record",
-      accessor: "record",
-      name: "record",
-      width: 50,
+      Cell: (data: any) => {
+        return (
+          <Link color="teal" href={data.row.original.record} target="_blank">
+            Link
+          </Link>
+        );
+      },
     },
     {
       Header: "Created at",

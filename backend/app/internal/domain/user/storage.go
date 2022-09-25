@@ -1,7 +1,6 @@
 package user
 
 import (
-	"backend/internal/domain/roles"
 	"backend/pkg/client/postgresql"
 	"backend/pkg/logging"
 	"backend/pkg/utils"
@@ -111,16 +110,14 @@ func (s *Storage) Create(user User, isOAuth bool) (uint16, string, error) {
 
 	hash := uniuri.NewLen(15)
 
-	if user.Role == nil {
+	if user.Role == 0 {
 		// TODO FIX
-		user.Role = &roles.Role{
-			Id: 1,
-		}
+		user.Role = 1
 	}
 
 	query := s.queryBuilder.Insert("users").
 		Columns("email", "username", "name", "surname", "patronymic", "role_id", "is_active", "is_verified", "is_oauth", "password", "token_hash").
-		Values(user.Email, user.Username, user.Name, user.Surname, user.Patronymic, user.Role.Id, true, isOAuth, isOAuth, hashedPassword, hash).
+		Values(user.Email, user.Username, user.Name, user.Surname, user.Patronymic, user.Role, true, isOAuth, isOAuth, hashedPassword, hash).
 		Suffix("RETURNING id")
 
 	sql, args, err := query.ToSql()
@@ -146,7 +143,7 @@ func (s *Storage) GetById(id uint16) (*User, error) {
 
 	var user User
 
-	query := s.queryBuilder.Select("u.id", "u.email", "u.username", "u.name", "u.surname", "u.patronymic", "u.is_active", "u.avatar_id", "array_agg(p.name)").
+	query := s.queryBuilder.Select("u.id", "u.email", "u.username", "u.name", "u.surname", "u.patronymic", "u.role_id", "u.is_active", "u.avatar_id", "array_agg(p.name)").
 		From("users as u").
 		Where(sq.Eq{"u.id": id}).
 		Join("roles as r on r.id = u.role_id").
@@ -165,7 +162,7 @@ func (s *Storage) GetById(id uint16) (*User, error) {
 	logger.Trace("do query")
 	row := s.client.QueryRow(s.ctx, sql, args...)
 
-	if err = row.Scan(&user.Id, &user.Email, &user.Username, &user.Name, &user.Surname, &user.Patronymic, &user.IsActive, &user.AvatarId, (*pq.StringArray)(&user.Permissions)); err != nil {
+	if err = row.Scan(&user.Id, &user.Email, &user.Username, &user.Name, &user.Surname, &user.Patronymic, &user.Role, &user.IsActive, &user.AvatarId, (*pq.StringArray)(&user.Permissions)); err != nil {
 		err = db.ErrScan(err)
 		logger.Error(err)
 		return nil, err
@@ -220,6 +217,8 @@ func (s *Storage) Update(id uint16, user User) error {
 		Set("name", user.Name).
 		Set("surname", user.Surname).
 		Set("patronymic", user.Patronymic).
+		// TODO проверка на разрешение смены роли (!!!)
+		Set("role_id", user.Role).
 		Set("avatar_id", user.AvatarId).
 		Where(sq.Eq{"id": id})
 

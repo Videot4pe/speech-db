@@ -9,7 +9,6 @@ export const useErrorHandler = () => {
   const location = useLocation();
 
   return (e: JsonErrorResponse) => {
-    console.log(e);
     toast({
       title: e.statusText,
       description: e.data.error.title,

@@ -14,7 +14,7 @@ const Signup = lazy(() => import("../pages/auth/Signup"));
 const Profile = lazy(() => import("../pages/profile/Profile"));
 const Speakers = lazy(() => import("../pages/speakers/Speakers"));
 const Records = lazy(() => import("../pages/records/Records"));
-const Users = lazy(() => import("../pages/users/Users"));
+const Admin = lazy(() => import("../pages/admin/Index"));
 const Home = lazy(() => import("../pages/home/Home"));
 const Markups = lazy(() => import("../pages/markups/Markups"));
 const Markup = lazy(() => import("../pages/markup/Markup"));
@@ -95,12 +95,12 @@ const routes: Array<IRoutes> = [
     auth: true,
   },
   {
-    path: "/users",
+    path: "/admin",
     icon: FiUser,
-    name: Page.Users,
+    name: Page.Admin,
     element: (
       <Layout>
-        <Users />
+        <Admin />
       </Layout>
     ),
     auth: true,

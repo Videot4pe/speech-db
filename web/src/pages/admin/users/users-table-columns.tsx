@@ -1,27 +1,19 @@
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import { Avatar, Center, IconButton } from "@chakra-ui/react";
-import moment from "moment";
 import { AiOutlineUser } from "react-icons/ai";
-import type { Column } from "react-table";
-
-import type { SmerDto } from "../../models/smer";
-import type { User } from "../../models/user";
 
 const usersTableColumns = (
   onRemove: (id: number) => void,
   onEdit: (id: number) => void
 ) => {
-  const columns: Column[] = [
+  const columns: any[] = [
     {
-      Header: "Avatar",
+      Header: "Ava",
+      width: "48px",
       Cell: (data: any) => {
+        const { avatar } = data.row.original;
         return (
-          <Center>
-            <Avatar
-              src={data.row.original.avatar}
-              icon={<AiOutlineUser fontSize="1.5rem" />}
-            />
-          </Center>
+          <Avatar src={avatar} icon={<AiOutlineUser fontSize="1.5rem" />} />
         );
       },
     },
@@ -29,41 +21,47 @@ const usersTableColumns = (
       Header: "Id",
       accessor: "id",
       name: "id",
+      sortable: true,
+      filter: true,
     },
     {
       Header: "Name",
       accessor: "name",
       name: "name",
+      sortable: true,
       filter: true,
     },
     {
       Header: "Surname",
       accessor: "surname",
       name: "surname",
+      sortable: true,
       filter: true,
     },
     {
       Header: "Email",
       accessor: "email",
       name: "email",
+      sortable: true,
       filter: true,
     },
     {
       Header: "Actions",
       // TODO fix data type
       Cell: (data: any) => {
+        const { id } = data.row.original;
         return (
           <Center display="flex">
             <IconButton
               aria-label="edit"
               icon={<EditIcon />}
-              onClick={() => onEdit(data.row.original.id)}
+              onClick={() => onEdit(id)}
             />
             <IconButton
               ml={2}
               aria-label="remove"
               icon={<DeleteIcon />}
-              onClick={() => onRemove(data.row.original.id)}
+              onClick={() => onRemove(id)}
             />
           </Center>
         );

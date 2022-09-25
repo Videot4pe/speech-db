@@ -5,6 +5,7 @@ import (
 	"backend/internal/domain/files"
 	"backend/internal/domain/user"
 	"backend/pkg/auth"
+	"backend/pkg/client/s3"
 	"backend/pkg/logging"
 	"backend/pkg/mailer"
 	"backend/pkg/utils"
@@ -26,6 +27,7 @@ type Handler struct {
 	logger       *logging.Logger
 	storage      *user.Storage
 	filesStorage *files.Storage
+	s3Client     *s3.Client
 	ctx          context.Context
 	cfg          *config.Config
 }
@@ -45,11 +47,12 @@ const (
 	passwordResetWebhookURL = "/api/auth/password-reset/:hash"
 )
 
-func NewAuthHandler(ctx context.Context, storage *user.Storage, filesStorage *files.Storage, logger *logging.Logger, cfg *config.Config) *Handler {
+func NewAuthHandler(ctx context.Context, storage *user.Storage, filesStorage *files.Storage, s3Client *s3.Client, logger *logging.Logger, cfg *config.Config) *Handler {
 	return &Handler{
 		logger:       logger,
 		storage:      storage,
 		filesStorage: filesStorage,
+		s3Client:     s3Client,
 		ctx:          ctx,
 		cfg:          cfg,
 	}
@@ -62,7 +65,10 @@ func (h *Handler) Register(router *httprouter.Router) {
 	router.GET(activateURL, h.Activate)
 	router.POST(passwordResetURL, h.PasswordReset)
 	router.GET(passwordResetWebhookURL, h.PasswordResetWebhook)
+
+	// TODO HELP ME WITH THIS FCKN SHIT PLEASE, I'M DEVASTATED AND COMPLETELY STUCK
 	router.GET(selfURL, auth.RequireAuth(h.GetSelf, nil))
+	router.PATCH(selfURL, auth.RequireAuth(h.UpdateSelf, nil))
 }
 
 func (h *Handler) Signin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -126,6 +132,53 @@ func (h *Handler) GetSelf(w http.ResponseWriter, r *http.Request, _ httprouter.P
 		return
 	}
 	utils.WriteResponse(w, http.StatusOK, user)
+}
+
+func (h *Handler) UpdateSelf(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	id := r.Context().Value("userId").(uint16)
+
+	var user user.User
+
+	defer r.Body.Close()
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := json.Unmarshal(body, &user); err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// TODO сохранять картинки и рекорды в разные бакеты
+	if user.Avatar != nil && *user.Avatar != "" && user.AvatarId == nil {
+		_, name, err := h.s3Client.UploadBase64(h.ctx, *user.Avatar)
+		if err != nil {
+			utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		url, err := h.s3Client.GetFile(h.ctx, name)
+		if err != nil {
+			utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		fileId, err := h.filesStorage.Create(url, name)
+		if err != nil {
+			h.logger.Error(err)
+			return
+		}
+		user.AvatarId = &fileId
+	}
+
+	err = h.storage.Update(id, user)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	utils.WriteResponse(w, http.StatusOK, id)
 }
 
 func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
