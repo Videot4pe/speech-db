@@ -11,6 +11,8 @@ import Page from "./names";
 
 const Signin = lazy(() => import("../pages/auth/Signin"));
 const Signup = lazy(() => import("../pages/auth/Signup"));
+const ResetPassword = lazy(() => import("../pages/auth/ResetPassword"));
+const ChangePassword = lazy(() => import("../pages/auth/ChangePassword"));
 const Profile = lazy(() => import("../pages/profile/Profile"));
 const Speakers = lazy(() => import("../pages/speakers/Speakers"));
 const Records = lazy(() => import("../pages/records/Records"));
@@ -35,6 +37,14 @@ const routes: Array<IRoutes> = [
   {
     path: "/signup",
     element: <Signup />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPassword />,
+  },
+  {
+    path: "/change-password",
+    element: <ChangePassword />,
   },
   {
     path: "/",

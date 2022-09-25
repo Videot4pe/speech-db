@@ -14,7 +14,7 @@ import { Routes, Route } from "react-router-dom";
 
 import RequireAuth from "../components/auth/RequireAuth";
 import Page404 from "../pages/404/Page404";
-import { permissionsAtom, rolesAtom, selfAtom } from "../store";
+import { isLoggedIn, permissionsAtom, rolesAtom, selfAtom } from "../store";
 
 import type { IRoutes } from "./routes";
 import routes from "./routes";
@@ -23,12 +23,15 @@ const Routings = () => {
   const [, setPermissions] = useAtom(permissionsAtom);
   const [, setRoles] = useAtom(rolesAtom);
   const [, setSelf] = useAtom(selfAtom);
+  const [loggedIn] = useAtom(isLoggedIn);
 
   useEffect(() => {
-    setPermissions().catch(console.error);
-    setRoles().catch(console.error);
-    setSelf().catch(console.error);
-  }, []);
+    if (loggedIn) {
+      setPermissions().catch(console.error);
+      setRoles().catch(console.error);
+      setSelf().catch(console.error);
+    }
+  }, [loggedIn]);
 
   return (
     <Routes>

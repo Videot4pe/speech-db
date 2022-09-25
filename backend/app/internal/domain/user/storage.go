@@ -1,17 +1,19 @@
 package user
 
 import (
+	"backend/pkg/auth"
 	"backend/pkg/client/postgresql"
 	"backend/pkg/logging"
 	"backend/pkg/utils"
 	"context"
 	"fmt"
-	"github.com/dchest/uniuri"
-	"github.com/lib/pq"
-	"golang.org/x/crypto/bcrypt"
 	"math"
 
+	"github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
+
 	db "backend/pkg/client/postgresql/model"
+
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -32,9 +34,9 @@ func NewUserStorage(ctx context.Context, client postgresql.Client, logger *loggi
 }
 
 const (
-	scheme       = "public"
-	table        = "users"
-	refreshTable = "refresh_tokens"
+	scheme      = "public"
+	table       = "users"
+	tokensTable = "tokens"
 )
 
 func (s *Storage) queryLogger(sql, table string, args []interface{}) *logging.Logger {
@@ -68,7 +70,7 @@ func (s *Storage) List(filters []*db.Filter, pagination *db.Pagination, sorts ..
 		return nil, nil, err
 	}
 
-	logger.Trace("do query")
+	logger.Trace("Getting users")
 	rows, err := s.client.Query(s.ctx, sql, args...)
 	if err != nil {
 		err = db.ErrDoQuery(err)
@@ -104,20 +106,18 @@ func (s *Storage) List(filters []*db.Filter, pagination *db.Pagination, sorts ..
 }
 
 func (s *Storage) Create(user User, isOAuth bool) (uint16, string, error) {
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	lastInsertId := uint16(0)
-
-	hash := uniuri.NewLen(15)
+	token := ""
 
 	if user.Role == 0 {
 		// TODO FIX
 		user.Role = 1
 	}
 
-	query := s.queryBuilder.Insert("users").
-		Columns("email", "username", "name", "surname", "patronymic", "role_id", "is_active", "is_verified", "is_oauth", "password", "token_hash").
-		Values(user.Email, user.Username, user.Name, user.Surname, user.Patronymic, user.Role, true, isOAuth, isOAuth, hashedPassword, hash).
+	query := s.queryBuilder.Insert(table).
+		Columns("email", "username", "name", "surname", "patronymic", "role_id", "is_active", "is_verified", "is_oauth", "password").
+		Values(user.Email, user.Username, user.Name, user.Surname, user.Patronymic, user.Role, true, isOAuth, isOAuth, hashedPassword).
 		Suffix("RETURNING id")
 
 	sql, args, err := query.ToSql()
@@ -125,18 +125,46 @@ func (s *Storage) Create(user User, isOAuth bool) (uint16, string, error) {
 	if err != nil {
 		err = db.ErrCreateQuery(err)
 		logger.Error(err)
-		return lastInsertId, hash, err
+		return lastInsertId, token, err
 	}
 
-	logger.Trace("do query")
+	logger.Trace("Creating user")
 	err = s.client.QueryRow(s.ctx, sql, args...).Scan(&lastInsertId)
 
 	if err != nil {
 		logger.Error(err)
-		return lastInsertId, hash, err
+		return lastInsertId, token, err
 	}
 
-	return lastInsertId, hash, nil
+	jwt := auth.LinkJwt{
+		Data: auth.LinkJwtData{
+			Id: lastInsertId,
+		},
+	}
+
+	token, err = auth.Encode(&jwt, 10)
+
+	tokenQuery := s.queryBuilder.Insert(tokensTable).
+		Columns("user_id", "token", "token_type").
+		Values(lastInsertId, token, "ACTIVATE")
+
+	sql, args, err = tokenQuery.ToSql()
+	logger = s.queryLogger(sql, tokensTable, args)
+	if err != nil {
+		err = db.ErrCreateQuery(err)
+		logger.Error(err)
+		return lastInsertId, token, err
+	}
+
+	logger.Trace("Creating activation token\n")
+	_, err = s.client.Exec(s.ctx, sql, args...)
+
+	if err != nil {
+		logger.Error(err)
+		return lastInsertId, token, err
+	}
+
+	return lastInsertId, token, nil
 }
 
 func (s *Storage) GetById(id uint16) (*User, error) {
@@ -159,7 +187,7 @@ func (s *Storage) GetById(id uint16) (*User, error) {
 		return nil, err
 	}
 
-	logger.Trace("do query")
+	logger.Trace("Getting user by id")
 	row := s.client.QueryRow(s.ctx, sql, args...)
 
 	if err = row.Scan(&user.Id, &user.Email, &user.Username, &user.Name, &user.Surname, &user.Patronymic, &user.Role, &user.IsActive, &user.AvatarId, (*pq.StringArray)(&user.Permissions)); err != nil {
@@ -191,7 +219,7 @@ func (s *Storage) GetByCredentials(email, password string) (uint16, bool, []stri
 		return 0, false, nil, err
 	}
 
-	logger.Trace("do query")
+	logger.Trace("Getting user by credentials")
 	row := s.client.QueryRow(s.ctx, sql, args...)
 
 	if err = row.Scan(&user.Id, &user.Password, &user.IsActive, &user.IsVerified, (*pq.StringArray)(&user.Permissions)); err != nil {
@@ -230,7 +258,7 @@ func (s *Storage) Update(id uint16, user User) error {
 		return err
 	}
 
-	logger.Trace("do query")
+	logger.Trace("Updating user")
 	_, err = s.client.Exec(s.ctx, sql, args...)
 
 	if err != nil {
@@ -241,11 +269,20 @@ func (s *Storage) Update(id uint16, user User) error {
 	return nil
 }
 
-func (s *Storage) Activate(hash string) error {
-	query := s.queryBuilder.Update("users").
+func (s *Storage) Activate(token string) error {
+	_, linkJwt, err := auth.Decode(&auth.LinkJwt{}, token)
+
+	if err != nil {
+		s.logger.Error("Activation token decode error\n", err)
+		s.removeToken(token, "ACTIVATE")
+		return err
+	}
+
+	userId := linkJwt.Data.Id
+	query := s.queryBuilder.Update(table).
 		Set("is_verified", true).
 		Set("is_active", true).
-		Where(sq.Eq{"is_verified": false, "token_hash": hash})
+		Where(sq.Eq{"id": userId})
 
 	sql, args, err := query.ToSql()
 	logger := s.queryLogger(sql, table, args)
@@ -255,23 +292,26 @@ func (s *Storage) Activate(hash string) error {
 		return err
 	}
 
-	logger.Trace("do query")
+	logger.Trace("Activating user account")
 	_, err = s.client.Exec(s.ctx, sql, args...)
 
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
+
+	s.removeToken(token, "ACTIVATE")
 
 	return nil
 }
 
 func (s *Storage) Delete(id uint16) error {
+	// TODO удалять 'остатки' пользователя
+	// в виде токенов и прочего
 
-	query := s.queryBuilder.Update("users").
+	query := s.queryBuilder.Update(table).
 		Set("is_active", false).
 		Where(sq.Eq{"id": id})
-	//.Delete("users").
 
 	sql, args, err := query.ToSql()
 	logger := s.queryLogger(sql, table, args)
@@ -281,7 +321,7 @@ func (s *Storage) Delete(id uint16) error {
 		return err
 	}
 
-	logger.Trace("do query")
+	logger.Trace("Deleting user")
 	_, err = s.client.Exec(s.ctx, sql, args...)
 
 	if err != nil {
@@ -292,57 +332,85 @@ func (s *Storage) Delete(id uint16) error {
 	return nil
 }
 
-func (s *Storage) GetByEmailAndGenerateHash(email string) (uint16, bool, string, error) {
-
+func (s *Storage) GetByEmail(email string) (uint16, bool, error) {
 	var user User
+
+	s.logger.Info(fmt.Sprintf("[user/storage] GetByEmail\nemail: %v", email))
 
 	query := s.queryBuilder.Select("id", "is_verified").
 		From(scheme + "." + table).
 		Where(sq.Eq{"email": email})
 
-	hash := uniuri.NewLen(15)
-
 	sql, args, err := query.ToSql()
 	logger := s.queryLogger(sql, table, args)
 	if err != nil {
 		err = db.ErrCreateQuery(err)
 		logger.Error(err)
-		return 0, false, hash, err
+		return 0, false, err
 	}
 
-	row := s.client.QueryRow(s.ctx, sql, args...)
+	err = s.client.QueryRow(s.ctx, sql, args...).Scan(&user.Id, &user.IsVerified)
 
-	if err = row.Scan(&user.Id, &user.IsVerified); err != nil {
+	if err != nil {
 		err = db.ErrScan(err)
 		logger.Error(err)
-		return 0, false, hash, err
+		return 0, false, err
 	}
 
-	setTokenQuery := s.queryBuilder.Update(scheme+"."+table).Set("token_hash", hash).Where(sq.Eq{"id": user.Id})
+	return user.Id, user.IsVerified, nil
+}
 
-	sql, args, err = setTokenQuery.ToSql()
-	logger = s.queryLogger(sql, table, args)
+func (s *Storage) PasswordReset(userId uint16) (string, error) {
+	s.removeTokenByUserId(userId, "RESET_PASS")
+
+	jwt := auth.LinkJwt{
+		Data: auth.LinkJwtData{
+			Id: userId,
+		},
+	}
+
+	token, err := auth.Encode(&jwt, 10)
+
+	tokenQuery := s.queryBuilder.Insert(tokensTable).
+		Columns("user_id", "token", "token_type").
+		Values(userId, token, "RESET_PASS")
+
+	sql, args, err := tokenQuery.ToSql()
+	logger := s.queryLogger(sql, tokensTable, args)
 	if err != nil {
 		err = db.ErrCreateQuery(err)
 		logger.Error(err)
-		return user.Id, user.IsVerified, hash, err
+		return token, err
 	}
 
-	logger.Trace("do query")
+	logger.Trace("Creating reset token")
 	_, err = s.client.Exec(s.ctx, sql, args...)
 
 	if err != nil {
 		logger.Error(err)
-		return user.Id, user.IsVerified, hash, err
+		return token, err
 	}
 
-	return user.Id, user.IsVerified, hash, nil
+	return token, nil
 }
 
-func (s *Storage) PasswordReset(id uint16) error {
+func (s *Storage) ChangePassword(token string, password string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
-	query := s.queryBuilder.Delete("users").
-		Where(sq.Eq{"id": id})
+	_, _, err = auth.Decode(&auth.LinkJwt{}, token)
+	if err != nil {
+		s.removeToken(token, "RESET_PASS")
+		return err
+	}
+
+	userId, err := s.getUserIdByToken(token, "RESET_PASS")
+	if err != nil {
+		return err
+	}
+
+	query := s.queryBuilder.Update(table).
+		Set("password", hashedPassword).
+		Where(sq.Eq{"id": userId})
 
 	sql, args, err := query.ToSql()
 	logger := s.queryLogger(sql, table, args)
@@ -352,21 +420,24 @@ func (s *Storage) PasswordReset(id uint16) error {
 		return err
 	}
 
-	logger.Trace("do query")
+	logger.Trace("Updating password")
 	_, err = s.client.Exec(s.ctx, sql, args...)
 
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
+
+	logger.Trace("Removing reset-password token")
+	s.removeToken(token, "RESET_PASS")
 
 	return nil
 }
 
 func (s *Storage) IsRefreshTokenActual(token string) (uint16, error) {
 	query := s.queryBuilder.Select("user_id").
-		From(scheme + "." + refreshTable).
-		Where(sq.Eq{"token": token})
+		From(scheme + "." + token).
+		Where(sq.Eq{"token": token, "token_type": "AUTH"})
 
 	sql, args, err := query.ToSql()
 	logger := s.queryLogger(sql, table, args)
@@ -390,19 +461,18 @@ func (s *Storage) IsRefreshTokenActual(token string) (uint16, error) {
 }
 
 func (s *Storage) UpdateRefreshToken(token string, userId uint16) error {
-
-	removeQuery := s.queryBuilder.Delete("refresh_tokens").
-		Where(sq.Eq{"user_id": userId})
+	removeQuery := s.queryBuilder.Delete(tokensTable).
+		Where(sq.Eq{"user_id": userId, "token_type": "AUTH"})
 
 	sql, args, err := removeQuery.ToSql()
-	logger := s.queryLogger(sql, refreshTable, args)
+	logger := s.queryLogger(sql, tokensTable, args)
 	if err != nil {
 		err = db.ErrCreateQuery(err)
 		logger.Error(err)
 		return err
 	}
 
-	logger.Trace("do query")
+	logger.Trace("Deleting refresh (auth) token")
 	_, err = s.client.Exec(s.ctx, sql, args...)
 
 	if err != nil {
@@ -410,19 +480,19 @@ func (s *Storage) UpdateRefreshToken(token string, userId uint16) error {
 		return err
 	}
 
-	insertQuery := s.queryBuilder.Insert("refresh_tokens").
-		Columns("user_id", "token").
-		Values(userId, token)
+	insertQuery := s.queryBuilder.Insert(tokensTable).
+		Columns("user_id", "token", "token_type").
+		Values(userId, token, "AUTH")
 
 	sql, args, err = insertQuery.ToSql()
-	logger = s.queryLogger(sql, refreshTable, args)
+	logger = s.queryLogger(sql, token, args)
 	if err != nil {
 		err = db.ErrCreateQuery(err)
 		logger.Error(err)
 		return err
 	}
 
-	logger.Trace("do query")
+	logger.Trace("Creating new refresh (auth) token")
 	_, err = s.client.Exec(s.ctx, sql, args...)
 
 	if err != nil {
@@ -430,4 +500,66 @@ func (s *Storage) UpdateRefreshToken(token string, userId uint16) error {
 		return err
 	}
 	return nil
+}
+
+// TODO token_type string -> enum (?)
+func (s *Storage) getUserIdByToken(token string, token_type string) (uint16, error) {
+	var userId uint16 = 0
+
+	tokenQuery := s.queryBuilder.
+		Select("user_id").
+		From(tokensTable).
+		Where(sq.Eq{"token": token, "token_type": token_type})
+
+	sql, args, err := tokenQuery.ToSql()
+	logger := s.queryLogger(sql, tokensTable, args)
+	if err != nil {
+		err = db.ErrCreateQuery(err)
+		logger.Error(err)
+		return userId, err
+	}
+
+	logger.Trace("Searching user by reset token")
+	err = s.client.QueryRow(s.ctx, sql, args...).Scan(&userId)
+	if err != nil {
+		err = db.ErrCreateQuery(err)
+		logger.Error(err)
+		return userId, err
+	}
+
+	return userId, nil
+}
+
+func (s *Storage) removeToken(token string, tokenType string) {
+	removeQuery := s.queryBuilder.Delete(tokensTable).Where(sq.Eq{"token": token, "token_type": tokenType})
+
+	sql, args, err := removeQuery.ToSql()
+	logger := s.queryLogger(sql, tokensTable, args)
+	if err != nil {
+		err = db.ErrCreateQuery(err)
+		logger.Error(err)
+	}
+
+	_, err = s.client.Exec(s.ctx, sql, args...)
+
+	if err != nil {
+		logger.Error(err)
+	}
+}
+
+func (s *Storage) removeTokenByUserId(user_id uint16, tokenType string) {
+	removeQuery := s.queryBuilder.Delete(tokensTable).Where(sq.Eq{"user_id": user_id, "token_type": tokenType})
+
+	sql, args, err := removeQuery.ToSql()
+	logger := s.queryLogger(sql, tokensTable, args)
+	if err != nil {
+		err = db.ErrCreateQuery(err)
+		logger.Error(err)
+	}
+
+	_, err = s.client.Exec(s.ctx, sql, args...)
+
+	if err != nil {
+		logger.Error(err)
+	}
 }

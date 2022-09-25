@@ -31,7 +31,7 @@ const SigninForm = (props: HTMLChakraProps<"form">) => {
   const navigate = useNavigate();
   const location = useLocation();
   // @ts-ignore
-  const from = location.state?.from || "/smers";
+  const from = location.state?.from || "/";
 
   return (
     <chakra.form
@@ -68,7 +68,7 @@ const SigninForm = (props: HTMLChakraProps<"form">) => {
           }
         />
         <Center>
-          <Link href="lib/pages/auth/components/SigninForm#">
+          <Link href="/reset-password">
             Forgot password?
           </Link>
         </Center>

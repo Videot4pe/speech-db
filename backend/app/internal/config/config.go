@@ -2,10 +2,11 @@ package config
 
 import (
 	"backend/pkg/utils"
-	"github.com/ilyakaznacheev/cleanenv"
 	"log"
 	"path/filepath"
 	"sync"
+
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
@@ -59,6 +60,9 @@ type Config struct {
 		UseSSL          bool   `env:"S3_USE_SSL"`
 		BucketName      string `env:"S3_BUCKET_NAME"`
 		Location        string `env:"S3_LOCATION"`
+	}
+	Frontend struct {
+		ServerIP string `env:"FRONTEND_SERVER_IP" env-default:"https://videot4pe.dev"`
 	}
 }
 

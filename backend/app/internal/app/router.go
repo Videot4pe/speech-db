@@ -9,7 +9,6 @@ import (
 	"backend/internal/domain/markups"
 	"backend/internal/domain/records"
 	"backend/internal/domain/roles"
-	"backend/internal/domain/smer"
 	"backend/internal/domain/speakers"
 	"backend/internal/domain/user"
 	"backend/pkg/client/s3"
@@ -17,10 +16,11 @@ import (
 	"backend/pkg/metric"
 	"backend/pkg/oauth"
 	"context"
+	"net/http"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/julienschmidt/httprouter"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"net/http"
 )
 
 type Handler interface {
@@ -66,10 +66,6 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	oauthProvider := oauth.GetOAuthProvider(logger, config, userStorage)
 	oauthProvider.UseVKAuth(router)
 	oauthProvider.UseGoogleAuth(router)
-
-	smerStorage := smer.NewSmerStorage(ctx, pgClient, logger)
-	smerHandler := smer.NewSmerHandler(ctx, smerStorage, logger)
-	smerHandler.Register(router)
 
 	speakersStorage := speakers.NewSpeakersStorage(ctx, pgClient, logger)
 	speakersHandler := speakers.NewSpeakersHandler(ctx, speakersStorage, logger)

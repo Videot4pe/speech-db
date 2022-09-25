@@ -36,15 +36,15 @@ export const getClient = (url: string) => {
         originalRequest.retry = true;
         const refreshToken = localStorage.getItem("refresh-token");
         if (refreshToken) {
-          try {
-            const payload = await AuthApi.refresh(refreshToken);
-            localStorage.setItem("jwt-token", payload.token);
-            localStorage.setItem("refresh-token", payload.refreshToken);
-          } catch (error) {
-            window.location.href = `${
-              import.meta.env.VITE_FRONTEND_URL
-            }/signin`;
-          }
+          // try {
+          //   const payload = await AuthApi.refresh(refreshToken);
+          //   localStorage.setItem("jwt-token", payload.token);
+          //   localStorage.setItem("refresh-token", payload.refreshToken);
+          // } catch (error) {
+          //   window.location.href = `${
+          //     import.meta.env.VITE_FRONTEND_URL
+          //   }/signin`;
+          // }
           return client(originalRequest);
         }
       }

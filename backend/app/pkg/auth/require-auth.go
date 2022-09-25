@@ -4,10 +4,11 @@ import (
 	"backend/pkg/utils"
 	"context"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
-	"github.com/samber/lo"
 	"net/http"
 	"strings"
+
+	"github.com/julienschmidt/httprouter"
+	"github.com/samber/lo"
 )
 
 func extractToken(r *http.Request) (bearer string) {
@@ -23,19 +24,10 @@ func extractToken(r *http.Request) (bearer string) {
 	return bearer
 }
 
-func decodeJwt(bearer string) (*JwtClaims, error) {
-	_, claims, err := DecodeJwt(bearer)
-	if err != nil {
-		return nil, err
-	}
-	return claims, err
-}
-
-func isAllowed(permissions []string, claims *JwtClaims) bool {
-	if permissions != nil && len(permissions) != 0 && len(lo.Intersect[string](permissions, claims.Permissions)) == 0 {
-		return false
-	}
-	return true
+func isAllowed(permissions []string, claims *AuthJwt) bool {
+	return !(permissions != nil &&
+		len(permissions) != 0 &&
+		len(lo.Intersect[string](permissions, claims.Data.Permissions)) == 0)
 }
 
 func RequireAuth(next httprouter.Handle, permissions []string) httprouter.Handle {
@@ -45,7 +37,7 @@ func RequireAuth(next httprouter.Handle, permissions []string) httprouter.Handle
 			utils.WriteErrorResponse(w, http.StatusUnauthorized, "Invalid token")
 			return
 		}
-		claims, err := decodeJwt(bearer)
+		_, claims, err := Decode(&AuthJwt{}, bearer)
 		if err != nil {
 			utils.WriteErrorResponse(w, http.StatusForbidden, err.Error())
 			return
