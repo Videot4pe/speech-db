@@ -47,7 +47,7 @@ func RequireAuth(next httprouter.Handle, permissions []string) httprouter.Handle
 			utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Not allowed")
 			return
 		}
-		r = r.WithContext(context.WithValue(r.Context(), "userId", claims.Id))
+		r = r.WithContext(context.WithValue(r.Context(), "userId", claims.Data.Id))
 		next(w, r, ps)
 	}
 }
