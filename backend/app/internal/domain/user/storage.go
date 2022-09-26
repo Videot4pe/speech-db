@@ -436,7 +436,7 @@ func (s *Storage) ChangePassword(token string, password string) error {
 
 func (s *Storage) IsRefreshTokenActual(token string) (uint16, error) {
 	query := s.queryBuilder.Select("user_id").
-		From(scheme + "." + token).
+		From(scheme + "." + tokensTable).
 		Where(sq.Eq{"token": token, "token_type": "AUTH"})
 
 	sql, args, err := query.ToSql()
