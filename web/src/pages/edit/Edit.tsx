@@ -1,81 +1,163 @@
 import { useAtom } from "jotai";
 import Konva from "konva";
+import { KonvaEventListener, KonvaEventObject } from "konva/lib/Node";
 import { ImageConfig } from "konva/lib/shapes/Image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Stage, Image, Layer } from "react-konva";
+import { Stage, Layer } from "react-konva";
 import useImage from "use-image";
+import { useRepositionStage } from "./composables/useRepositionStage";
+
+let c = 0
+function uid() {
+  const id = c.toString()
+  c = c + 1
+  return id
+}
 
 const Edit = () => {
-  function handleClick(arg: any) {
+  let stage: Konva.Stage
+  let layer: Konva.Layer
 
+  let rectBuffer: Konva.RectConfig
+  let selectedRectId: string | null = null
+  let editedRect: Konva.Rect
+
+  let creatingNewRect = false
+  let rectWasMoved = false
+  let stretchingRight = false
+
+  function createRectConfig(id: string, x: number, width: number, text: string, fillColor = 'yellow', height?: number): Konva.RectConfig {
+    return {
+      id: id,
+      x: x,
+      width: 1,
+      scaleX: width,
+      name: text,
+      height: height ? height : layer.height(),
+      fill: fillColor,
+      opacity: 0.2,
+      draggable: true,
+    }
   }
 
-  const imageURL = 'https://www.frolov-lib.ru/books/hi/ch03.files/image010.jpg';
-  const [image] = useImage(imageURL);
+  function addNewRect(x: number): string {
+    const newRect = createRectConfig(uid(), x, 1, '')
+    // rects.value.push(newRect)
+    rectBuffer = newRect
+    return newRect.id as string
+  }
+
+    // KonvaEventListener<Stage, MouseEvent>
+  function handleStageMouseDown(e: KonvaEventObject<MouseEvent>) {
+    console.log('handleStageMouseDown')
+
+    creatingNewRect = true
+    const oldScaleX = layer.scaleX()
+    const pointer = stage.getPointerPosition()
+    if (!pointer) return
+    const x = (pointer.x - layer.x()) / oldScaleX
+    selectedRectId = addNewRect(x)
+    // markSelectionAsChanged()
+    console.debug('created new rect with id:', selectedRectId)
+    console.debug('mainLayer.children:', layer.children)
+
+    editedRect = new Konva.Rect(rectBuffer)
+    layer.add(editedRect)
+  }
+
+  function handleMouseMove() {
+    console.log('handleMouseMove')
+
+    if (!selectedRectId) return
+    if (!creatingNewRect) return
+    rectWasMoved = true
+    const rect = rectBuffer
+    const pointer = stage.getPointerPosition()
+    if (!rect || !pointer) return
+    const mouseX = (pointer.x - layer.x()) / layer.scaleX()
+    const rectX = rect.x ? rect.x : 0
+    const rectWidth = rect.width ? rect.width : 0
+    const rect_left = rectX
+    const rect_right = rectX + rectWidth
+    if (mouseX > rect_right) {
+      if (stretchingRight) {
+        rect.width = mouseX - rectX
+      } else {
+        rect.width = mouseX - rect_right
+        rect.x = rect_right
+        stretchingRight = true
+      }
+    } else if (mouseX < rect_left) {
+      if (!stretchingRight) {
+        rect.width = rect_right - mouseX
+        rect.x = mouseX
+      } else {
+        stretchingRight = false
+        rect.width = rect_left - mouseX
+        rect.x = mouseX
+      }
+    } else {
+      if (stretchingRight) {
+        rect.width = mouseX - rectX
+      } else {
+        rect.width = rect_right - mouseX
+        rect.x = mouseX
+      }
+    }
+
+    if (rect.x) {
+      editedRect.x(rect.x)
+    }
+    editedRect.width(rect.width)
+  }
 
   useEffect(() => {
-    const stageWidth = window.innerWidth - 64;
-    const stageHeight = 500;
+    const imageURL = 'https://www.frolov-lib.ru/books/hi/ch03.files/image010.jpg';
 
-    var stage = new Konva.Stage({
+    const image = new Image();
+    image.src = imageURL;
+
+    const stageWidth = window.innerWidth - 64;
+    const stageHeight = 300;
+
+    stage = new Konva.Stage({
       container: 'container',
       width: stageWidth,
       height: stageHeight,
     });
 
-    var layer = new Konva.Layer();
+    stage.on('mousedown', handleStageMouseDown);
+    stage.on('mousemove', handleMouseMove);
+
+    layer = new Konva.Layer();
     stage.add(layer);
 
     var bg = new Konva.Image({
       image: image,
       width: 3000,
-      height: 500,
+      height: 300,
     });
 
     layer.add(bg);
 
     var scrollContainer = document.getElementById('scroll-container');
-    function repositionStage() {
-      if (!scrollContainer) return
-
-      var dx = scrollContainer.scrollLeft;
-      var dy = scrollContainer.scrollTop;
-      stage.container().style.transform =
-        'translate(' + dx + 'px, ' + dy + 'px)';
-      stage.x(-dx);
-      stage.y(-dy);
-    }
+    const repositionStage = useRepositionStage(stage, scrollContainer);
     scrollContainer?.addEventListener('scroll', repositionStage);
     repositionStage();
   }, []);
 
 
   return (
-    // <Stage ref={stageRef} width={stageWidth} height={stageHeight}>
-    //   <Layer
-    //     ref={layerRef}
-    //     onClick={ handleClick }
-    //   >
-    //     <Image
-    //       ref={imageRef}
-    //       image={imageConfig.current.image}
-    //       width={imageWidth}
-    //       height={imageHeight}
-    //     />
-    //   </Layer>
-    // </Stage>
-
     <div
       id="scroll-container"
       style={{
-        width: 'calc(100% - 64px)',
-        height: '500px',
+        width: '100%',
+        height: '300px',
         overflow: 'auto',
-        margin: '10px',
         border: '1px solid grey',
       }}
     >
-      <div id="large-container" style={{ width: '3000px', height: '500px', overflow: 'hidden' }}>
+      <div id="large-container" style={{ width: '3000px', height: `300px`, overflow: 'hidden' }}>
         <div id="container"></div>
       </div>
     </div>
