@@ -20,7 +20,7 @@ const Admin = lazy(() => import("../pages/admin/Index"));
 const Home = lazy(() => import("../pages/home/Home"));
 const Markups = lazy(() => import("../pages/markups/Markups"));
 const Markup = lazy(() => import("../pages/markup/Markup"));
-const Edit = lazy(() => import("../pages/edit/Edit"));
+const EditPage = lazy(() => import("../pages/edit/EditPage"));
 
 export interface IRoutes extends PathRouteProps {
   permissions?: string[];
@@ -112,7 +112,7 @@ const routes: Array<IRoutes> = [
     name: "Edit",
     element: (
       <Layout>
-        <Edit />
+        <EditPage />
       </Layout>
     ),
   },
