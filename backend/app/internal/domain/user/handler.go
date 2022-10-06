@@ -84,8 +84,12 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request, _ httprouter.Para
 }
 
 func (h *Handler) View(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	id := r.Context().Value("userId").(uint16)
-	user, err := h.storage.GetById(id)
+	id, err := strconv.ParseUint(ps.ByName("userId"), 16, 16)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	user, err := h.storage.GetById(uint16(id))
 
 	if user.AvatarId != nil {
 		avatarPath, err := h.filesStorage.GetById(*user.AvatarId)
