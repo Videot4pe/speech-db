@@ -59,12 +59,14 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     const newScale = scale + 0.1;
     setScale(newScale);
     stageRef.current?.scaleX(newScale);
+    stageRef.current?.width(INITIAL_STAGE_WIDTH * newScale);
   }
 
   function zoomOut() {
     const newScale = scale - 0.1;
     setScale(newScale);
     stageRef.current?.scaleX(newScale);
+    stageRef.current?.width(INITIAL_STAGE_WIDTH * newScale);
   }
 
   useImperativeHandle(ref, () => ({
@@ -127,6 +129,11 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
 
     console.log('e:', e)
 
+    // Игнорируем нажатие ПКМ
+    if (e.evt.button === 2) {
+      return
+    }
+
     // Игнорируем клик на трансформер
     if (e.target.parent?.className === 'Transformer') return
     // Игнорируем клик на редактируемый блок
@@ -138,22 +145,16 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
       return
     }
     
-    //
+    // 
     if (transformerIsActive) {
-      console.log('transformerIsActive!')
-      console.log('setting editedRect=null')
-      console.log('calling updateTransformer')
-
       setEditedRect(null)
-      // setTimeout(updateTransformer, 0)
-
       return
     }
 
     setCreatingNewRect(true)
     const pointer = stageRef.current?.getPointerPosition()
-    if (!pointer || !layerRef.current) return
-    const x = (pointer.x - layerRef.current.x()) / layerRef.current.scaleX()
+    if (!pointer || !stageRef.current) return
+    const x = (pointer.x - stageRef.current.x()) / stageRef.current.scaleX()
 
     addNewRect(x)
 
@@ -200,15 +201,15 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   function handleMouseMove() {
     console.log('handleMouseMove')
 
-    if (!creatingNewRect || !editedRect || !layerRef.current) return
+    if (!creatingNewRect || !editedRect || !stageRef.current) return
     // setRectWasMoved(true)
     const rect = {
       x: editedRect.x(),
       width: editedRect.width(),
     }
-    const pointer = stageRef.current?.getPointerPosition()
+    const pointer = stageRef.current.getPointerPosition()
     if (!rect || !pointer) return
-    const mouseX = (pointer.x - layerRef.current.x()) / layerRef.current.scaleX()
+    const mouseX = (pointer.x - stageRef.current.x()) / stageRef.current.scaleX()
     const rectX = rect.x ? rect.x : 0
     const rectWidth = rect.width ? rect.width : 0
     const rect_left = rectX
@@ -291,8 +292,8 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   }
 
   function onScroll(e: Event) {
-    console.log('onScroll')
-    console.log('e:', e)
+    // console.log('onScroll')
+    // console.log('e:', e)
 
     groupRef.current?.x((e.target as HTMLDivElement).scrollLeft)
   }
@@ -312,6 +313,42 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     e.nativeEvent.stopPropagation()
   }
 
+  function handleWheel(e: KonvaEventObject<WheelEvent>) {
+    const SCALE_BY = 1.045
+
+    if (e.evt.ctrlKey) {
+      e.evt.preventDefault()
+      e.evt.stopPropagation()
+
+      if (!stageRef.current) return
+      const oldScaleX = stageRef.current.scaleX()
+      let newScale = e.evt.deltaY < 0 ? oldScaleX * SCALE_BY : oldScaleX / SCALE_BY
+      if (Math.abs(newScale - 1) < 1e-10) newScale = 1
+      const pointer = stageRef.current.getPointerPosition()
+      if (!pointer) return
+      const mousePointToX = (pointer.x - stageRef.current.x()) / oldScaleX
+      const offset = pointer.x - mousePointToX * newScale
+      zoom(offset, newScale)
+    }
+  }
+
+  function zoom(offset: number, newScale: number) {
+    // if (imageNode.value.width() * newScale < stageNode.value.width()) return
+
+    if (!stageRef.current) return
+    let x = offset
+    const layerWidth = stageRef.current.width() * newScale
+    if (layerWidth < stageRef.current.width()) {
+      x = (stageRef.current.width() - layerWidth) / 2
+    } else {
+      const minX = -(layerWidth - stageRef.current.width())
+      x = Math.max(minX, Math.min(x, 0))
+    }
+    stageRef.current.scaleX(newScale)
+    stageRef.current.x(x)
+    stageRef.current.batchDraw()
+  }
+
 
   return (
     <div
@@ -328,6 +365,7 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
         onMouseDown={handleStageMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleStageMouseUp}
+        onWheel={handleWheel}
       >
         <Layer ref={layerRef}>
           <KImage {...imageConfig.current}/>
