@@ -280,7 +280,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 	cfg := config.GetConfig()
 
 	authMailerClient := GetMailerAuth(cfg, h.logger)
-	activationLink := fmt.Sprintf("%v:%v/api/auth/activate/%v", cfg.Listen.ServerIP, cfg.Listen.Port, token)
+	activationLink := fmt.Sprintf("%v/api/auth/activate/%v", cfg.Listen.ServerIP, token)
 
 	emailConfirmationParams := EmailConfirmationParams{
 		Name:  newUser.Name,

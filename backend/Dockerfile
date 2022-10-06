@@ -4,6 +4,7 @@ WORKDIR /src
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 
+COPY .env ./
 COPY app/go.* ./
 
 RUN go mod download
