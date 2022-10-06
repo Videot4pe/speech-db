@@ -164,7 +164,7 @@ func (s *Storage) GetById(id uint16) (*NewRecord, error) {
 	row := s.client.QueryRow(s.ctx, sql, args...)
 
 	s.logger.Trace(id)
-	if err = row.Scan(&record.Id, &record.Name, &record.Speaker, &record.File, &record.CreatedBy); err != nil {
+	if err = row.Scan(&record.Id, &record.Name, &record.Speaker, &record.FileId, &record.CreatedBy); err != nil {
 		err = db.ErrScan(err)
 		logger.Error(err)
 		return nil, err

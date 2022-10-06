@@ -41,8 +41,8 @@ func NewRecordsHandler(ctx context.Context, storage *Storage, filesStorage *file
 func (h *Handler) Register(router *httprouter.Router) {
 	router.GET(listURL, auth.RequireAuth(h.All, nil))
 	router.GET(viewURL, auth.RequireAuth(h.View, nil))
-	router.POST(listURL, auth.RequireAuth(h.Create, []string{}))
-	router.PATCH(listURL, auth.RequireAuth(h.Update, []string{}))
+	router.POST(listURL, auth.RequireAuth(h.Create, nil))
+	router.PATCH(listURL, auth.RequireAuth(h.Update, nil))
 }
 
 func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
