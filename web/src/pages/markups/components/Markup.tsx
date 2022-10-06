@@ -36,7 +36,7 @@ const Markup = ({ onClose, onMarkupSave, isOpen, activeId }: MarkupProps) => {
 
   const fetchRecords = (inputValue: string) =>
     // TODO column name (tables)
-    RecordsApi.list({ filter: [{ column: "r.name", value: inputValue }] })
+    RecordsApi.list({ filter: [{ column: "records.name", value: inputValue }] })
       .then(({ data }) => {
         console.log(
           data.map((record) => ({ value: record.id, label: record.name }))

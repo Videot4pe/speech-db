@@ -50,12 +50,12 @@ const recordsTableColumns = (
               icon={<EditIcon />}
               onClick={() => onEdit(id)}
             />
-            <IconButton
-              ml={2}
-              aria-label="remove"
-              icon={<DeleteIcon />}
-              onClick={() => onRemove(id)}
-            />
+            {/*<IconButton*/}
+            {/*  ml={2}*/}
+            {/*  aria-label="remove"*/}
+            {/*  icon={<DeleteIcon />}*/}
+            {/*  onClick={() => onRemove(id)}*/}
+            {/*/>*/}
           </Center>
         );
       },

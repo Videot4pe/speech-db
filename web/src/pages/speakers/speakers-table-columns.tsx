@@ -49,12 +49,12 @@ const speakersTableColumns = (
               icon={<EditIcon />}
               onClick={() => onEdit(data.row.original.id)}
             />
-            <IconButton
-              ml={2}
-              aria-label="remove"
-              icon={<DeleteIcon />}
-              onClick={() => onRemove(data.row.original.id)}
-            />
+            {/*<IconButton*/}
+            {/*  ml={2}*/}
+            {/*  aria-label="remove"*/}
+            {/*  icon={<DeleteIcon />}*/}
+            {/*  onClick={() => onRemove(data.row.original.id)}*/}
+            {/*/>*/}
           </Center>
         );
       },
