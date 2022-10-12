@@ -1,7 +1,7 @@
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { Stage, Layer, Image as KImage, Text as KText, Transformer, Rect, Group } from "react-konva";
+import { BaseSyntheticEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { Stage, Layer, Image as KImage, Text as KText, Transformer, Rect } from "react-konva";
 
 let c = 0
 function uid() {
@@ -18,7 +18,6 @@ interface IEdit {
 }
 
 let INITIAL_STAGE_WIDTH = 1082;
-// let INITIAL_STAGE_WIDTH = 3000;
 const INITIAL_STAGE_HEIGHT = 200;
 
 const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
@@ -29,8 +28,8 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
 
   const stageRef = useRef<Konva.Stage>(null)
   const layerRef = useRef<Konva.Layer>(null)
+  const imageRef = useRef<Konva.Image>(null)
   const transformerRef = useRef<Konva.Transformer>(null)
-  const groupRef = useRef<Konva.Group>(null) // debug text
   const imageConfig = useRef<Konva.ImageConfig>({ image: undefined })
   const stageConfig = useRef<Konva.StageConfig>({
     container: 'scroll-container',
@@ -53,21 +52,14 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     height: INITIAL_STAGE_HEIGHT,
   }
 
-  // zoom test
-  const [scale, setScale] = useState(1);
-
   function zoomIn() {
-    const newScale = scale + 0.1;
-    setScale(newScale);
+    const newScale = stageRef.current?.scaleX() ?? 1 + 0.1;
     stageRef.current?.scaleX(newScale);
-    stageRef.current?.width(INITIAL_STAGE_WIDTH * newScale);
   }
 
   function zoomOut() {
-    const newScale = scale - 0.1;
-    setScale(newScale);
+    const newScale = stageRef.current?.scaleX() ?? 1 - 0.1;
     stageRef.current?.scaleX(newScale);
-    stageRef.current?.width(INITIAL_STAGE_WIDTH * newScale);
   }
 
   useImperativeHandle(ref, () => ({
@@ -200,20 +192,6 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   }
 
   function handleMouseMove(e: any) {
-    console.log('handleMouseMove')
-
-    // const eStr = JSON.stringify(e.evt)
-    // console.log({str: eStr})
-
-    console.log(e.evt.clientX)
-    
-    // console.log(e)
-    
-    // const parsedEvt = JSON.parse(`{"evt":{"isTrusted":true},"pointerId":999,"target":"{"attrs":{"width":1082,"height":200},"className":"Image"}","currentTarget":"{"attrs":{"width":1082,"height":200},"className":"Stage","children":[{"attrs":{},"className":"Layer","children":[{"attrs":{"width":1082,"height":200},"className":"Image"},{"attrs":{},"className":"Group","children":[{"attrs":{"width":150,"height":60,"fill":"black"},"className":"Rect"},{"attrs":{"text":"transformerIsActive","fill":"red","fontSize":15},"className":"Text"},{"attrs":{"y":15,"text":"creatingNewRect","fill":"red","fontSize":15},"className":"Text"},{"attrs":{"y":30,"text":"rectWasMoved","fill":"red","fontSize":15},"className":"Text"},{"attrs":{"y":45,"text":"1","fill":"green","fontSize":15},"className":"Text"}]},{"attrs":{"current":{"visible":false}},"className":"Rect"},{"attrs":{"rotateEnabled":false,"enabledAnchors":["middle-left","middle-right"]},"className":"Transformer"}]}]}","type":"mousemove"}`)
-
-    const scrollLeft = (document.getElementById('scroll-container') as HTMLDivElement).scrollLeft
-    console.log('scrollLeft:', scrollLeft)
-
     if (!creatingNewRect || !editedRect || !stageRef.current) return
     // setRectWasMoved(true)
     const rect = {
@@ -304,24 +282,18 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     srcRect.y = newPosY
   }
 
-  function onScroll(e: Event) {
-    // console.log('onScroll')
-    // console.log('e:', e)
-
-    groupRef.current?.x((e.target as HTMLDivElement).scrollLeft)
-  }
-
   useEffect(() => {
-    console.warn('useEffect')
-
-    document.addEventListener('keydown', handleKeyDown);
-    const scrollContainer = document.getElementById('scroll-container')
-    scrollContainer!.addEventListener('scroll', onScroll)
-
-    INITIAL_STAGE_WIDTH = scrollContainer!.offsetWidth
-    stageConfig.current.width = INITIAL_STAGE_WIDTH
-    imageConfig.current.width = INITIAL_STAGE_WIDTH
+    window.addEventListener('resize', onStageContainerResize);
+    onStageContainerResize();
   }, [])
+
+  function onStageContainerResize() {
+    const scrollContainer = document.getElementById('scroll-container') as HTMLDivElement
+    const width = scrollContainer.clientWidth
+
+    stageRef.current!.width(width)
+    imageRef.current!.width(width)
+  }
 
   useEffect(updateTransformer, [editedRect]);
 
@@ -336,165 +308,63 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   function handleWheel(e: KonvaEventObject<WheelEvent>) {
     const SCALE_BY = 1.045
 
+    e.evt.preventDefault()
+
     if (e.evt.ctrlKey) {
-      e.evt.preventDefault()
-      e.evt.stopPropagation()
 
       if (!stageRef.current) return
       const oldScaleX = stageRef.current.scaleX()
       let newScale = e.evt.deltaY < 0 ? oldScaleX * SCALE_BY : oldScaleX / SCALE_BY
       if (Math.abs(newScale - 1) < 1e-10) newScale = 1
       
-
-      const scrollContainer = document.getElementById('scroll-container') as HTMLDivElement  
-      zoom(newScale, e.evt.clientX - scrollContainer.offsetLeft)
-      // zoom(newScale, e.evt.clientX + scrollContainer.scrollLeft - scrollContainer.offsetLeft)
+      zoom(newScale)
     }
   }
 
-  function zoom(newScale: number, pointerPosition: number) {
+  function zoom(newScale: number, position?: number) {
     if (!stageRef.current) return
 
     const oldScaleX = stageRef.current.scaleX()
-    const scrollContainer = document.getElementById('scroll-container') as HTMLDivElement
-    // const pointerPosition = stageRef.current.getPointerPosition()?.x ?? 0
-    // const pointerPosition =
-
-    // const oldStagePos = pointerPosition * stageRef.current.scaleX() // работает норм от первой точки зума
-    const oldStagePos = stageRef.current.getPointerPosition()!.x * stageRef.current.scaleX() // работает норм от первой точки зума
-    console.log('oldStagePos:', oldStagePos)
-    // const oldStagePos = (scrollContainer.scrollLeft + pointerPosition) * stageRef.current.scaleX()
-    const oldScrollLeft = scrollContainer.scrollLeft
-    // const dist = oldStagePos - oldScrollLeft
-    const dist = pointerPosition
-
-    console.log('{ ZOOM }')
-    // console.log('newScale:', newScale)
-
-    // console.log('scaleX:', stageRef.current.scaleX())
-    console.log('scrollContainer:', scrollContainer.offsetLeft)
-    console.log('pointerPosition:', pointerPosition)
-    // console.log('oldScrollLeft:', oldScrollLeft)
-
+    const pointer = position ?
+      position 
+      : stageRef.current.getPointerPosition()?.x ?? stageRef.current.width() / 2
+    const oldStagePos = pointer -stageRef.current.x()
+    
     const newWidth = INITIAL_STAGE_WIDTH * newScale;
     if (newWidth < INITIAL_STAGE_WIDTH) {
       newScale = 1
     }
 
-    stageRef.current.width(INITIAL_STAGE_WIDTH * newScale);
-    stageRef.current.scaleX(newScale);
+    const newStagePos = oldStagePos / oldScaleX * newScale
+    let newScrollLeft = newStagePos - pointer
 
-    // const newStagePos = pointerPosition * newScale
-    const newStagePos = stageRef.current.getPointerPosition()!.x * newScale
-    const newScrollLeft = newStagePos - dist
+    const stageWidth = stageRef.current.width()
 
-    // console.log('pointerPosition:', pointerPosition)
-    // console.log('oldStagePos:', oldStagePos)
-    // console.log('oldScrollLeft:', oldScrollLeft)
-    // console.log('dist:', dist)
-    // console.log('newStagePos:', newStagePos)
-    // console.log('newScrollLeft:', newScrollLeft)
+    /**
+     * stageWidth * newScale - newScrollLeft < stageWidth
+     * =>
+     * newScrollLeft/stageWidth > newScale - 1
+     */
+    if (newScrollLeft/stageWidth > newScale - 1) {
+      newScrollLeft = stageWidth * (newScale - 1)
+    }
+    if (newScrollLeft < 0) {
+      newScrollLeft = 0
+    }
 
-    // scrollContainer.scrollTo({ left: newScrollLeft })
-
-    scrollContainer.scrollLeft = newScrollLeft
-    //// LOGIC
-
-    // groupRef.current?.x((e.target as HTMLDivElement).scrollLeft)
+    stageRef.current!.scaleX(newScale);
+    stageRef.current!.x(-newScrollLeft)
   }
 
-  const [curStageScaleX, setCurStageScaleX] = useState(1)
+  function handleScroll(e: BaseSyntheticEvent<WheelEvent>) {
+    if (!stageRef.current || !e.nativeEvent.deltaX) return
 
-  function handleKeyDown(e: KeyboardEvent) {
-    console.log('{ handleKeyDown }')
+    const newX = stageRef.current.x() - e.nativeEvent.deltaX
+    const stageWidth = stageRef.current.width()
+    const stageScale = stageRef.current.scaleX()
+    if (newX > 0 || newX/stageWidth < 1 - stageScale) return 
 
-    if (!stageRef.current) return
-    
-
-    // console.log('pointer:', pointer)
-    // console.log('pointer x scale:', pointer * stageRef.current.scaleX())
-    
-    // const SCALE_BY = 1.045
-    const SCALE_BY = 2
-
-    const scrollContainer = document.getElementById('scroll-container') as HTMLDivElement
-
-    let newScale = stageRef.current.scaleX()
-    if (e.key === '=') {
-      newScale *= SCALE_BY
-    }
-    if (e.key === '-') {
-      newScale /= SCALE_BY
-    }
-
-    if (newScale) {
-      // zoom(newScale, scrollContainer.clientWidth / 2 - scrollContainer.offsetLeft)
-
-      console.log('\n\n\n{ ZOOM (by btn) }')
-
-      if (!stageRef.current) return
-
-      const oldScaleX = stageRef.current.scaleX()
-      const scrollContainer = document.getElementById('scroll-container') as HTMLDivElement
-
-      // const oldStagePos = pointerPosition * stageRef.current.scaleX() // работает норм от первой точки зума
-      // const oldStagePos = stageRef.current.getPointerPosition()!.x * stageRef.current.scaleX()
-      const oldStagePos = stageRef.current.getPointerPosition()!.x
-      console.log('oldScaleX:', oldScaleX)
-      console.log('oldStagePos:', oldStagePos)
-      console.log('oldStagePos x oldScale:', oldStagePos * oldScaleX)
-      
-      const oldScrollLeft = scrollContainer.scrollLeft
-      
-      const dist = oldStagePos - oldScrollLeft
-
-      // console.log('newScale:', newScale)
-
-      // console.log('scaleX:', stageRef.current.scaleX())
-      console.log('oldScrollLeft:', oldScrollLeft)
-      // console.log('pointerPosition:', pointerPosition)
-      console.log('dist:', dist)
-      
-    
-
-      const newWidth = INITIAL_STAGE_WIDTH * newScale;
-      if (newWidth < INITIAL_STAGE_WIDTH) {
-        newScale = 1
-      }
-
-      // const newStagePos = oldStagePos * newScale
-      const oldStagePosY = stageRef.current!.getPointerPosition()!.y
-      const newStagePos = stageRef.current!.getPointerPosition()!.x * (newScale/oldScaleX)
-      const newScrollLeft = newStagePos - dist
-
-      // console.log('pointerPosition:', pointerPosition)
-      // console.log('oldStagePos:', oldStagePos)
-      // console.log('oldScrollLeft:', oldScrollLeft)
-      console.log('stage pointerPosition.x:', stageRef.current.getPointerPosition()!.x)
-      console.log('newStagePos:', newStagePos)
-      console.log('newScrollLeft:', newScrollLeft)
-      console.log('newScale:', newScale)
-
-      // scrollContainer.scrollTo({ left: newScrollLeft })
-
-      stageRef.current!.width(INITIAL_STAGE_WIDTH * newScale);
-      stageRef.current!.scaleX(newScale);
-
-      setCurStageScaleX(newScale)
-
-      scrollContainer.scrollLeft = newScrollLeft
-
-
-      console.log('stageRef pointerPos:', stageRef.current.getPointerPosition())
-
-
-      groupRef.current!.offsetX(newScrollLeft)
-    }
-  }
-
-  function handleScroll(e: any) {
-    console.log('{handle scroll}')
-    console.log(e)
+    stageRef.current.x(newX)
   }
 
   return (
@@ -516,37 +386,7 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
         onWheel={handleWheel}
       >
         <Layer ref={layerRef}>
-          <KImage {...imageConfig.current}/>
-          <Group ref={groupRef}>
-            <Rect
-              width={150}
-              height={60}
-              fill={'black'}
-            />
-            <KText
-              text={'transformerIsActive'}
-              fill={transformerIsActive ? 'green' : 'red'}
-              fontSize={15}
-            />
-            <KText
-              y={15}
-              text={'creatingNewRect'}
-              fill={creatingNewRect ? 'green' : 'red'}
-              fontSize={15}
-            />
-            <KText
-              y={30}
-              text={'rectWasMoved'}
-              fill={rectWasMoved ? 'green' : 'red'}
-              fontSize={15}
-            />
-            <KText
-              y={45}
-              text={ curStageScaleX.toString() }
-              fill={'green'}
-              fontSize={15}
-            />
-          </Group>
+          <KImage ref={imageRef} {...imageConfig.current}/>
           <Rect
             key="currentTimePointer"
             {...currentTimePointerConfig}
