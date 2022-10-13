@@ -144,6 +144,31 @@ func (s *Storage) Create(record NewRecord) (uint16, error) {
 	return lastInsertId, nil
 }
 
+func (s *Storage) SetImage(recordId uint64, fileId uint16) error {
+
+	query := s.queryBuilder.Update(table).
+		Set("image_id", fileId).
+		Where(sq.Eq{"id": recordId})
+
+	sql, args, err := query.ToSql()
+	logger := s.queryLogger(sql, table, args)
+	if err != nil {
+		err = db.ErrCreateQuery(err)
+		logger.Error(err)
+		return err
+	}
+
+	logger.Trace("do query")
+	_, err = s.client.Exec(s.ctx, sql, args...)
+
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	return nil
+}
+
 func (s *Storage) GetById(id uint16) (*NewRecord, error) {
 
 	var record NewRecord

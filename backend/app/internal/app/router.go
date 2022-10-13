@@ -3,6 +3,7 @@ package app
 import (
 	_ "backend/docs"
 	"backend/internal/auth"
+	waveform_generator "backend/internal/client/waveform-generator"
 	"backend/internal/config"
 	entity2 "backend/internal/domain/entity"
 	"backend/internal/domain/files"
@@ -71,8 +72,9 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	speakersHandler := speakers.NewSpeakersHandler(ctx, speakersStorage, logger)
 	speakersHandler.Register(router)
 
+	waveformGeneratorClient := waveform_generator.NewWaveformGeneratorClient(config.WaveformGenerator.IP, logger)
 	recordsStorage := records.NewRecordsStorage(ctx, pgClient, logger)
-	recordsHandler := records.NewRecordsHandler(ctx, recordsStorage, filesStorage, s3Client, logger)
+	recordsHandler := records.NewRecordsHandler(ctx, config, recordsStorage, filesStorage, waveformGeneratorClient, s3Client, logger)
 	recordsHandler.Register(router)
 
 	return router
