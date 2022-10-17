@@ -1,7 +1,7 @@
 package records
 
 import (
-	"backend/internal/client/waveform-generator"
+	waveform_generator "backend/internal/client/waveform-generator"
 	"backend/internal/config"
 	"backend/internal/domain/files"
 	"backend/pkg/auth"
@@ -12,11 +12,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type Handler struct {
@@ -136,12 +137,12 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 }
 
 type ImageFile struct {
-	image string
+	Image string `json:"image"`
 }
 
 func (h *Handler) SetImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var file ImageFile
-	recordId, err := strconv.ParseUint(ps.ByName("recordId"), 16, 16)
+	recordId, err := strconv.ParseUint(ps.ByName("recordId"), 10, 64)
 	if err != nil {
 		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -165,8 +166,7 @@ func (h *Handler) SetImage(w http.ResponseWriter, r *http.Request, ps httprouter
 		return
 	}
 
-	h.logger.Error(file)
-	_, name, err := h.s3Client.UploadBase64(h.ctx, file.image)
+	_, name, err := h.s3Client.UploadBase64(h.ctx, file.Image)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return

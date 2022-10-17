@@ -148,6 +148,8 @@ func (s *Storage) Create(record NewRecord) (uint16, error) {
 
 func (s *Storage) SetImage(recordId uint64, fileId uint16) error {
 
+	s.logger.Trace(recordId)
+	s.logger.Trace(fileId)
 	query := s.queryBuilder.Update(table).
 		Set("image_id", fileId).
 		Where(sq.Eq{"id": recordId})
@@ -190,7 +192,6 @@ func (s *Storage) GetById(id uint64) (*NewRecord, error) {
 	logger.Trace("do query")
 	row := s.client.QueryRow(s.ctx, sql, args...)
 
-	s.logger.Trace(id)
 	if err = row.Scan(&record.Id, &record.Name, &record.Speaker, &record.FileId, &record.CreatedBy); err != nil {
 		err = db.ErrScan(err)
 		logger.Error(err)

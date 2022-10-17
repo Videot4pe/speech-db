@@ -73,7 +73,7 @@ func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 }
 
 func (h *Handler) View(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	id, err := strconv.ParseUint(ps.ByName("markupId"), 16, 16)
+	id, err := strconv.ParseUint(ps.ByName("markupId"), 10, 64)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
