@@ -1,5 +1,6 @@
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
+import { RectConfig } from "konva/lib/shapes/Rect";
 import { BaseSyntheticEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Stage, Layer, Image as KImage, Text as KText, Transformer, Rect } from "react-konva";
 
@@ -39,7 +40,8 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   const currentTimePointerConfig = useRef<Konva.RectConfig>({ visible: false })
 
   let [rects, setRects] = useState<Konva.RectConfig[]>([])
-  const [editedRect, setEditedRect] = useState<Konva.Rect | null>(null)
+  // const [editedRect, setEditedRect] = useState<Konva.Rect | null>(null)
+  const [editedRect, setEditedRect] = useState<Konva.RectConfig | null>(null)
 
 
   // const imageURL = 'https://www.frolov-lib.ru/books/hi/ch03.files/image010.jpg';
@@ -84,15 +86,28 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   }
 
   function addNewRect(x: number): string {
-    console.warn('{ addNewRect }')
+    console.debug('{ addNewRect }')
 
     const newRect = createRectConfig(uid(), x, 1)
     setRects(rects.concat(newRect))
 
+    setEditedRect(newRect)
+    updateTransformer(newRect)
+
+    console.log('[addNewRect] newRect:', newRect)
+    console.log('[addNewRect] editedRect:', editedRect)
+
     setTimeout(
       () => {
-        setEditedRect(layerRef.current?.children?.find(child => child.id() === newRect.id) as Konva.Rect ?? null)
-        console.log('editedRect:', editedRect)
+        // const editedRectToSet = layerRef.current?.children?.find(child => child.id() === newRect.id) as Konva.Rect ?? null
+        // setEditedRect(editedRectToSet)
+        
+        // const editedRectToSet = rects.find(child => child.id === newRect.id) ?? null
+        // setEditedRect(editedRectToSet)
+        // updateTransformer(editedRectToSet)
+
+        // console.log('[addNewRect] editedRectToSet:', editedRectToSet)
+        // console.log('[addNewRect] editedRect:', editedRect)
       },
       0
     )
@@ -100,17 +115,32 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     return newRect.id as string
   }
 
-  function updateTransformer() {
-    console.log('updateTransformer')
+  function updateTransformer(editedRect: RectConfig | null) {
+    console.debug('updateTransformer')
 
-    console.log('editedRect:', editedRect)
+    console.log('[updateTransformer] editedRect:', editedRect)
 
     // const selectedNode = layerRef.current?.findOne((node: Konva.Node) => node.id() === editedRect?.id())
     // if (selectedNode === transformerRef.current?.nodes()[0]) return
     // transformerRef.current?.nodes(selectedNode ? [selectedNode] : [] )
 
-    if (transformerRef.current?.nodes()[0] === editedRect) return
-    transformerRef.current?.nodes(editedRect ? [editedRect] : [])
+    // if (transformerRef.current?.nodes()[0] === editedRect) return
+    // transformerRef.current?.nodes(editedRect ? [editedRect] : [])
+
+    const editedRectNode = layerRef?.current?.children?.find(child => child.id() === editedRect?.id) ?? null
+
+    // console.log('[updateTransformer] layerChildren:', layerRef?.current?.children?.map(child => child.id()).join(", "))
+
+    console.log('[updateTransformer] layerChildren:')
+    layerRef?.current?.children?.forEach(child => console.log(child))
+
+    console.log('[updateTransformer] editedRectNode:', editedRectNode)
+
+    // if (transformerRef.current?.nodes()[0] === editedRect) return
+    // transformerRef.current?.nodes(editedRect ? [editedRect] : [])
+
+    if (transformerRef.current?.nodes()[0] === editedRectNode) return
+    transformerRef.current?.nodes(editedRectNode ? [editedRectNode] : [])
 
     
     setTransformerIsActive(transformerRef.current?.nodes().length ? true : false)
@@ -118,7 +148,7 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   }
 
   function handleStageMouseDown(e: KonvaEventObject<MouseEvent>) {
-    console.log('handleStageMouseDown')
+    console.warn('handleStageMouseDown')
 
     console.log('e:', e)
 
@@ -133,7 +163,10 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     if (transformerRef.current?.nodes()[0] === e.target) return
 
     if (e.target.className === 'Rect') {
-      setEditedRect(e.target as Konva.Rect)
+      // setEditedRect(e.target as Konva.Rect)
+      const editedRect = rects.find(child => child.id === e.target.id()) ?? null
+      setEditedRect(editedRect)
+      updateTransformer(editedRect)
 
       return
     }
@@ -141,6 +174,7 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     // 
     if (transformerIsActive) {
       setEditedRect(null)
+      updateTransformer(null)
       return
     }
 
@@ -164,21 +198,45 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   }
 
   function handleStageMouseUp() {
-    console.log('handleStageMouseUp')
+    console.warn('handleStageMouseUp')
 
     if (creatingNewRect) {
       setCreatingNewRect(false)
       setRectWasMoved(false)
       
-      if (!rectWasMoved && editedRect?.width() === 1) {
-        editedRect.destroy()
+      // if (!rectWasMoved && editedRect?.width() === 1) {
+      if (!rectWasMoved && editedRect?.width === 1) {
+        console.debug('!rectWasMoved && editedRect?.width() === 1')
+
+        const editedRectNode = layerRef.current?.children?.find(child => child.id() === editedRect.id) as Konva.Rect
+        if (!editedRectNode) {
+          console.error('editedRectNode was not found!')
+          return
+        }
+
+        /** Если после клика rect не менялся, то удаляем */
+        editedRectNode.destroy()
+        const updatedRects = rects.filter(child => child.id !== editedRect.id)
+        setRects(updatedRects)
+        /** */
+
+        // editedRect.destroy()
         setEditedRect(null)
+        updateTransformer(null)
         return
       }
       
-      editedRect?.scaleX(editedRect.width())
-      editedRect?.width(1)
-      // updateTransformer()
+      // editedRect?.scaleX(editedRect.width())
+      // editedRect?.width(1)
+      if (!editedRect) {
+        console.error('editedRect is null')
+        return
+      }
+
+      editedRect.scaleX = editedRect?.width
+      editedRect.width = 1
+
+      // updateTransformer(undefined)
       // emitEntitySelected()
     } else {
       if (rectWasMoved && editedRect !== null) {
@@ -192,12 +250,33 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   }
 
   function handleMouseMove(e: any) {
+    console.log('handleMouseMove')
+
     if (!creatingNewRect || !editedRect || !stageRef.current) return
     // setRectWasMoved(true)
+    
+    // const rect = {
+    //   x: editedRect.x(),
+    //   width: editedRect.width(),
+    // }
+
+
+
+
+
+    // const rect = {
+    //   x: editedRect.x,
+    //   width: editedRect.width,
+    // }
+
+    const editedRectNode = layerRef?.current?.children?.find(child => child.id() === editedRect?.id) ?? null
+    if (!editedRectNode) return
+
     const rect = {
-      x: editedRect.x(),
-      width: editedRect.width(),
+      x: editedRectNode.x(),
+      width: editedRectNode.width(),
     }
+
     const pointer = stageRef.current.getPointerPosition()
     if (!rect || !pointer) return
     const mouseX = (pointer.x - stageRef.current.x()) / stageRef.current.scaleX()
@@ -232,9 +311,35 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     }
 
     if (rect.x) {
-      editedRect.x(rect.x)
+      // editedRect.x(rect.x)
+
+      editedRect.x = rect.x
     }
-    editedRect.width(rect.width)
+    // editedRect.width(rect.width)
+    editedRect.width = rect.width
+
+    /** */
+    const curRect = rects.find(rect => rect.id === editedRect.id) ?? null
+    if (!curRect) {
+      console.error('curRect is null')
+      return
+    }
+
+    if (rect.x) {
+      curRect.x = editedRect.x
+    }
+    curRect.width = editedRect.width
+
+    setRects(rects.filter(r => r.id !== curRect.id).concat([curRect]))
+    /** */
+
+
+
+    // const editedRectNode = layerRef?.current?.children?.find(child => child.id() === editedRect?.id) ?? null
+
+    // stageRef.current.draw()
+
+    console.log('editedRect:', editedRect)
   }
 
   function handleTransformEnd(e: KonvaEventObject<Event>) {
@@ -285,6 +390,8 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   useEffect(() => {
     window.addEventListener('resize', onStageContainerResize);
     onStageContainerResize();
+
+    // document.addEventListener('keydown', handleKey);
   }, [])
 
   function onStageContainerResize() {
@@ -295,7 +402,7 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     imageRef.current!.width(width)
   }
 
-  useEffect(updateTransformer, [editedRect]);
+  // useEffect(updateTransformer, [editedRect]);
 
   function handleContextMenu(e: { nativeEvent: PointerEvent }) {
     console.log('handleContextMenu')
@@ -367,16 +474,56 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     stageRef.current.x(newX)
   }
 
+  function handleKey() {
+    console.log('[updateTransformer] layerChildren:')
+    layerRef?.current?.children?.forEach(child => console.log(child))
+  }
+
   return (
     <div
       id="scroll-container"
-      style={{
-        overflow: 'auto',
-      }}
-
+      style={{ overflow: 'auto' }}
       onContextMenu={handleContextMenu}
       onWheel={handleScroll}
     >
+      <Stage
+        width={300}
+        height={100}
+      >
+        <Layer>
+          <Rect
+            width={300}
+            height={100}
+            fill={'black'}
+          />
+          { /* creatingNewRect, rectWasMoved, transformerIsActive */ }
+          <KText
+            y={0}
+            text={'creatingNewRect'}
+            fill={creatingNewRect ? 'green' : 'red'}
+          />
+          <KText
+            y={15}
+            text={'rectWasMoved'}
+            fill={rectWasMoved ? 'green' : 'red'}
+          />
+          <KText
+            y={30}
+            text={'transformerIsActive'}
+            fill={transformerIsActive ? 'green' : 'red'}
+          />
+          <KText
+            y={45}
+            text={'editedRect'}
+            fill={editedRect ? 'green' : 'red'}
+          />
+          <KText
+            y={60}
+            text={`[ ${rects.map((r) => r.id).join(", ")} ]`}
+            fill={editedRect ? 'green' : 'red'}
+          />
+        </Layer>
+      </Stage>
       <Stage
         ref={stageRef}
         {...stageConfig.current}
@@ -387,10 +534,10 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
       >
         <Layer ref={layerRef}>
           <KImage ref={imageRef} {...imageConfig.current}/>
-          <Rect
+          {/* <Rect
             key="currentTimePointer"
             {...currentTimePointerConfig}
-          />
+          /> */}
           {
             rects.map(rect => (
               <Rect {...rect} key={rect.id} />
