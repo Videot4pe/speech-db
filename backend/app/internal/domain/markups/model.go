@@ -5,6 +5,7 @@ import "time"
 type Markup struct {
 	Id        uint16    `json:"id" sql:"id"`
 	Record    string    `json:"record"`
+	Image     *string   `json:"image"`
 	CreatedAt time.Time `json:"createdAt" sql:"created_at"`
 	CreatedBy string    `json:"createdBy" sql:"created_by"`
 }

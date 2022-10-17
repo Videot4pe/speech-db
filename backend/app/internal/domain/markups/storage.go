@@ -45,11 +45,13 @@ func (s *Storage) All(params *db.Params) ([]Markup, *utils.Meta, error) {
 	query := s.queryBuilder.Select(
 		"m.id",
 		"f.path",
+		"fi.path",
 		"m.created_at",
 		"u.email",
 	).From(fmt.Sprintf("%v as m", table)).
 		Join("records as r on r.id = m.record_id").
 		Join("files as f on f.id = r.file_id").
+		LeftJoin("files as fi on fi.id = r.image_id").
 		Join("users as u on u.id = m.created_by")
 
 	query = params.Apply(query)
@@ -77,7 +79,7 @@ func (s *Storage) All(params *db.Params) ([]Markup, *utils.Meta, error) {
 	for rows.Next() {
 		p := Markup{}
 		if err = rows.Scan(
-			&p.Id, &p.Record, &p.CreatedAt, &p.CreatedBy,
+			&p.Id, &p.Record, &p.Image, &p.CreatedAt, &p.CreatedBy,
 		); err != nil {
 			err = db.ErrScan(err)
 			logger.Error(err)
@@ -135,11 +137,12 @@ func (s *Storage) GetById(id uint16) (*Markup, error) {
 
 	var markup Markup
 
-	query := s.queryBuilder.Select("m.id", "f.path", "m.created_at", "u.email").
+	query := s.queryBuilder.Select("m.id", "f.path", "fi.path", "m.created_at", "u.email").
 		From(fmt.Sprintf("%v as m", table)).
 		Where(sq.Eq{"m.id": id}).
 		Join("records as r on r.id = m.record_id").
 		Join("files as f on f.id = r.file_id").
+		LeftJoin("files as fi on fi.id = r.image_id").
 		Join("users as u on u.id = m.created_by")
 
 	sql, args, err := query.ToSql()
@@ -153,7 +156,7 @@ func (s *Storage) GetById(id uint16) (*Markup, error) {
 	row := s.client.QueryRow(s.ctx, sql, args...)
 
 	s.logger.Trace(id)
-	if err = row.Scan(&markup.Id, &markup.Record, &markup.CreatedAt, &markup.CreatedBy); err != nil {
+	if err = row.Scan(&markup.Id, &markup.Record, &markup.Image, &markup.CreatedAt, &markup.CreatedBy); err != nil {
 		err = db.ErrScan(err)
 		logger.Error(err)
 		return nil, err

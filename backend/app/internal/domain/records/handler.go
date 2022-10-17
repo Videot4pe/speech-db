@@ -52,7 +52,7 @@ func (h *Handler) Register(router *httprouter.Router) {
 	router.GET(viewURL, auth.RequireAuth(h.View, nil))
 	router.POST(listURL, auth.RequireAuth(h.Create, nil))
 	router.PATCH(listURL, auth.RequireAuth(h.Update, nil))
-	router.POST(setImageURL, auth.RequireAuth(h.SetImage, nil))
+	router.POST(setImageURL, h.SetImage)
 }
 
 func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -76,14 +76,14 @@ func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 }
 
 func (h *Handler) View(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	id := r.Context().Value("userId").(uint16)
-	user, err := h.storage.GetById(id)
+	recordId, err := strconv.ParseUint(ps.ByName("recordId"), 16, 16)
+	record, err := h.storage.GetById(recordId)
 
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 		return
 	}
-	utils.WriteResponse(w, http.StatusOK, user)
+	utils.WriteResponse(w, http.StatusOK, record)
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -120,24 +120,30 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 		return
 	}
 	record.FileId = &fileId
-
 	record.CreatedBy = userId
-
-	callbackUrl := fmt.Sprintf("%v/api/records/set-image", h.config.Listen.ServerIP)
-	go h.waveformClient.SendAudioUrl(url, callbackUrl)
 
 	id, err := h.storage.Create(record)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	callbackUrl := fmt.Sprintf("%v/api/records/set-image/%v", h.config.Listen.ServerIP, id)
+	go h.waveformClient.SendAudioUrl(url, callbackUrl)
+	// TODO IF ERR SET CRON
+
 	utils.WriteResponse(w, http.StatusCreated, id)
 }
 
-func (h *Handler) SetImage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var file string
-	recordId, err := strconv.ParseUint(r.Header.Get("recordId"), 16, 64)
+type ImageFile struct {
+	image string
+}
+
+func (h *Handler) SetImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var file ImageFile
+	recordId, err := strconv.ParseUint(ps.ByName("recordId"), 16, 16)
 	if err != nil {
+		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -145,16 +151,22 @@ func (h *Handler) SetImage(w http.ResponseWriter, r *http.Request, _ httprouter.
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
+		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := json.Unmarshal(body, &file); err != nil {
+		h.logger.Error("error decoding response: %v", err)
+		if e, ok := err.(*json.SyntaxError); ok {
+			h.logger.Error("syntax error at byte offset %d", e.Offset)
+		}
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	_, name, err := h.s3Client.UploadBase64(h.ctx, file)
+	h.logger.Error(file)
+	_, name, err := h.s3Client.UploadBase64(h.ctx, file.image)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
