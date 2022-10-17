@@ -466,10 +466,10 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   function handleScroll(e: BaseSyntheticEvent<WheelEvent>) {
     if (!stageRef.current || !e.nativeEvent.deltaX) return
 
-    const newX = stageRef.current.x() - e.nativeEvent.deltaX
-    const stageWidth = stageRef.current.width()
-    const stageScale = stageRef.current.scaleX()
-    if (newX > 0 || newX/stageWidth < 1 - stageScale) return 
+    const maxOffset = 0
+    const minOffset = stageRef.current.width() * (1 - stageRef.current.scaleX())
+    let newX = stageRef.current.x() - e.nativeEvent.deltaX
+    newX = newX > maxOffset ? maxOffset : newX < minOffset ? minOffset : newX
 
     stageRef.current.x(newX)
   }
