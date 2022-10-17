@@ -1,22 +1,20 @@
 "use strict";
 
-const fsp = require("node:fs").promises;
-const path = require("node:path");
-const logger = require("./logger.js");
-const config = require("./config.js");
-const transport = require(`./transport/${config.api.transport}.js`);
+// Require the framework and instantiate it
+const generator = require("./api/generator.js");
+const fastify = require("fastify")({ logger: true });
 
-const apiPath = path.join(process.cwd(), "./api");
-const routing = {};
+fastify.post("/api/generate", async (request, reply) => {
+  const { body } = request;
+  generator.create(body);
+});
 
-(async () => {
-  const files = await fsp.readdir(apiPath);
-  for (const fileName of files) {
-    if (!fileName.endsWith(".js")) continue;
-    const filePath = path.join(apiPath, fileName);
-    const serviceName = path.basename(fileName, ".js");
-    routing[serviceName] = require(filePath);
+const start = async () => {
+  try {
+    await fastify.listen({ port: 5006 });
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
   }
-
-  transport(routing, config.api.port, logger);
-})();
+};
+start();

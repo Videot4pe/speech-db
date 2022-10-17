@@ -72,6 +72,7 @@ const StyledTable = ({
                   {...column.getHeaderProps(
                     column.sortable && column.getSortByToggleProps()
                   )}
+                  maxWidth={column.width}
                   isNumeric={column.isNumeric}
                 >
                   {column.render("Header")}
@@ -91,7 +92,7 @@ const StyledTable = ({
           {headerGroups.map((headerGroup) => (
             <Tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map((column) => (
-                <Th px={2} py={0} key={column.Header}>
+                <Th px={2} py={0} key={column.Header} maxWidth={column.width}>
                   {column.filter && (
                     // TODO different types of filters (external component)
                     <InputGroup size="md" my={2}>
@@ -128,6 +129,7 @@ const StyledTable = ({
                 {row.cells.map((cell) => (
                   <Td
                     {...cell.getCellProps()}
+                    maxWidth={cell.column.width}
                     isNumeric={cell.column.isNumeric}
                   >
                     {cell.render("Cell")}

@@ -46,12 +46,14 @@ func (s *Storage) All(userId uint16, filters []*db.Filter, pagination *db.Pagina
 		"records.id",
 		"records.name",
 		"speakers.name",
-		"files.path",
+		"audiofiles.path",
+		"imagefiles.path",
 		"records.created_at",
 		"records.created_by",
 	).From("records").
 		Join("speakers on speakers.id = speaker_id").
-		Join("files on files.id = file_id")
+		Join("files as audiofiles on audiofiles.id = file_id").
+		LeftJoin("files as imagefiles on imagefiles.id = image_id")
 
 	for _, filter := range filters {
 		s.logger.Trace(filter)
@@ -90,7 +92,7 @@ func (s *Storage) All(userId uint16, filters []*db.Filter, pagination *db.Pagina
 	for rows.Next() {
 		p := Record{}
 		if err = rows.Scan(
-			&p.Id, &p.Name, &p.Speaker, &p.File, &p.CreatedAt, &p.CreatedBy,
+			&p.Id, &p.Name, &p.Speaker, &p.File, &p.Image, &p.CreatedAt, &p.CreatedBy,
 		); err != nil {
 			err = db.ErrScan(err)
 			logger.Error(err)
@@ -146,6 +148,8 @@ func (s *Storage) Create(record NewRecord) (uint16, error) {
 
 func (s *Storage) SetImage(recordId uint64, fileId uint16) error {
 
+	s.logger.Trace(recordId)
+	s.logger.Trace(fileId)
 	query := s.queryBuilder.Update(table).
 		Set("image_id", fileId).
 		Where(sq.Eq{"id": recordId})
@@ -169,11 +173,11 @@ func (s *Storage) SetImage(recordId uint64, fileId uint16) error {
 	return nil
 }
 
-func (s *Storage) GetById(id uint16) (*NewRecord, error) {
+func (s *Storage) GetById(id uint64) (*NewRecord, error) {
 
 	var record NewRecord
 
-	query := s.queryBuilder.Select("id", "name", "speaker_id", "file_id", "created_by").
+	query := s.queryBuilder.Select("id", "name", "speaker_id", "file_id", "image_id", "created_by").
 		From(table).
 		Where(sq.Eq{"id": id})
 
@@ -188,7 +192,6 @@ func (s *Storage) GetById(id uint16) (*NewRecord, error) {
 	logger.Trace("do query")
 	row := s.client.QueryRow(s.ctx, sql, args...)
 
-	s.logger.Trace(id)
 	if err = row.Scan(&record.Id, &record.Name, &record.Speaker, &record.FileId, &record.CreatedBy); err != nil {
 		err = db.ErrScan(err)
 		logger.Error(err)

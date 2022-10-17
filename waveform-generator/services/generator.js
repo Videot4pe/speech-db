@@ -1,9 +1,10 @@
 "use strict";
 
-const https = require("https"); // or 'https' for https:// URLs
+const https = require("https");
 const fs = require("fs");
+const axios = require("axios");
 const spawn = require("child_process").spawn;
-const request = require("request");
+const mime = require("mime");
 const EventEmitter = require("node:events");
 
 const emitter = new EventEmitter();
@@ -42,8 +43,19 @@ const removeFile = async ({ filePath }) => {
 
 const sendFile = async ({ filePath, outputPath, callbackUrl }) => {
   const image = await fs.readFileSync(outputPath, { encoding: "base64" });
+  const filemime = mime.getType(outputPath);
 
-  await request.post(callbackUrl, image);
+  const headers = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+  };
+  await axios.post(
+    callbackUrl,
+    { image: `data:${filemime};base64,${image}` },
+    {
+      headers: headers,
+    }
+  );
   emitter.emit("remove", { filePath });
   emitter.emit("remove", { filePath: outputPath });
 };
