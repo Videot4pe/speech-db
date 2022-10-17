@@ -9,6 +9,7 @@ type Record struct {
 	Name      string    `json:"name" sql:"name"`
 	Speaker   string    `json:"speaker" sql:"speaker"`
 	File      string    `json:"file" sql:"file"`
+	Image     *string   `json:"image" sql:"image"`
 	CreatedAt time.Time `json:"createdAt" sql:"created_at"`
 	CreatedBy uint16    `json:"createdBy" sql:"created_by"`
 }
