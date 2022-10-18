@@ -1,3 +1,4 @@
+import { Menu, MenuItem, MenuList } from "@chakra-ui/menu";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { RectConfig } from "konva/lib/shapes/Rect";
@@ -26,6 +27,8 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   let [rectWasMoved, setRectWasMoved] = useState<boolean>(false)
   let [stretchingRight, setStretchingRight] = useState<boolean>(false)
   let [transformerIsActive, setTransformerIsActive ] = useState<boolean>(false)
+  let [showMenu, setShowMenu] = useState<boolean>(false)
+  let [menuOffset, setMenuOffset] = useState<{x: number; y: number}>({x: 0, y: 0})
 
   const stageRef = useRef<Konva.Stage>(null)
   const layerRef = useRef<Konva.Layer>(null)
@@ -40,11 +43,9 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   const currentTimePointerConfig = useRef<Konva.RectConfig>({ visible: false })
 
   let [rects, setRects] = useState<Konva.RectConfig[]>([])
-  // const [editedRect, setEditedRect] = useState<Konva.Rect | null>(null)
   const [editedRect, setEditedRect] = useState<Konva.RectConfig | null>(null)
 
 
-  // const imageURL = 'https://www.frolov-lib.ru/books/hi/ch03.files/image010.jpg';
   const image = new Image();
   image.src = imageURL;
 
@@ -64,12 +65,31 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     stageRef.current?.scaleX(newScale);
   }
 
-  useImperativeHandle(ref, () => ({
-    zoomIn,
-    zoomOut,
-  }))
-
   //
+  function deleteSelectedEntity() {
+    console.debug('deleteSelectedEntity')
+    deleteEditedRect()
+
+    setShowMenu(false)
+  }
+
+  function deleteEditedRect() {
+    console.debug('deleteEditedRect')
+    if (!editedRect) {
+      console.error('editedRect is null!')
+      return
+    }
+
+    const editedRectNode = layerRef.current?.children?.find(child => child.id() === editedRect?.id) as Konva.Rect
+    if (!editedRectNode) {
+      console.error('editedRectNode was not found!')
+      return
+    }
+    editedRectNode.destroy()
+    const updatedRects = rects.filter(child => child.id !== editedRect.id)
+    setRects(updatedRects)
+    setEditedRect(null)
+  }
 
   function createRectConfig(id: string, x: number, width: number, text: string = '', fillColor = 'yellow'): Konva.RectConfig {
     return {
@@ -92,68 +112,34 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     setRects(rects.concat(newRect))
 
     setEditedRect(newRect)
-    updateTransformer(newRect)
-
-    console.log('[addNewRect] newRect:', newRect)
-    console.log('[addNewRect] editedRect:', editedRect)
-
-    setTimeout(
-      () => {
-        // const editedRectToSet = layerRef.current?.children?.find(child => child.id() === newRect.id) as Konva.Rect ?? null
-        // setEditedRect(editedRectToSet)
-        
-        // const editedRectToSet = rects.find(child => child.id === newRect.id) ?? null
-        // setEditedRect(editedRectToSet)
-        // updateTransformer(editedRectToSet)
-
-        // console.log('[addNewRect] editedRectToSet:', editedRectToSet)
-        // console.log('[addNewRect] editedRect:', editedRect)
-      },
-      0
-    )
 
     return newRect.id as string
   }
 
   function updateTransformer(editedRect: RectConfig | null) {
     console.debug('updateTransformer')
-
-    console.log('[updateTransformer] editedRect:', editedRect)
-
-    // const selectedNode = layerRef.current?.findOne((node: Konva.Node) => node.id() === editedRect?.id())
-    // if (selectedNode === transformerRef.current?.nodes()[0]) return
-    // transformerRef.current?.nodes(selectedNode ? [selectedNode] : [] )
-
-    // if (transformerRef.current?.nodes()[0] === editedRect) return
-    // transformerRef.current?.nodes(editedRect ? [editedRect] : [])
+    console.debug('[updateTransformer] editedRect:', editedRect)
 
     const editedRectNode = layerRef?.current?.children?.find(child => child.id() === editedRect?.id) ?? null
-
-    // console.log('[updateTransformer] layerChildren:', layerRef?.current?.children?.map(child => child.id()).join(", "))
-
-    console.log('[updateTransformer] layerChildren:')
-    layerRef?.current?.children?.forEach(child => console.log(child))
-
-    console.log('[updateTransformer] editedRectNode:', editedRectNode)
-
-    // if (transformerRef.current?.nodes()[0] === editedRect) return
-    // transformerRef.current?.nodes(editedRect ? [editedRect] : [])
+    console.debug('[updateTransformer] editedRectNode:', editedRectNode)
 
     if (transformerRef.current?.nodes()[0] === editedRectNode) return
     transformerRef.current?.nodes(editedRectNode ? [editedRectNode] : [])
 
-    
     setTransformerIsActive(transformerRef.current?.nodes().length ? true : false)
-    console.log('transformerIsActive:', transformerIsActive)
   }
 
   function handleStageMouseDown(e: KonvaEventObject<MouseEvent>) {
     console.warn('handleStageMouseDown')
 
-    console.log('e:', e)
-
     // Игнорируем нажатие ПКМ
     if (e.evt.button === 2) {
+      return
+    }
+
+    // Если клик по сцене при открытом меню - закрываем меню
+    if (showMenu) {
+      setShowMenu(false)
       return
     }
 
@@ -163,10 +149,8 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     if (transformerRef.current?.nodes()[0] === e.target) return
 
     if (e.target.className === 'Rect') {
-      // setEditedRect(e.target as Konva.Rect)
       const editedRect = rects.find(child => child.id === e.target.id()) ?? null
       setEditedRect(editedRect)
-      updateTransformer(editedRect)
 
       return
     }
@@ -174,7 +158,6 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     // 
     if (transformerIsActive) {
       setEditedRect(null)
-      updateTransformer(null)
       return
     }
 
@@ -184,17 +167,6 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     const x = (pointer.x - stageRef.current.x()) / stageRef.current.scaleX()
 
     addNewRect(x)
-
-    // console.log('rects:', rects)
-    // markSelectionAsChanged()
-    // console.debug('created new rect with id:', editedRect?.id())
-    // console.debug('mainLayer.children:', layerRef.current.children)
-
-    // updateTransformer()
-
-    
-    // layerRef.current?.scaleX(layerRef.current.scaleX() * 2)
-    // stageRef.current?.width(stageRef.current.width() * 2)
   }
 
   function handleStageMouseUp() {
@@ -204,30 +176,12 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
       setCreatingNewRect(false)
       setRectWasMoved(false)
       
-      // if (!rectWasMoved && editedRect?.width() === 1) {
       if (!rectWasMoved && editedRect?.width === 1) {
-        console.debug('!rectWasMoved && editedRect?.width() === 1')
-
-        const editedRectNode = layerRef.current?.children?.find(child => child.id() === editedRect.id) as Konva.Rect
-        if (!editedRectNode) {
-          console.error('editedRectNode was not found!')
-          return
-        }
-
-        /** Если после клика rect не менялся, то удаляем */
-        editedRectNode.destroy()
-        const updatedRects = rects.filter(child => child.id !== editedRect.id)
-        setRects(updatedRects)
-        /** */
-
-        // editedRect.destroy()
-        setEditedRect(null)
-        updateTransformer(null)
+        // Если после клика rect не менялся, то удаляем
+        deleteEditedRect()
         return
       }
       
-      // editedRect?.scaleX(editedRect.width())
-      // editedRect?.width(1)
       if (!editedRect) {
         console.error('editedRect is null')
         return
@@ -236,7 +190,6 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
       editedRect.scaleX = editedRect?.width
       editedRect.width = 1
 
-      // updateTransformer(undefined)
       // emitEntitySelected()
     } else {
       if (rectWasMoved && editedRect !== null) {
@@ -250,24 +203,10 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   }
 
   function handleMouseMove(e: any) {
-    console.log('handleMouseMove')
+    console.debug('handleMouseMove')
 
     if (!creatingNewRect || !editedRect || !stageRef.current) return
     // setRectWasMoved(true)
-    
-    // const rect = {
-    //   x: editedRect.x(),
-    //   width: editedRect.width(),
-    // }
-
-
-
-
-
-    // const rect = {
-    //   x: editedRect.x,
-    //   width: editedRect.width,
-    // }
 
     const editedRectNode = layerRef?.current?.children?.find(child => child.id() === editedRect?.id) ?? null
     if (!editedRectNode) return
@@ -311,11 +250,8 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     }
 
     if (rect.x) {
-      // editedRect.x(rect.x)
-
       editedRect.x = rect.x
     }
-    // editedRect.width(rect.width)
     editedRect.width = rect.width
 
     /** */
@@ -332,14 +268,6 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
 
     setRects(rects.filter(r => r.id !== curRect.id).concat([curRect]))
     /** */
-
-
-
-    // const editedRectNode = layerRef?.current?.children?.find(child => child.id() === editedRect?.id) ?? null
-
-    // stageRef.current.draw()
-
-    console.log('editedRect:', editedRect)
   }
 
   function handleTransformEnd(e: KonvaEventObject<Event>) {
@@ -371,7 +299,7 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   }
 
   function moveRect(rect: Konva.Rect) {
-    console.log('moveRect')
+    console.debug('moveRect')
 
     const layerWidth = layerRef.current!.width() * layerRef.current!.scaleX()
     const layerHeight = layerRef.current!.height() * layerRef.current!.scaleY()
@@ -387,13 +315,6 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     srcRect.y = newPosY
   }
 
-  useEffect(() => {
-    window.addEventListener('resize', onStageContainerResize);
-    onStageContainerResize();
-
-    // document.addEventListener('keydown', handleKey);
-  }, [])
-
   function onStageContainerResize() {
     const scrollContainer = document.getElementById('scroll-container') as HTMLDivElement
     const width = scrollContainer.clientWidth
@@ -402,24 +323,28 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     imageRef.current!.width(width)
   }
 
-  // useEffect(updateTransformer, [editedRect]);
+  function handleContextMenu(e: KonvaEventObject<PointerEvent>) {
+    console.debug('handleContextMenu')
+    
+    const editedRect = rects.find(child => child.id === e.target.id()) ?? null
+    setEditedRect(editedRect)
 
-  function handleContextMenu(e: { nativeEvent: PointerEvent }) {
-    console.log('handleContextMenu')
-    console.log('e:', e)
+    const pointerPosition = stageRef.current?.getPointerPosition()
+    if (!pointerPosition) {
+      console.error('pointerPosition on stage was not found')
+      return
+    }
 
-    e.nativeEvent.preventDefault()
-    e.nativeEvent.stopPropagation()
+    setMenuOffset(pointerPosition)
+    setShowMenu(true)
   }
 
   function handleWheel(e: KonvaEventObject<WheelEvent>) {
-    const SCALE_BY = 1.045
-
     e.evt.preventDefault()
-
+    if (!stageRef.current) return
+    
+    const SCALE_BY = 1.045
     if (e.evt.ctrlKey) {
-
-      if (!stageRef.current) return
       const oldScaleX = stageRef.current.scaleX()
       let newScale = e.evt.deltaY < 0 ? oldScaleX * SCALE_BY : oldScaleX / SCALE_BY
       if (Math.abs(newScale - 1) < 1e-10) newScale = 1
@@ -474,53 +399,69 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     stageRef.current.x(newX)
   }
 
-  function handleKey() {
-    console.log('[updateTransformer] layerChildren:')
-    layerRef?.current?.children?.forEach(child => console.log(child))
-  }
+  useImperativeHandle(ref, () => ({
+    zoomIn,
+    zoomOut,
+  }))
+
+  useEffect(() => {
+    window.addEventListener('resize', onStageContainerResize);
+    onStageContainerResize();
+  }, [])
+
+  useEffect(() => updateTransformer(editedRect), [editedRect])
 
   return (
     <div
       id="scroll-container"
-      style={{ overflow: 'auto' }}
-      onContextMenu={handleContextMenu}
+      style={{ overflow: 'auto', position: 'relative' }}
       onWheel={handleScroll}
+      onContextMenu={(e) => {
+        e.nativeEvent.preventDefault();
+        e.nativeEvent.stopPropagation();
+      }}
     >
       <Stage
-        width={300}
+        width={120}
         height={100}
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          zIndex: 10,
+        }}
       >
         <Layer>
           <Rect
-            width={300}
+            width={120}
             height={100}
             fill={'black'}
+            opacity={0.8}
           />
-          { /* creatingNewRect, rectWasMoved, transformerIsActive */ }
           <KText
             y={0}
             text={'creatingNewRect'}
-            fill={creatingNewRect ? 'green' : 'red'}
+            fill={creatingNewRect ? 'lightgreen' : 'red'}
           />
           <KText
             y={15}
             text={'rectWasMoved'}
-            fill={rectWasMoved ? 'green' : 'red'}
+            fill={rectWasMoved ? 'lightgreen' : 'red'}
           />
           <KText
             y={30}
             text={'transformerIsActive'}
-            fill={transformerIsActive ? 'green' : 'red'}
+            fill={transformerIsActive ? 'lightgreen' : 'red'}
           />
           <KText
             y={45}
             text={'editedRect'}
-            fill={editedRect ? 'green' : 'red'}
+            fill={editedRect ? 'lightgreen' : 'red'}
           />
           <KText
             y={60}
             text={`[ ${rects.map((r) => r.id).join(", ")} ]`}
-            fill={editedRect ? 'green' : 'red'}
+            fill={editedRect ? 'lightgreen' : 'red'}
           />
         </Layer>
       </Stage>
@@ -540,7 +481,7 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
           /> */}
           {
             rects.map(rect => (
-              <Rect {...rect} key={rect.id} />
+              <Rect {...rect} key={rect.id} onContextMenu={handleContextMenu} />
             ))
           }
           <Transformer
@@ -552,6 +493,41 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
           />
         </Layer>
       </Stage>
+      {/* <div
+        id="context-menu-container"
+        style={{
+          position: 'absolute',
+          display: showMenu ? 'block' : 'none',
+          top: menuOffset.y,
+          left: menuOffset.x,
+        }}
+      >
+        <Menu
+          isOpen={showMenu}
+        >
+          <MenuList>
+            <MenuItem onClick={deleteSelectedEntity}>Удалить</MenuItem>
+          </MenuList>
+        </Menu>
+      </div> */}
+
+      
+      <Menu
+        isOpen={showMenu}
+      >
+        <MenuList
+          fontSize={'12px'}
+          minWidth={'50px'}
+          style={{
+            position: 'absolute',
+            display: showMenu ? 'block' : 'none',
+            top: menuOffset.y,
+            left: menuOffset.x,
+          }}
+        >
+          <MenuItem onClick={deleteSelectedEntity}>Удалить</MenuItem>
+        </MenuList>
+      </Menu>
     </div>
   );
 });
