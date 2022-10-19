@@ -1,6 +1,6 @@
 import { lazy } from "react";
 import { FiFile, FiMousePointer, FiSpeaker, FiUser } from "react-icons/all";
-import { FiHome } from "react-icons/fi";
+import { FiEdit, FiHome } from "react-icons/fi";
 import type { IconType } from "react-icons/lib";
 import type { PathRouteProps } from "react-router-dom";
 
@@ -20,6 +20,7 @@ const Admin = lazy(() => import("../pages/admin/Index"));
 const Home = lazy(() => import("../pages/home/Home"));
 const Markups = lazy(() => import("../pages/markups/Markups"));
 const Markup = lazy(() => import("../pages/markup/Markup"));
+const EditPage = lazy(() => import("../pages/edit/EditPage"));
 
 export interface IRoutes extends PathRouteProps {
   permissions?: string[];
@@ -103,6 +104,17 @@ const routes: Array<IRoutes> = [
       </Layout>
     ),
     auth: true,
+  },
+  // TEST only
+  {
+    path: "/edit",
+    icon: FiEdit,
+    name: "Edit",
+    element: (
+      <Layout>
+        <EditPage />
+      </Layout>
+    ),
   },
   {
     path: "/admin",
