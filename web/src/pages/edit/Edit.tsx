@@ -4,10 +4,6 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { RectConfig } from "konva/lib/shapes/Rect";
 import { BaseSyntheticEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Stage, Layer, Image as KImage, Text as KText, Transformer, Rect } from "react-konva";
-import { useParams } from "react-router-dom";
-import { useErrorHandler } from "../../utils/handle-get-error";
-
-import MarkupsApi from "../../api/markups-api";
 
 let c = 0
 function uid() {
@@ -19,7 +15,7 @@ function uid() {
 interface IEdit {
   // mapToLength: number;
   // entities: [];
-  imageURL: string;
+  imageURL?: string;
   // currentTime: number;
 }
 
@@ -27,10 +23,6 @@ let INITIAL_STAGE_WIDTH = 1082;
 const INITIAL_STAGE_HEIGHT = 200;
 
 const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
-  const errorHandler = useErrorHandler();
-  const params = useParams();
-  const markupId = +params.id!;
-
   let [creatingNewRect, setCreatingNewRect] = useState<boolean>(false)
   let [rectWasMoved, setRectWasMoved] = useState<boolean>(false)
   let [stretchingRight, setStretchingRight] = useState<boolean>(false)
@@ -52,6 +44,14 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
 
   let [rects, setRects] = useState<Konva.RectConfig[]>([])
   const [editedRect, setEditedRect] = useState<Konva.RectConfig | null>(null)
+
+  const image = new Image();
+  image.src = imageURL!;
+  imageConfig.current = {
+    image: image,
+    width: INITIAL_STAGE_WIDTH,
+    height: INITIAL_STAGE_HEIGHT,
+  }
 
   function zoomIn() {
     const newScale = stageRef.current?.scaleX() ?? 1 + 0.1;
@@ -406,19 +406,6 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   useEffect(() => {
     window.addEventListener('resize', onStageContainerResize);
     onStageContainerResize();
-
-    MarkupsApi.view(markupId)
-      .then((payload) => {
-        const { image: imageURL } = payload;
-        const image = new Image();
-        image.src = imageURL!;
-        imageConfig.current = {
-          image: image,
-          width: INITIAL_STAGE_WIDTH,
-          height: INITIAL_STAGE_HEIGHT,
-        }
-      })
-      .catch(errorHandler);
   }, [])
 
   useEffect(() => updateTransformer(editedRect), [editedRect])

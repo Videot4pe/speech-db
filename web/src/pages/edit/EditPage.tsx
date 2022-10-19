@@ -1,6 +1,11 @@
 import { Button } from "@chakra-ui/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Edit from "./Edit"
+import AudioPlayer from "./components/AudioPlayer"
+import { useErrorHandler } from "../../utils/handle-get-error";
+import { useParams } from "react-router-dom";
+
+import MarkupsApi from "../../api/markups-api";
 
 function selectURL(n: number): string {
   if (n === 0) {
@@ -14,9 +19,31 @@ interface IEdit {
   zoomOut: () => void
 }
 
+interface IAudioPlayer {
+  isPaused: () => boolean
+  play: () => void
+  pause: () => void
+  setTime: (value: number) => void
+}
+
 const EditPage = () => {
-  const [imageURL, setImageURL] = useState<string>(selectURL(0))
   const editRef = useRef<IEdit>(null);
+  const audioPlayerRef = useRef<IAudioPlayer>(null);
+  const [imageURL, setImageURL] = useState<string | undefined>(undefined);
+  const [audioURL, setAudioURL] = useState<string | undefined>(undefined);
+
+  const errorHandler = useErrorHandler();
+  const params = useParams();
+  const markupId = +params.id!;
+
+  useEffect(() => {
+    MarkupsApi.view(markupId)
+      .then((payload) => {
+        setImageURL(payload.image)
+        setAudioURL(payload.record)
+      })
+      .catch(errorHandler);
+  }, []);
 
   return (
     <div>
@@ -51,16 +78,16 @@ const EditPage = () => {
             justifyContent: 'space-between',
           }}
         >
-          <Button onClick={() => editRef.current?.zoomOut()}>
-            Zoom Out (-)
-          </Button>
-          <Button onClick={() => editRef.current?.zoomIn()}>
-            Zoom In (+)
-          </Button>
+          {/* <Button onClick={() => editRef.current?.zoomOut()}>Zoom Out (-)</Button>
+          <Button onClick={() => editRef.current?.zoomIn()}>Zoom In (+)</Button> */}
+
+          <Button onClick={() => audioPlayerRef.current?.play()}>Play</Button>
+          <Button onClick={() => audioPlayerRef.current?.pause()}>Pause</Button>
         </div>
       </div>
 
       <Edit ref={editRef} imageURL={imageURL} />
+      <AudioPlayer ref={audioPlayerRef} src={audioURL} />
     </div>
   );
 };
