@@ -100,7 +100,7 @@ const routes: Array<IRoutes> = [
     internal: true,
     element: (
       <Layout>
-        <Markup />
+        <EditPage />
       </Layout>
     ),
     auth: true,

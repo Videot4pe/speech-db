@@ -6,6 +6,7 @@ const axios = require("axios");
 const spawn = require("child_process").spawn;
 const mime = require("mime");
 const EventEmitter = require("node:events");
+const fastify = require("fastify")({ logger: true });
 
 const emitter = new EventEmitter();
 
@@ -27,6 +28,12 @@ const generateImage = async ({ filePath, outputPath, callbackUrl }) => {
   proc.on("close", function () {
     emitter.emit("send", { filePath, outputPath, callbackUrl });
   });
+
+  proc.on('exit', () => {
+    if (proc.exitCode !== 0) {
+      fastify.log.error(new Error(`Process exited with code ${proc.exitCode}`));
+    }
+  })
 };
 
 const downloadFile = async ({ url, filePath, outputPath, callbackUrl }) => {

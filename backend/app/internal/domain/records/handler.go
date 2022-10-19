@@ -92,13 +92,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 	userId := r.Context().Value("userId").(uint16)
 
 	defer r.Body.Close()
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
-	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if err := json.Unmarshal(body, &record); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&record); err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
