@@ -23,12 +23,20 @@ type Handler struct {
 	entityStorage *entity2.Storage
 	ctx           context.Context
 	clients       map[*websocket.Conn]bool
+	ws            *websocket2.Websocket
 }
 
 const (
 	listURL      = "/api/markups"
 	viewURL      = "/api/markups/:markupId"
 	websocketURL = "/api/ws/markups/:id"
+)
+
+const (
+	ListEntity   = "LIST"
+	CreateEntity = "CREATE"
+	UpdateEntity = "UPDATE"
+	RemoveEntity = "REMOVE"
 )
 
 func NewHandler(ctx context.Context, storage *Storage, entityStorage *entity2.Storage, logger *logging.Logger) *Handler {
@@ -146,41 +154,49 @@ func (h *Handler) InitWebsocket(_ http.ResponseWriter, _ *http.Request, ps httpr
 		if err != nil {
 			h.logger.Error(err)
 		}
-		byteArray, err := json.Marshal(entities)
-		if err != nil {
-			h.logger.Error(err)
-		}
-		ws.Write(1, byteArray)
+
+		ws.Write(ListEntity, entities)
 		return nil
 	}
 }
 
-func (h *Handler) Write(ws websocket2.Websocket, messageType int, data interface{}) error {
-	err := ws.Write(messageType, data)
+func (h *Handler) Write(ws websocket2.Websocket, action string, payload interface{}) error {
+	err := ws.Write(action, payload)
 	// TODO log
 	return err
 }
 
 func (h *Handler) Read(message []byte) error {
-	var entity entity2.Entity
-	err := json.Unmarshal(message, &entity)
+	var payload websocket2.Message[entity2.Entity]
+	err := json.Unmarshal(message, &payload)
 	if err != nil {
 		h.logger.Error(err)
 		return err
 	}
-	h.logger.Println(entity)
-	_, err = h.entityStorage.Create(entity)
+	h.logger.Println(payload)
+
+	switch payload.Action {
+	case CreateEntity:
+		_, err = h.entityStorage.Create(payload.Payload)
+	case UpdateEntity:
+		_ = h.entityStorage.Update(payload.Payload.Id, payload.Payload)
+	}
+
 	if err != nil {
 		h.logger.Error(err)
 		return err
 	}
+
+	// TODO NIKOLAY - markup id брать из контекста!!! (не верить фронту)
+	entities, _, err := h.entityStorage.All(uint16(payload.Payload.MarkupId))
+	h.ws.Write(ListEntity, entities)
 
 	return nil
 }
 
 func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ws := websocket2.New(h.logger, h.InitWebsocket, h.Read, h.Write)
-	err := ws.Connect(w, r, ps)
+	h.ws = websocket2.New(h.logger, h.InitWebsocket, h.Read, h.Write)
+	err := h.ws.Connect(w, r, ps)
 	if err != nil {
 		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
