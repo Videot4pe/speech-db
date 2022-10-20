@@ -31,6 +31,8 @@ const EditPage = () => {
   const audioPlayerRef = useRef<IAudioPlayer>(null);
   const [imageURL, setImageURL] = useState<string | undefined>(undefined);
   const [audioURL, setAudioURL] = useState<string | undefined>(undefined);
+  const [audioDuration, setAudioDuration] = useState<number | null>(null);
+  const [currentTime, setCurrentTime] = useState<number | null>(null);
 
   const errorHandler = useErrorHandler();
   const params = useParams();
@@ -86,8 +88,18 @@ const EditPage = () => {
         </div>
       </div>
 
-      <Edit ref={editRef} imageURL={imageURL} />
-      <AudioPlayer ref={audioPlayerRef} src={audioURL} />
+      <Edit
+        ref={editRef}
+        imageURL={imageURL}
+        audioDuration={audioDuration}
+        currentTime={currentTime}
+      />
+      <AudioPlayer
+        ref={audioPlayerRef}
+        src={audioURL}
+        onDurationChange={setAudioDuration}
+        onTimeUpdate={setCurrentTime}
+      />
     </div>
   );
 };

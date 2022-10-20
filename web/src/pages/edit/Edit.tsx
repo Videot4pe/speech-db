@@ -4,6 +4,7 @@ import { KonvaEventObject } from "konva/lib/Node";
 import { RectConfig } from "konva/lib/shapes/Rect";
 import { BaseSyntheticEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Stage, Layer, Image as KImage, Text as KText, Transformer, Rect } from "react-konva";
+import { mapTimeToStagePosition } from "./composables/mapper";
 
 let c = 0
 function uid() {
@@ -13,16 +14,16 @@ function uid() {
 }
 
 interface IEdit {
-  // mapToLength: number;
   // entities: [];
   imageURL?: string;
-  // currentTime: number;
+  currentTime: number | null;
+  audioDuration: number | null;
 }
 
 let INITIAL_STAGE_WIDTH = 1082;
 const INITIAL_STAGE_HEIGHT = 200;
 
-const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
+const Edit = forwardRef(({ imageURL, currentTime = null, audioDuration = null }: IEdit, ref) => {
   let [creatingNewRect, setCreatingNewRect] = useState<boolean>(false)
   let [rectWasMoved, setRectWasMoved] = useState<boolean>(false)
   let [stretchingRight, setStretchingRight] = useState<boolean>(false)
@@ -40,7 +41,7 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     width: INITIAL_STAGE_WIDTH,
     height: INITIAL_STAGE_HEIGHT,
   })
-  const currentTimePointerConfig = useRef<Konva.RectConfig>({ visible: false })
+  const [currentTimePointerPosition, setCurrentTimePointerPosition] = useState(0)
 
   let [rects, setRects] = useState<Konva.RectConfig[]>([])
   const [editedRect, setEditedRect] = useState<Konva.RectConfig | null>(null)
@@ -147,6 +148,11 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     if (transformerRef.current?.nodes()[0] === e.target) return
 
     if (e.target.className === 'Rect') {
+      // Игнорируем клик на временной ползунок
+      if (e.target.id() === 'currentTimePointer') {
+        return
+      }
+
       const editedRect = rects.find(child => child.id === e.target.id()) ?? null
       setEditedRect(editedRect)
 
@@ -410,6 +416,13 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
 
   useEffect(() => updateTransformer(editedRect), [editedRect])
 
+  useEffect(() => {
+    const stageWidth = stageRef.current?.width()
+    if (stageWidth && currentTime && audioDuration) {
+      setCurrentTimePointerPosition(mapTimeToStagePosition(currentTime, audioDuration, stageWidth))
+    }
+  }, [currentTime, audioDuration])
+
   return (
     <div
       id="scroll-container"
@@ -474,10 +487,16 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
       >
         <Layer ref={layerRef}>
           <KImage ref={imageRef} {...imageConfig.current}/>
-          {/* <Rect
+          <Rect
             key="currentTimePointer"
-            {...currentTimePointerConfig}
-          /> */}
+            id="currentTimePointer"
+            visible={currentTime !== null}
+            x={currentTimePointerPosition}
+            width={1}
+            scaleX={1/(stageRef.current?.scaleX() ?? 1)}
+            height={stageRef.current?.height()}
+            fill={'red'}
+          />
           {
             rects.map(rect => (
               <Rect {...rect} key={rect.id} onContextMenu={handleContextMenu} />
