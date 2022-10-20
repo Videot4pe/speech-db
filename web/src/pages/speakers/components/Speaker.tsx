@@ -10,6 +10,11 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
   Spacer,
   useToast,
 } from "@chakra-ui/react";
@@ -34,7 +39,9 @@ const Speaker = ({
 }: SpeakerProps) => {
   const [speaker, setSpeaker] = useState<SpeakerDto>({
     name: "",
-    properties: {},
+    properties: {
+      age: 30,
+    },
   });
 
   const errorHandler = useErrorHandler();
@@ -100,6 +107,29 @@ const Speaker = ({
               type="name"
               autoComplete="name"
             />
+          </FormControl>
+          <FormControl id="age">
+            <FormLabel>Age</FormLabel>
+            <NumberInput
+              value={speaker.properties.age}
+              min={1}
+              max={99}
+              onChange={(value) =>
+                setSpeaker({
+                  ...speaker,
+                  properties: {
+                    ...speaker.properties,
+                    age: +value,
+                  },
+                })
+              }
+            >
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
           </FormControl>
         </ModalBody>
         <ModalFooter justifyContent="space-between">

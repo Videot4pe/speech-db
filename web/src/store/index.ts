@@ -3,6 +3,8 @@ import { atom } from "jotai";
 import AuthApi from "../api/auth-api";
 import RolesApi from "../api/roles-api";
 import type { UserDto } from "../models/user";
+import { Collections } from "../models/collection";
+import CollectionsApi from "../api/collections-api";
 
 const token = atom<string | undefined>(
   localStorage.getItem("jwt-token") ?? undefined
@@ -10,6 +12,7 @@ const token = atom<string | undefined>(
 const refreshToken = atom<string | undefined>(
   localStorage.getItem("jwt-token") ?? undefined
 );
+const collections = atom<Collections | undefined>(undefined);
 const permissions = atom<{ id: number; name: string }[]>([]);
 const roles = atom<{ id: number; name: string; permissions: number[] }[]>([]);
 const self = atom<UserDto | undefined>(undefined);
@@ -81,5 +84,21 @@ export const rolesAtom = atom(
     }
   }
 );
+
+export const collectionsAtom = atom(
+  (get) => get(roles),
+  async (_get, set) => {
+    try {
+      const payload = await CollectionsApi.collections();
+      set(collections, payload);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log(error);
+    }
+  }
+);
+
+export const languagesAtom = atom((get) => get(collections)?.languages);
+export const countriesAtom = atom((get) => get(collections)?.countries);
 
 export const isLoggedIn = atom<boolean>((get) => !!get(jwtToken));
