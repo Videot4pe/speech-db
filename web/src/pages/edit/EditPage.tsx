@@ -9,6 +9,7 @@ import MarkupsApi from "../../api/markups-api";
 import { useWebsocketSubscription } from "../../hooks/use-websocket-subscription";
 import { useAtom } from "jotai";
 import { jwtToken } from "../../store";
+import { useSse } from "../../hooks/use-sse";
 
 function selectURL(n: number): string {
   if (n === 0) {
@@ -51,8 +52,7 @@ const EditPage = () => {
     import.meta.env.VITE_WS_URL
   }/api/ws/markups/${markupId}`;
 
-  const { close, send, websocketState } =
-    useWebsocketSubscription<Entity>(socketUrl);
+  const { close, send, websocketState } = useWebsocketSubscription(socketUrl);
 
   useEffect(() => {
     MarkupsApi.view(markupId)
