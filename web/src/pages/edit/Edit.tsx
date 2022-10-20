@@ -20,6 +20,8 @@ interface IEdit {
   imageURL: string | undefined;
   currentTime: number | null;
   audioDuration: number | null;
+
+  onEntityRemoved: (id: string) => void;
 }
 
 let INITIAL_STAGE_WIDTH = 1082;

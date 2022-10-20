@@ -146,6 +146,9 @@ const EditPage = () => {
         audioDuration={audioDuration}
         currentTime={currentTime}
         entities={markupData}
+        onEntityRemoved={function (id: string): void {
+          throw new Error("Function not implemented.");
+        } }        
       />
       <AudioPlayer
         ref={audioPlayerRef}
