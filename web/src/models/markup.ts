@@ -9,3 +9,11 @@ export interface NewMarkupDto {
   id?: number;
   record?: number;
 }
+
+export interface EntityDto {
+  id: string;
+  markupId: string;
+  value: string;
+  beginTime: number;
+  endTime: number;
+}
