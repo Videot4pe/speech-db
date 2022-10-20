@@ -21,8 +21,8 @@ type Handler struct {
 }
 
 const (
-	usersURL = "/api/speakers"
-	userURL  = "/api/speakers/:speakerId"
+	speakersURL = "/api/speakers"
+	speakerURL  = "/api/speakers/:speakerId"
 )
 
 func NewSpeakersHandler(ctx context.Context, storage *Storage, logger *logging.Logger) *Handler {
@@ -34,10 +34,10 @@ func NewSpeakersHandler(ctx context.Context, storage *Storage, logger *logging.L
 }
 
 func (h *Handler) Register(router *httprouter.Router) {
-	router.GET(usersURL, auth.RequireAuth(h.All, nil))
-	router.GET(userURL, auth.RequireAuth(h.View, nil))
-	router.POST(usersURL, auth.RequireAuth(h.Create, []string{roles.EditSpeakers}))
-	router.PATCH(usersURL, auth.RequireAuth(h.Update, []string{roles.EditSpeakers}))
+	router.GET(speakersURL, auth.RequireAuth(h.All, nil))
+	router.GET(speakerURL, auth.RequireAuth(h.View, nil))
+	router.POST(speakersURL, auth.RequireAuth(h.Create, []string{roles.EditSpeakers}))
+	router.PATCH(speakerURL, auth.RequireAuth(h.Update, []string{roles.EditSpeakers}))
 }
 
 func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -78,11 +78,13 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
+		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := json.Unmarshal(body, &speaker); err != nil {
+		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -90,6 +92,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 	speaker.CreatedBy = userId
 	id, err := h.storage.Create(speaker)
 	if err != nil {
+		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}

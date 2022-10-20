@@ -5,6 +5,7 @@ import (
 	"backend/internal/auth"
 	waveform_generator "backend/internal/client/waveform-generator"
 	"backend/internal/config"
+	"backend/internal/domain/collections"
 	entity2 "backend/internal/domain/entity"
 	"backend/internal/domain/files"
 	"backend/internal/domain/markups"
@@ -48,6 +49,10 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	filesStorage := files.NewFilesStorage(ctx, pgClient, logger)
 
 	entityStorage := entity2.NewStorage(ctx, pgClient, logger)
+
+	collectionsStorage := collections.NewStorage(ctx, pgClient, logger)
+	collectionsHandler := collections.NewHandler(ctx, collectionsStorage, logger)
+	collectionsHandler.Register(router)
 
 	markupsStorage := markups.NewStorage(ctx, pgClient, logger)
 	markupsHandler := markups.NewHandler(ctx, markupsStorage, entityStorage, logger)
