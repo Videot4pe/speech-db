@@ -2,8 +2,8 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 
 interface AudioPlayerProps {
   src?: string;
-  onTimeUpdate?: (currentTime?: number) => any;
-  onDurationChange?: (duration?: number) => any;
+  onTimeUpdate?: (currentTime: number | null) => any;
+  onDurationChange?: (duration: number | null) => any;
 }
 
 const AudioPlayer = forwardRef(({ src, onTimeUpdate, onDurationChange }: AudioPlayerProps, ref) => {
@@ -29,12 +29,14 @@ const AudioPlayer = forwardRef(({ src, onTimeUpdate, onDurationChange }: AudioPl
 
   useEffect(() => {
     if (audioRef.current === null) return
-    audioRef.current.addEventListener('ontimeupdate', () => {
-      if (onTimeUpdate) onTimeUpdate(audioRef.current?.currentTime)
-    });
-    audioRef.current.addEventListener('ondurationchange', () => {
-      if (onDurationChange) onDurationChange(audioRef.current?.duration)
-    })
+    if (onTimeUpdate) {
+      audioRef.current.ontimeupdate = () => 
+        onTimeUpdate(audioRef.current?.currentTime ?? null)
+    }
+    if (onDurationChange) {
+      audioRef.current.ondurationchange = () => 
+        onDurationChange(audioRef.current?.duration ?? null)
+    }
   }, [])
 
   return (

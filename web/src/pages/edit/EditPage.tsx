@@ -6,10 +6,8 @@ import { useErrorHandler } from "../../utils/handle-get-error";
 import { useParams } from "react-router-dom";
 
 import MarkupsApi from "../../api/markups-api";
+import { EntityDto } from "models/markup";
 import { useWebsocketSubscription } from "../../hooks/use-websocket-subscription";
-import { useAtom } from "jotai";
-import { jwtToken } from "../../store";
-import { useSse } from "../../hooks/use-sse";
 
 function selectURL(n: number): string {
   if (n === 0) {
@@ -38,15 +36,23 @@ interface IAudioPlayer {
 }
 
 const EditPage = () => {
-  const editRef = useRef<IEdit>(null);
-  const audioPlayerRef = useRef<IAudioPlayer>(null);
-  const [imageURL, setImageURL] = useState<string | undefined>(undefined);
-  const [audioURL, setAudioURL] = useState<string | undefined>(undefined);
-
   const errorHandler = useErrorHandler();
   const params = useParams();
+  
+  const editRef = useRef<IEdit>(null);
+  const audioPlayerRef = useRef<IAudioPlayer>(null);
+
+  const [imageURL, setImageURL] = useState<string | undefined>(undefined);
+  const [audioURL, setAudioURL] = useState<string | undefined>(undefined);
+  const [audioDuration, setAudioDuration] = useState<number | null>(null);
+  const [currentTime, setCurrentTime] = useState<number | null>(null);
+  const [startTime, setStartTime] = useState<number>(0);
+  const [endTime, setEndTime] = useState<number | null>(null);
+
   // TODO FIX THIS PLEASE
   const markupId = +params.id!;
+  /** Исходный массив сущностей */
+  const [markupData, setMarkupData] = useState<EntityDto[]>([])
 
   const socketUrl = `${import.meta.env.VITE_WS}${
     import.meta.env.VITE_WS_URL
@@ -61,7 +67,28 @@ const EditPage = () => {
         setAudioURL(payload.record);
       })
       .catch(errorHandler);
+      
+    setMarkupData([
+      {
+        id: '0',
+        markupId: markupId.toString(),
+        value: 'a',
+        beginTime: 1,
+        endTime: 2,
+      },
+      {
+        id: '1',
+        markupId: markupId.toString(),
+        value: 'б',
+        beginTime: 3,
+        endTime: 3.5,
+      }
+    ])
   }, []);
+
+  useEffect(() => {
+    if (currentTime && endTime && currentTime > endTime) audioPlayerRef.current?.pause()
+  }, [currentTime]);
 
   return (
     <div>
@@ -112,8 +139,22 @@ const EditPage = () => {
         </div>
       </div>
 
-      <Edit ref={editRef} imageURL={imageURL} />
-      <AudioPlayer ref={audioPlayerRef} src={audioURL} />
+      <Edit
+        ref={editRef}
+        imageURL={imageURL}
+        audioDuration={audioDuration}
+        currentTime={currentTime}
+        entities={markupData}
+        onEntityRemoved={function (id: string): void {
+          throw new Error("Function not implemented.");
+        } }        
+      />
+      <AudioPlayer
+        ref={audioPlayerRef}
+        src={audioURL}
+        onDurationChange={setAudioDuration}
+        onTimeUpdate={setCurrentTime}
+      />
     </div>
   );
 };

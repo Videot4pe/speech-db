@@ -2,8 +2,11 @@ import { Menu, MenuItem, MenuList } from "@chakra-ui/menu";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { RectConfig } from "konva/lib/shapes/Rect";
+import { EntityDto } from "models/markup";
+import { duration } from "moment";
 import { BaseSyntheticEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Stage, Layer, Image as KImage, Text as KText, Transformer, Rect } from "react-konva";
+import { mapEntityDtoToRectConfig, mapTimeToStagePosition } from "./composables/mapper";
 
 let c = 0
 function uid() {
@@ -13,16 +16,18 @@ function uid() {
 }
 
 interface IEdit {
-  // mapToLength: number;
-  // entities: [];
-  imageURL?: string;
-  // currentTime: number;
+  entities: EntityDto[];
+  imageURL: string | undefined;
+  currentTime: number | null;
+  audioDuration: number | null;
+
+  onEntityRemoved: (id: string) => void;
 }
 
 let INITIAL_STAGE_WIDTH = 1082;
 const INITIAL_STAGE_HEIGHT = 200;
 
-const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
+const Edit = forwardRef(({ imageURL, entities, currentTime = null, audioDuration = null }: IEdit, ref) => {
   let [creatingNewRect, setCreatingNewRect] = useState<boolean>(false)
   let [rectWasMoved, setRectWasMoved] = useState<boolean>(false)
   let [stretchingRight, setStretchingRight] = useState<boolean>(false)
@@ -40,7 +45,7 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     width: INITIAL_STAGE_WIDTH,
     height: INITIAL_STAGE_HEIGHT,
   })
-  const currentTimePointerConfig = useRef<Konva.RectConfig>({ visible: false })
+  const [currentTimePointerPosition, setCurrentTimePointerPosition] = useState(0)
 
   let [rects, setRects] = useState<Konva.RectConfig[]>([])
   const [editedRect, setEditedRect] = useState<Konva.RectConfig | null>(null)
@@ -127,6 +132,29 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     setTransformerIsActive(transformerRef.current?.nodes().length ? true : false)
   }
 
+  // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+  /** Сущности из props.entities преобразуются в фигуры канваса */
+  function mapEntitiesToRects() {
+    console.warn('mapEntitiesToRects')
+    console.log('stageRef:', stageRef.current)
+    console.log('stageWidth:', stageRef.current?.width())
+    console.log('stageHeight:', stageRef.current?.height())
+    console.log('audioDuration:', audioDuration)
+
+    const stageWidth = stageRef.current?.width()
+    const stageHeight = stageRef.current?.height()
+    if (stageWidth && stageHeight && audioDuration) {
+      console.log('entities:', entities)
+      console.log('rects:', entities.map(entity => mapEntityDtoToRectConfig(entity, audioDuration, stageWidth, stageHeight)))
+
+      setRects(entities.map(entity => mapEntityDtoToRectConfig(entity, audioDuration, stageWidth, stageHeight)))
+    }
+  }
+
+  /********************** */
+
+  
+  // ОБРАБОТЧИКИ СОБЫТЫЙ //
   function handleStageMouseDown(e: KonvaEventObject<MouseEvent>) {
     console.warn('handleStageMouseDown')
 
@@ -147,6 +175,11 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
     if (transformerRef.current?.nodes()[0] === e.target) return
 
     if (e.target.className === 'Rect') {
+      // Игнорируем клик на временной ползунок
+      if (e.target.id() === 'currentTimePointer') {
+        return
+      }
+
       const editedRect = rects.find(child => child.id === e.target.id()) ?? null
       setEditedRect(editedRect)
 
@@ -314,12 +347,16 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   }
 
   function onStageContainerResize() {
+    console.warn('onStageContainerResize')
+
     const scrollContainer = document.getElementById('scroll-container') as HTMLDivElement
     if (!scrollContainer) return
     const width = scrollContainer.clientWidth
 
     stageRef.current!.width(width)
     imageRef.current!.width(width)
+
+    mapEntitiesToRects()
   }
 
   function handleContextMenu(e: KonvaEventObject<PointerEvent>) {
@@ -397,6 +434,7 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
 
     stageRef.current.x(newX)
   }
+  /********************** */
 
   useImperativeHandle(ref, () => ({
     zoomIn,
@@ -409,6 +447,15 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
   }, [])
 
   useEffect(() => updateTransformer(editedRect), [editedRect])
+
+  useEffect(() => {
+    const stageWidth = stageRef.current?.width()
+    if (stageWidth && currentTime && audioDuration) {
+      setCurrentTimePointerPosition(mapTimeToStagePosition(currentTime, audioDuration, stageWidth))
+    }
+  }, [currentTime, audioDuration])
+
+  useEffect(mapEntitiesToRects, [audioDuration, entities])
 
   return (
     <div
@@ -474,10 +521,16 @@ const Edit = forwardRef(({ imageURL }: IEdit, ref) => {
       >
         <Layer ref={layerRef}>
           <KImage ref={imageRef} {...imageConfig.current}/>
-          {/* <Rect
+          <Rect
             key="currentTimePointer"
-            {...currentTimePointerConfig}
-          /> */}
+            id="currentTimePointer"
+            visible={currentTime !== null}
+            x={currentTimePointerPosition}
+            width={1}
+            scaleX={1/(stageRef.current?.scaleX() ?? 1)}
+            height={stageRef.current?.height()}
+            fill={'red'}
+          />
           {
             rects.map(rect => (
               <Rect {...rect} key={rect.id} onContextMenu={handleContextMenu} />
