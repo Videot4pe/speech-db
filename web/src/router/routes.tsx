@@ -106,16 +106,16 @@ const routes: Array<IRoutes> = [
     auth: true,
   },
   // TEST only
-  {
-    path: "/edit",
-    icon: FiEdit,
-    name: "Edit",
-    element: (
-      <Layout>
-        <EditPage />
-      </Layout>
-    ),
-  },
+  // {
+  //   path: "/edit",
+  //   icon: FiEdit,
+  //   name: "Edit",
+  //   element: (
+  //     <Layout>
+  //       <EditPage />
+  //     </Layout>
+  //   ),
+  // },
   {
     path: "/admin",
     icon: FiUser,

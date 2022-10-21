@@ -45,14 +45,14 @@ const EditPage = () => {
   // TODO FIX THIS PLEASE
   const markupId = +params.id!;
   /** Исходный массив сущностей */
-  const [markupData, setMarkupData] = useState<EntityDto[]>([]);
+  // const [markupData, setMarkupData] = useState<EntityDto[]>([]);
 
   const socketUrl = `${import.meta.env.VITE_WS}${
     import.meta.env.VITE_WS_URL
   }/api/ws/markups/${markupId}`;
 
-  const { create, update, remove, websocketState } =
-    useCRUDWebsocket(socketUrl);
+  const { create, update, remove, websocketState: markupData } =
+    useCRUDWebsocket<EntityDto>(socketUrl);
 
   useEffect(() => {
     MarkupsApi.view(markupId)
@@ -62,22 +62,6 @@ const EditPage = () => {
       })
       .catch(errorHandler);
 
-    setMarkupData([
-      {
-        id: "0",
-        markupId: markupId.toString(),
-        value: "a",
-        beginTime: 1,
-        endTime: 2,
-      },
-      {
-        id: "1",
-        markupId: markupId.toString(),
-        value: "б",
-        beginTime: 3,
-        endTime: 3.5,
-      },
-    ]);
   }, []);
 
   useEffect(() => {
@@ -106,19 +90,6 @@ const EditPage = () => {
           <Button onClick={() => setImageURL(selectURL(0))}>Audio 0</Button>
           <Button onClick={() => setImageURL(selectURL(1))}>Audio 1</Button>
         </div>
-        Messages: {websocketState?.join(", ")}
-        <Button
-          onClick={() =>
-            send(WebsocketAction.CREATE, {
-              markupId: markupId,
-              value: "test",
-              beginTime: 12,
-              endTime: 15,
-            })
-          }
-        >
-          Add some кусо43к
-        </Button>
         <div
           style={{
             width: "300px",
@@ -140,11 +111,19 @@ const EditPage = () => {
         audioDuration={audioDuration}
         currentTime={currentTime}
         entities={markupData}
-        onEntityRemoved={function (id: string): void {
-          throw new Error("Function not implemented.");
+        onEntityRemoved={(id: string) => {
+          const entity = websocketState.find((e) => e.id!.toString() === id)
+          if (!entity) throw Error('Entity was not found!');
+          remove(entity)
         }}
-        onEntityCreated={function (dto: CreateEntityDto): void {
-          throw new Error("Function not implemented.");
+        onEntityCreated={({beginTime, endTime}) => {
+          console.warn('[EditPage] creatingNewEntity...')
+          create({
+            markupId,
+            beginTime,
+            endTime,
+            value: '',
+          })
         }}
         onEntityUpdated={function (dto: EntityDto): void {
           throw new Error("Function not implemented.");

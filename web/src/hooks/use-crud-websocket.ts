@@ -4,7 +4,7 @@ enum WebsocketAction {
   LIST = "LIST",
   CREATE = "CREATE",
   UPDATE = "UPDATE",
-  DELETE = "DELETE",
+  REMOVE = "REMOVE",
 }
 
 export const useCRUDWebsocket = <T>(url: string) => {
@@ -19,7 +19,7 @@ export const useCRUDWebsocket = <T>(url: string) => {
   };
 
   const remove = (payload: T) => {
-    send(WebsocketAction.DELETE, payload);
+    send(WebsocketAction.REMOVE, payload);
   };
 
   return {

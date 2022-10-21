@@ -5,9 +5,13 @@ export function mapTimeToStagePosition(time: number, duration: number, stageWidt
   return time / duration * stageWidth
 }
 
+export function mapStagePositionToTime(x: number, duration: number, stageWidth: number): number {
+  return x / stageWidth * duration
+}
+
 export function mapEntityDtoToRectConfig(entityDto: EntityDto, duration: number, stageWidth: number, stageHeight: number): Konva.RectConfig {
   return {
-    id: entityDto.id,
+    id: entityDto.id!.toString(),
     x: mapTimeToStagePosition(entityDto.beginTime, duration, stageWidth),
     width: 1,
     scaleX: mapTimeToStagePosition(entityDto.endTime - entityDto.beginTime, duration, stageWidth),

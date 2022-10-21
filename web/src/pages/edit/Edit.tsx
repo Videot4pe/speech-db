@@ -5,14 +5,7 @@ import { RectConfig } from "konva/lib/shapes/Rect";
 import { EntityDto, CreateEntityDto } from "models/markup";
 import { BaseSyntheticEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Stage, Layer, Image as KImage, Text as KText, Transformer, Rect } from "react-konva";
-import { mapEntityDtoToRectConfig, mapTimeToStagePosition } from "./composables/mapper";
-
-let c = 0
-function uid() {
-  const id = c.toString()
-  c = c + 1
-  return id
-}
+import { mapEntityDtoToRectConfig, mapStagePositionToTime, mapTimeToStagePosition } from "./composables/mapper";
 
 interface IEdit {
   entities: EntityDto[];
@@ -21,7 +14,7 @@ interface IEdit {
   audioDuration: number | null;
 
   onEntityRemoved: (id: string) => void;
-  onEntityCreated: (dto: CreateEntityDto) => void;
+  onEntityCreated: (entity: { beginTime: number; endTime: number; }) => void;
   onEntityUpdated: (dto: EntityDto) => void;
   onEntitySelected: (id: string) => void;
 }
@@ -29,7 +22,14 @@ interface IEdit {
 let INITIAL_STAGE_WIDTH = 1082;
 const INITIAL_STAGE_HEIGHT = 200;
 
-const Edit = forwardRef(({ imageURL, entities, currentTime = null, audioDuration = null }: IEdit, ref) => {
+const Edit = forwardRef(({
+  entities,
+  imageURL,
+  currentTime = null,
+  audioDuration = null,
+  onEntityRemoved,
+  onEntityCreated,
+}: IEdit, ref) => {
   let [creatingNewRect, setCreatingNewRect] = useState<boolean>(false)
   let [rectWasMoved, setRectWasMoved] = useState<boolean>(false)
   let [stretchingRight, setStretchingRight] = useState<boolean>(false)
@@ -73,7 +73,16 @@ const Edit = forwardRef(({ imageURL, entities, currentTime = null, audioDuration
   //
   function deleteSelectedEntity() {
     console.debug('deleteSelectedEntity')
-    deleteEditedRect()
+    // deleteEditedRect()
+
+    // TODO мб слить в одно условие
+    if (editedRect) {
+      if (editedRect.id) {
+        console.debug('[Edit] calling onEntityRemoved for rect with id:', editedRect.id)
+        onEntityRemoved(editedRect.id)
+      }
+    }
+    
 
     setShowMenu(false)
   }
@@ -96,9 +105,9 @@ const Edit = forwardRef(({ imageURL, entities, currentTime = null, audioDuration
     setEditedRect(null)
   }
 
-  function createRectConfig(id: string, x: number, width: number, text: string = '', fillColor = 'yellow'): Konva.RectConfig {
+  function createRectConfig(x: number, width: number, text: string = '', fillColor = 'yellow'): Konva.RectConfig {
     return {
-      id: id,
+      id: '-1',
       x: x,
       width: 1,
       scaleX: width,
@@ -113,7 +122,7 @@ const Edit = forwardRef(({ imageURL, entities, currentTime = null, audioDuration
   function addNewRect(x: number): string {
     console.debug('{ addNewRect }')
 
-    const newRect = createRectConfig(uid(), x, 1)
+    const newRect = createRectConfig(x, 1)
     setRects(rects.concat(newRect))
 
     setEditedRect(newRect)
@@ -224,6 +233,12 @@ const Edit = forwardRef(({ imageURL, entities, currentTime = null, audioDuration
       editedRect.width = 1
 
       // emitEntitySelected()
+
+      onEntityCreated({
+        beginTime: mapStagePositionToTime(editedRect.x!, audioDuration!, stageRef.current!.width()),
+        endTime: mapStagePositionToTime(editedRect.x! + editedRect.scaleX!, audioDuration!, stageRef.current!.width()),
+      })
+      setEditedRect(null)
     } else {
       if (rectWasMoved && editedRect !== null) {
         // emitEntityUpdated()

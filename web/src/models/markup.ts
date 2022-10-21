@@ -11,8 +11,8 @@ export interface NewMarkupDto {
 }
 
 export interface EntityDto {
-  id?: string;
-  markupId: string;
+  id?: number;
+  markupId: number;
   value: string;
   beginTime: number;
   endTime: number;
