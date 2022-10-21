@@ -6,7 +6,7 @@ import { useErrorHandler } from "../../utils/handle-get-error";
 import { useParams } from "react-router-dom";
 
 import MarkupsApi from "../../api/markups-api";
-import { EntityDto } from "models/markup";
+import { CreateEntityDto, EntityDto } from "models/markup";
 import { useWebsocketSubscription } from "../../hooks/use-websocket-subscription";
 
 function selectURL(n: number): string {
@@ -146,10 +146,19 @@ const EditPage = () => {
         audioDuration={audioDuration}
         currentTime={currentTime}
         entities={markupData}
+
         onEntityRemoved={function (id: string): void {
           throw new Error("Function not implemented.");
-        } }        
-      />
+        } }
+        onEntityCreated={function (dto: CreateEntityDto): void {
+          throw new Error("Function not implemented.");
+        } }
+        onEntityUpdated={function (dto: EntityDto): void {
+          throw new Error("Function not implemented.");
+        } }
+        onEntitySelected={function (id: string): void {
+          throw new Error("Function not implemented.");
+        } }      />
       <AudioPlayer
         ref={audioPlayerRef}
         src={audioURL}

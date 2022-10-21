@@ -17,3 +17,5 @@ export interface EntityDto {
   beginTime: number;
   endTime: number;
 }
+
+export type CreateEntityDto = Omit<EntityDto, 'id'>

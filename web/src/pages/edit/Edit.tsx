@@ -2,8 +2,7 @@ import { Menu, MenuItem, MenuList } from "@chakra-ui/menu";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { RectConfig } from "konva/lib/shapes/Rect";
-import { EntityDto } from "models/markup";
-import { duration } from "moment";
+import { EntityDto, CreateEntityDto } from "models/markup";
 import { BaseSyntheticEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Stage, Layer, Image as KImage, Text as KText, Transformer, Rect } from "react-konva";
 import { mapEntityDtoToRectConfig, mapTimeToStagePosition } from "./composables/mapper";
@@ -22,6 +21,9 @@ interface IEdit {
   audioDuration: number | null;
 
   onEntityRemoved: (id: string) => void;
+  onEntityCreated: (dto: CreateEntityDto) => void;
+  onEntityUpdated: (dto: EntityDto) => void;
+  onEntitySelected: (id: string) => void;
 }
 
 let INITIAL_STAGE_WIDTH = 1082;
