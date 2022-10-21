@@ -129,7 +129,10 @@ const EditPage = () => {
           throw new Error("Function not implemented.");
         }}
         onEntitySelected={function (id: string): void {
-          throw new Error("Function not implemented.");
+          const entity = markupData.find((e) => e.id!.toString() === id)
+          if (!entity) throw Error('Entity was not found!');
+          // Подставить сюда свой setState, необходимый для инициализации формы
+          // setEditedEntity(entity)
         }}
       />
       <AudioPlayer
