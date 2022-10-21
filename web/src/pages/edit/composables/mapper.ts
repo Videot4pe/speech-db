@@ -23,3 +23,11 @@ export function mapEntityDtoToRectConfig(entityDto: EntityDto, duration: number,
     draggable: true,
   }
 }
+
+export function mapRectConfigToEntityDto(rect: Konva.RectConfig, duration: number, stageWidth: number): { id: string; beginTime: number; endTime: number; } {
+  return {
+    id: rect.id!,
+    beginTime: mapStagePositionToTime(rect.x!, duration, stageWidth),
+    endTime: mapStagePositionToTime(rect.x! + rect.scaleX!, duration, stageWidth),
+  }
+}

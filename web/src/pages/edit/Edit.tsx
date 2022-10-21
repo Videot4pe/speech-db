@@ -2,10 +2,10 @@ import { Menu, MenuItem, MenuList } from "@chakra-ui/menu";
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { RectConfig } from "konva/lib/shapes/Rect";
-import { EntityDto, CreateEntityDto } from "models/markup";
+import { EntityDto } from "models/markup";
 import { BaseSyntheticEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Stage, Layer, Image as KImage, Text as KText, Transformer, Rect } from "react-konva";
-import { mapEntityDtoToRectConfig, mapStagePositionToTime, mapTimeToStagePosition } from "./composables/mapper";
+import { mapEntityDtoToRectConfig, mapRectConfigToEntityDto, mapTimeToStagePosition } from "./composables/mapper";
 
 interface IEdit {
   entities: EntityDto[];
@@ -15,7 +15,7 @@ interface IEdit {
 
   onEntityRemoved: (id: string) => void;
   onEntityCreated: (entity: { beginTime: number; endTime: number; }) => void;
-  onEntityUpdated: (dto: EntityDto) => void;
+  onEntityUpdated: (entity: { id: string, beginTime: number; endTime: number; }) => void;
   onEntitySelected: (id: string) => void;
 }
 
@@ -27,8 +27,10 @@ const Edit = forwardRef(({
   imageURL,
   currentTime = null,
   audioDuration = null,
-  onEntityRemoved,
   onEntityCreated,
+  onEntityUpdated,
+  onEntityRemoved,
+  onEntitySelected,
 }: IEdit, ref) => {
   let [creatingNewRect, setCreatingNewRect] = useState<boolean>(false)
   let [rectWasMoved, setRectWasMoved] = useState<boolean>(false)
@@ -234,10 +236,7 @@ const Edit = forwardRef(({
 
       // emitEntitySelected()
 
-      onEntityCreated({
-        beginTime: mapStagePositionToTime(editedRect.x!, audioDuration!, stageRef.current!.width()),
-        endTime: mapStagePositionToTime(editedRect.x! + editedRect.scaleX!, audioDuration!, stageRef.current!.width()),
-      })
+      onEntityCreated(mapRectConfigToEntityDto(editedRect, audioDuration!, stageRef.current!.width()))
       setEditedRect(null)
     } else {
       if (rectWasMoved && editedRect !== null) {
@@ -333,7 +332,10 @@ const Edit = forwardRef(({
     srcRect.x = rect.x()
     srcRect.scaleX = rect.width() * rect.scaleX()
     srcRect.width = 1
-    // emitEntityUpdated()
+
+    // Если изменяем существующую сущность - вызываем обновление
+    if (rectId === '-1') return
+    onEntityUpdated(mapRectConfigToEntityDto(srcRect, audioDuration!, stageRef.current!.width()))
   }
 
   function handleDragMove (e: KonvaEventObject<DragEvent>) {

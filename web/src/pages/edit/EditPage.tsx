@@ -69,6 +69,12 @@ const EditPage = () => {
       audioPlayerRef.current?.pause();
   }, [currentTime]);
 
+  function getEntityById(id: string) {
+    const entity = markupData.find((e) => e.id!.toString() === id)
+    if (!entity) throw Error('Entity was not found!');
+    return entity
+  }
+
   return (
     <div>
       <div
@@ -112,9 +118,7 @@ const EditPage = () => {
         currentTime={currentTime}
         entities={markupData}
         onEntityRemoved={(id: string) => {
-          const entity = markupData.find((e) => e.id!.toString() === id)
-          if (!entity) throw Error('Entity was not found!');
-          remove(entity)
+          remove(getEntityById(id))
         }}
         onEntityCreated={({beginTime, endTime}) => {
           console.warn('[EditPage] creatingNewEntity...')
@@ -125,14 +129,12 @@ const EditPage = () => {
             value: '',
           })
         }}
-        onEntityUpdated={function (dto: EntityDto): void {
-          throw new Error("Function not implemented.");
+        onEntityUpdated={({id, beginTime, endTime}) => {
+          update({ ...getEntityById(id), beginTime, endTime })
         }}
         onEntitySelected={function (id: string): void {
-          const entity = markupData.find((e) => e.id!.toString() === id)
-          if (!entity) throw Error('Entity was not found!');
           // Подставить сюда свой setState, необходимый для инициализации формы
-          // setEditedEntity(entity)
+          // setEditedEntity(getEntityById(id))
         }}
       />
       <AudioPlayer
