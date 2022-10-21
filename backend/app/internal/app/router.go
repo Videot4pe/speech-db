@@ -16,6 +16,7 @@ import (
 	"backend/pkg/client/s3"
 	"backend/pkg/logging"
 	"backend/pkg/metric"
+	notifier2 "backend/pkg/notifier"
 	"backend/pkg/oauth"
 	"context"
 	"net/http"
@@ -39,6 +40,9 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	logger.Println("swagger docs initializing")
 	router.Handler(http.MethodGet, "/swagger", http.RedirectHandler("/swagger/index.html", http.StatusMovedPermanently))
 	router.Handler(http.MethodGet, "/swagger/*any", httpSwagger.WrapHandler)
+
+	notifier := notifier2.GetNotifier()
+	notifier.Register(router, logger, "/api/notifications")
 
 	logger.Println("heartbeat metric initializing")
 	metricHandler := metric.Handler{}

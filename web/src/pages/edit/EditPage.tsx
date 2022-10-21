@@ -38,7 +38,7 @@ interface IAudioPlayer {
 const EditPage = () => {
   const errorHandler = useErrorHandler();
   const params = useParams();
-  
+
   const editRef = useRef<IEdit>(null);
   const audioPlayerRef = useRef<IAudioPlayer>(null);
 
@@ -52,14 +52,25 @@ const EditPage = () => {
   // TODO FIX THIS PLEASE
   const markupId = +params.id!;
   /** Исходный массив сущностей */
-  const [markupData, setMarkupData] = useState<EntityDto[]>([])
+  const [markupData, setMarkupData] = useState<EntityDto[]>([]);
 
   const socketUrl = `${import.meta.env.VITE_WS}${
     import.meta.env.VITE_WS_URL
   }/api/ws/markups/${markupId}`;
 
-  const { close, send, websocketState } =
-    useWebsocketSubscription<EntityDto>(socketUrl);
+  const { close, send, websocketState } = useWebsocketSubscription(socketUrl);
+
+  const updateEntity = (entity: EntityDto) => {
+    send(WebsocketAction.UPDATE, entity);
+  };
+
+  const createEntity = (entity: EntityDto) => {
+    send(WebsocketAction.CREATE, entity);
+  };
+
+  const deleteEntity = (entity: EntityDto) => {
+    send(WebsocketAction.DELETE, entity);
+  };
 
   useEffect(() => {
     MarkupsApi.view(markupId)
@@ -68,27 +79,28 @@ const EditPage = () => {
         setAudioURL(payload.record);
       })
       .catch(errorHandler);
-      
+
     setMarkupData([
       {
-        id: '0',
+        id: "0",
         markupId: markupId.toString(),
-        value: 'a',
+        value: "a",
         beginTime: 1,
         endTime: 2,
       },
       {
-        id: '1',
+        id: "1",
         markupId: markupId.toString(),
-        value: 'б',
+        value: "б",
         beginTime: 3,
         endTime: 3.5,
-      }
-    ])
+      },
+    ]);
   }, []);
 
   useEffect(() => {
-    if (currentTime && endTime && currentTime > endTime) audioPlayerRef.current?.pause()
+    if (currentTime && endTime && currentTime > endTime)
+      audioPlayerRef.current?.pause();
   }, [currentTime]);
 
   return (
@@ -158,7 +170,8 @@ const EditPage = () => {
         } }
         onEntitySelected={function (id: string): void {
           throw new Error("Function not implemented.");
-        } }      />
+        } }
+      />
       <AudioPlayer
         ref={audioPlayerRef}
         src={audioURL}
