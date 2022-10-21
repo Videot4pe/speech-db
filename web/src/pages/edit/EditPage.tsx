@@ -7,20 +7,13 @@ import { useParams } from "react-router-dom";
 
 import MarkupsApi from "../../api/markups-api";
 import { CreateEntityDto, EntityDto } from "models/markup";
-import { useWebsocketSubscription } from "../../hooks/use-websocket-subscription";
+import { useCRUDWebsocket } from "../../hooks/use-crud-websocket";
 
 function selectURL(n: number): string {
   if (n === 0) {
     return "https://www.frolov-lib.ru/books/hi/ch03.files/image010.jpg";
   }
   return "https://www.frolov-lib.ru/books/hi/ch03.files/image020.jpg";
-}
-
-enum WebsocketAction {
-  LIST = "LIST",
-  CREATE = "CREATE",
-  UPDATE = "UPDATE",
-  DELETE = "DELETE",
 }
 
 interface IEdit {
@@ -58,19 +51,8 @@ const EditPage = () => {
     import.meta.env.VITE_WS_URL
   }/api/ws/markups/${markupId}`;
 
-  const { close, send, websocketState } = useWebsocketSubscription(socketUrl);
-
-  const updateEntity = (entity: EntityDto) => {
-    send(WebsocketAction.UPDATE, entity);
-  };
-
-  const createEntity = (entity: EntityDto) => {
-    send(WebsocketAction.CREATE, entity);
-  };
-
-  const deleteEntity = (entity: EntityDto) => {
-    send(WebsocketAction.DELETE, entity);
-  };
+  const { create, update, remove, websocketState } =
+    useCRUDWebsocket(socketUrl);
 
   useEffect(() => {
     MarkupsApi.view(markupId)
@@ -158,19 +140,18 @@ const EditPage = () => {
         audioDuration={audioDuration}
         currentTime={currentTime}
         entities={markupData}
-
         onEntityRemoved={function (id: string): void {
           throw new Error("Function not implemented.");
-        } }
+        }}
         onEntityCreated={function (dto: CreateEntityDto): void {
           throw new Error("Function not implemented.");
-        } }
+        }}
         onEntityUpdated={function (dto: EntityDto): void {
           throw new Error("Function not implemented.");
-        } }
+        }}
         onEntitySelected={function (id: string): void {
           throw new Error("Function not implemented.");
-        } }
+        }}
       />
       <AudioPlayer
         ref={audioPlayerRef}
