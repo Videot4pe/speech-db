@@ -136,9 +136,12 @@ type ImageFile struct {
 }
 
 func (h *Handler) SetImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	notifier := notifier2.GetNotifier()
+
 	var file ImageFile
 	recordId, err := strconv.ParseUint(ps.ByName("recordId"), 10, 64)
 	if err != nil {
+		notifier.Error("Image generation error", err.Error())
 		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
@@ -147,12 +150,14 @@ func (h *Handler) SetImage(w http.ResponseWriter, r *http.Request, ps httprouter
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
+		notifier.Error("Image generation error", err.Error())
 		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := json.Unmarshal(body, &file); err != nil {
+		notifier.Error("Image generation error", err.Error())
 		h.logger.Error("error decoding response: %v", err)
 		if e, ok := err.(*json.SyntaxError); ok {
 			h.logger.Error("syntax error at byte offset %d", e.Offset)
@@ -163,18 +168,21 @@ func (h *Handler) SetImage(w http.ResponseWriter, r *http.Request, ps httprouter
 
 	_, name, err := h.s3Client.UploadBase64(h.ctx, file.Image)
 	if err != nil {
+		notifier.Error("Image generation error", err.Error())
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	url, err := h.s3Client.GetFile(h.ctx, name)
 	if err != nil {
+		notifier.Error("Image generation error", err.Error())
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	fileId, err := h.filesStorage.Create(url, name)
 	if err != nil {
+		notifier.Error("Image generation error", err.Error())
 		h.logger.Error(err)
 		return
 	}
@@ -182,11 +190,11 @@ func (h *Handler) SetImage(w http.ResponseWriter, r *http.Request, ps httprouter
 	err = h.storage.SetImage(recordId, fileId)
 
 	if err != nil {
+		notifier.Error("Image generation error", err.Error())
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	notifier := notifier2.GetNotifier()
 	notifier.Success("Record is ready", fmt.Sprintf("Layout for record %d was successfully created", recordId))
 
 	utils.WriteResponse(w, http.StatusCreated, nil)
