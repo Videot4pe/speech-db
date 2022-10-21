@@ -1,4 +1,3 @@
-import { QueryClient, useQueryClient } from "react-query";
 import { useCallback, useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { jwtToken } from "../store";
@@ -24,7 +23,7 @@ export const useWebsocketSubscription = <T>(url: string) => {
     websocket.onmessage = (event) => {
       // TODO - flexibility ([])
       const data: WebsocketPayload<T[]> = JSON.parse(event.data);
-      console.log({ data });
+      // console.log({ data });
       setWebsocketState(data.payload);
     };
 

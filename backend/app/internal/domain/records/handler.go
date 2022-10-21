@@ -8,6 +8,7 @@ import (
 	"backend/pkg/client/postgresql/model"
 	"backend/pkg/client/s3"
 	"backend/pkg/logging"
+	notifier2 "backend/pkg/notifier"
 	"backend/pkg/utils"
 	"context"
 	"encoding/json"
@@ -184,6 +185,10 @@ func (h *Handler) SetImage(w http.ResponseWriter, r *http.Request, ps httprouter
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	notifier := notifier2.GetNotifier()
+	notifier.Success("Record is ready", fmt.Sprintf("Layout for record %d was successfully created", recordId))
+
 	utils.WriteResponse(w, http.StatusCreated, nil)
 }
 

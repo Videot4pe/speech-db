@@ -58,8 +58,7 @@ const EditPage = () => {
     import.meta.env.VITE_WS_URL
   }/api/ws/markups/${markupId}`;
 
-  const { close, send, websocketState } =
-    useWebsocketSubscription<EntityDto>(socketUrl);
+  const { close, send, websocketState } = useWebsocketSubscription(socketUrl);
 
   useEffect(() => {
     MarkupsApi.view(markupId)
