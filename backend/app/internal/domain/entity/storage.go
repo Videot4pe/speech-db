@@ -154,3 +154,25 @@ func (s *Storage) Update(id uint16, entity Entity) error {
 
 	return nil
 }
+
+func (s *Storage) Remove(id uint16) error {
+
+	query := s.queryBuilder.Delete(table).Where(sq.Eq{"id": id})
+
+	sql, args, err := query.ToSql()
+	logger := s.queryLogger(sql, table, args)
+	if err != nil {
+		err = db.ErrCreateQuery(err)
+		logger.Error(err)
+		return err
+	}
+
+	_, err = s.client.Exec(s.ctx, sql, args...)
+
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	return nil
+}

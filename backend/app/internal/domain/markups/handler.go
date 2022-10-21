@@ -180,6 +180,8 @@ func (h *Handler) Read(message []byte) error {
 		_, err = h.entityStorage.Create(payload.Payload)
 	case UpdateEntity:
 		_ = h.entityStorage.Update(payload.Payload.Id, payload.Payload)
+	case RemoveEntity:
+		_ = h.entityStorage.Remove(payload.Payload.Id)
 	}
 
 	if err != nil {
