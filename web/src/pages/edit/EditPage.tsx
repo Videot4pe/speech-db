@@ -112,7 +112,7 @@ const EditPage = () => {
         currentTime={currentTime}
         entities={markupData}
         onEntityRemoved={(id: string) => {
-          const entity = websocketState.find((e) => e.id!.toString() === id)
+          const entity = markupData.find((e) => e.id!.toString() === id)
           if (!entity) throw Error('Entity was not found!');
           remove(entity)
         }}
