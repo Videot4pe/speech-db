@@ -1,4 +1,4 @@
-import { Button } from "@chakra-ui/react";
+import { Button, Flex, IconButton } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import Edit from "./Edit";
 import AudioPlayer from "./components/AudioPlayer";
@@ -9,12 +9,8 @@ import MarkupsApi from "../../api/markups-api";
 import { CreateEntityDto, EntityDto } from "models/markup";
 import { useCRUDWebsocket } from "../../hooks/use-crud-websocket";
 
-function selectURL(n: number): string {
-  if (n === 0) {
-    return "https://www.frolov-lib.ru/books/hi/ch03.files/image010.jpg";
-  }
-  return "https://www.frolov-lib.ru/books/hi/ch03.files/image020.jpg";
-}
+import { timeToString } from "./composables/format-time"
+import { ImPause, ImPlay, ImStop } from "react-icons/im";
 
 interface IEdit {
   zoomIn: () => void;
@@ -39,8 +35,9 @@ const EditPage = () => {
   const [audioURL, setAudioURL] = useState<string | undefined>(undefined);
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState<number | null>(null);
-  const [startTime, setStartTime] = useState<number>(0);
+  const [beginTime, setBeginTime] = useState<number>(0);
   const [endTime, setEndTime] = useState<number | null>(null);
+  const [selectedEntity, setSelectedEntity] = useState<EntityDto | null>(null);
 
   // TODO FIX THIS PLEASE
   const markupId = +params.id!;
@@ -69,47 +66,37 @@ const EditPage = () => {
       audioPlayerRef.current?.pause();
   }, [currentTime]);
 
-  function getEntityById(id: string) {
+  function getEntityById(id: string | null) {
     const entity = markupData.find((e) => e.id!.toString() === id)
     if (!entity) throw Error('Entity was not found!');
     return entity
   }
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-        }}
-      >
-        <div
-          style={{
-            width: "100px",
-            display: "flex",
-            flexWrap: "wrap",
-            flexDirection: "column",
-            alignContent: "flex-start",
-          }}
-        >
-          <Button onClick={() => setImageURL(selectURL(0))}>Audio 0</Button>
-          <Button onClick={() => setImageURL(selectURL(1))}>Audio 1</Button>
-        </div>
-        <div
-          style={{
-            width: "300px",
-            display: "flex",
-            justifyContent: "space-between",
-          }}
-        >
-          {/* <Button onClick={() => editRef.current?.zoomOut()}>Zoom Out (-)</Button>
-          <Button onClick={() => editRef.current?.zoomIn()}>Zoom In (+)</Button> */}
-
-          <Button onClick={() => audioPlayerRef.current?.play()}>Play</Button>
-          <Button onClick={() => audioPlayerRef.current?.pause()}>Pause</Button>
-        </div>
-      </div>
+    <Flex direction={'column'}>
+      <Flex justify={'center'}>
+        <IconButton
+          className="q-mx-xs bg-green-2"
+          aria-label="play"
+          icon={<ImPlay />}
+          onClick={() => audioPlayerRef.current?.play()}
+        />
+        <IconButton
+          className="q-mx-xs bg-blue-2"
+          aria-label="pause"
+          icon={<ImPause />}
+          onClick={() => audioPlayerRef.current?.pause()}
+        />
+        <IconButton
+          className={"q-mx-xs bg-red-2"}
+          aria-label="stop"
+          icon={<ImStop />}
+        />
+        <span
+          className={"q-px-md text-left text-bold self-center"}
+          style={{"width": "200px"}}>{ `${timeToString(currentTime)} - ${timeToString(endTime)}` }
+        </span>
+      </Flex>
 
       <Edit
         ref={editRef}
@@ -132,9 +119,28 @@ const EditPage = () => {
         onEntityUpdated={({id, beginTime, endTime}) => {
           update({ ...getEntityById(id), beginTime, endTime })
         }}
-        onEntitySelected={function (id: string): void {
+        onEntitySelected={(id: string | null) => {
           // Подставить сюда свой setState, необходимый для инициализации формы
-          // setEditedEntity(getEntityById(id))
+          if (id === null) {
+            audioPlayerRef.current?.pause()
+            setSelectedEntity(null)
+            setBeginTime(0)
+            setCurrentTime(0)
+            setEndTime(null)
+            return
+          }
+
+          const entity = getEntityById(id)
+          if (entity.id === selectedEntity?.id) {
+            const audioIsPlaying = !audioPlayerRef.current?.isPaused()
+            audioIsPlaying ? audioPlayerRef.current?.pause() : audioPlayerRef.current?.play()
+          } else {
+            setSelectedEntity(entity)
+            audioPlayerRef.current?.pause()
+            setBeginTime(entity.beginTime)
+            setCurrentTime(entity.beginTime)
+            setEndTime(entity.endTime)
+          }
         }}
       />
       <AudioPlayer
@@ -143,7 +149,7 @@ const EditPage = () => {
         onDurationChange={setAudioDuration}
         onTimeUpdate={setCurrentTime}
       />
-    </div>
+    </Flex>
   );
 };
 

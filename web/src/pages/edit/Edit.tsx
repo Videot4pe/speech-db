@@ -16,7 +16,7 @@ interface IEdit {
   onEntityRemoved: (id: string) => void;
   onEntityCreated: (entity: { beginTime: number; endTime: number; }) => void;
   onEntityUpdated: (entity: { id: string, beginTime: number; endTime: number; }) => void;
-  onEntitySelected: (id: string) => void;
+  onEntitySelected: (id: string | null) => void;
 }
 
 let INITIAL_STAGE_WIDTH = 1082;
@@ -105,6 +105,7 @@ const Edit = forwardRef(({
     const updatedRects = rects.filter(child => child.id !== editedRect.id)
     setRects(updatedRects)
     setEditedRect(null)
+    onEntitySelected(null)
   }
 
   function createRectConfig(x: number, width: number, text: string = '', fillColor = 'yellow'): Konva.RectConfig {
@@ -195,6 +196,7 @@ const Edit = forwardRef(({
 
       const editedRect = rects.find(child => child.id === e.target.id()) ?? null
       setEditedRect(editedRect)
+      onEntitySelected(editedRect?.id ?? null)
 
       return
     }
@@ -202,6 +204,7 @@ const Edit = forwardRef(({
     // 
     if (transformerIsActive) {
       setEditedRect(null)
+      onEntitySelected(null)
       return
     }
 
@@ -234,17 +237,16 @@ const Edit = forwardRef(({
       editedRect.scaleX = editedRect?.width
       editedRect.width = 1
 
-      // emitEntitySelected()
-
       onEntityCreated(mapRectConfigToEntityDto(editedRect, audioDuration!, stageRef.current!.width()))
       setEditedRect(null)
+      onEntitySelected(null)
     } else {
       if (rectWasMoved && editedRect !== null) {
-        // emitEntityUpdated()
+        onEntityUpdated(mapRectConfigToEntityDto(editedRect, audioDuration!, stageRef.current!.width()))
       }
       setRectWasMoved(false)
       if (editedRect === null) {
-        // emit('reset-selection')
+        onEntitySelected(null)
       }
     }
   }
@@ -383,6 +385,7 @@ const Edit = forwardRef(({
     
     const editedRect = rects.find(child => child.id === e.target.id()) ?? null
     setEditedRect(editedRect)
+    onEntitySelected(editedRect?.id ?? null)
 
     const pointerPosition = stageRef.current?.getPointerPosition()
     if (!pointerPosition) {
