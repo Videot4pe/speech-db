@@ -45,14 +45,9 @@ const EditPage = () => {
   /** Исходный массив сущностей */
   // const [markupData, setMarkupData] = useState<EntityDto[]>([]);
 
-  const [entity, setEntity] = useState<EntityDto>({
-    markupId,
-    value: "",
-    beginTime: 0,
-    endTime: 0,
-  });
   const updateEntity = (key: string, value: any) => {
-    setEntity({ ...entity, [key]: value });
+    if (!selectedEntity) return
+    setSelectedEntity({ ...selectedEntity, [key]: value });
   };
 
   const socketUrl = `${import.meta.env.VITE_WS}${
@@ -87,7 +82,7 @@ const EditPage = () => {
   }
 
   const onSave = () => {
-    console.log({ entity });
+    update(selectedEntity!)
   };
 
   return (
@@ -171,7 +166,7 @@ const EditPage = () => {
         onDurationChange={setAudioDuration}
         onTimeUpdate={setCurrentTime}
       />
-      <Entity entity={entity} onEntitySet={updateEntity} onSave={onSave} />
+      { selectedEntity && <Entity entity={selectedEntity} onEntitySet={updateEntity} onSave={onSave} />}
     </Flex>
   );
 };
