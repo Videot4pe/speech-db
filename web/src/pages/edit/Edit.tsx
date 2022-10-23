@@ -5,6 +5,7 @@ import { RectConfig } from "konva/lib/shapes/Rect";
 import { EntityDto } from "models/markup";
 import { BaseSyntheticEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Stage, Layer, Image as KImage, Text as KText, Transformer, Rect } from "react-konva";
+import { createEmptyImage } from "./composables/createEmptyImage";
 import { mapEntityDtoToRectConfig, mapRectConfigToEntityDto, mapTimeToStagePosition } from "./composables/mapper";
 
 interface IEdit {
@@ -43,7 +44,11 @@ const Edit = forwardRef(({
   const layerRef = useRef<Konva.Layer>(null)
   const imageRef = useRef<Konva.Image>(null)
   const transformerRef = useRef<Konva.Transformer>(null)
-  const imageConfig = useRef<Konva.ImageConfig>({ image: undefined })
+  const imageConfig = useRef<Konva.ImageConfig>({
+    image: createEmptyImage(),
+    width: INITIAL_STAGE_WIDTH,
+    height: INITIAL_STAGE_HEIGHT,
+  })
   const stageConfig = useRef<Konva.StageConfig>({
     container: 'scroll-container',
     width: INITIAL_STAGE_WIDTH,
@@ -56,10 +61,12 @@ const Edit = forwardRef(({
 
   const image = new Image();
   image.src = imageURL!;
-  imageConfig.current = {
-    image: image,
-    width: INITIAL_STAGE_WIDTH,
-    height: INITIAL_STAGE_HEIGHT,
+  image.onload = () => {
+    imageConfig.current = {
+      image: image,
+      width: INITIAL_STAGE_WIDTH,
+      height: INITIAL_STAGE_HEIGHT,
+    }
   }
 
   function zoomIn() {
