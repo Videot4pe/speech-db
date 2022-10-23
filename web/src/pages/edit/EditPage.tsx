@@ -8,6 +8,7 @@ import { useParams } from "react-router-dom";
 import MarkupsApi from "../../api/markups-api";
 import { CreateEntityDto, EntityDto } from "models/markup";
 import { useCRUDWebsocket } from "../../hooks/use-crud-websocket";
+import Entity from "./components/Entity";
 
 import { timeToString } from "./composables/format-time"
 import { ImPause, ImPlay, ImStop } from "react-icons/im";
@@ -44,12 +45,26 @@ const EditPage = () => {
   /** Исходный массив сущностей */
   // const [markupData, setMarkupData] = useState<EntityDto[]>([]);
 
+  const [entity, setEntity] = useState<EntityDto>({
+    markupId,
+    value: "",
+    beginTime: 0,
+    endTime: 0,
+  });
+  const updateEntity = (key: string, value: any) => {
+    setEntity({ ...entity, [key]: value });
+  };
+
   const socketUrl = `${import.meta.env.VITE_WS}${
     import.meta.env.VITE_WS_URL
   }/api/ws/markups/${markupId}`;
 
-  const { create, update, remove, websocketState: markupData } =
-    useCRUDWebsocket<EntityDto>(socketUrl);
+  const {
+    create,
+    update,
+    remove,
+    websocketState: markupData,
+  } = useCRUDWebsocket<EntityDto>(socketUrl);
 
   useEffect(() => {
     MarkupsApi.view(markupId)
@@ -58,7 +73,6 @@ const EditPage = () => {
         setAudioURL(payload.record);
       })
       .catch(errorHandler);
-
   }, []);
 
   useEffect(() => {
@@ -105,19 +119,19 @@ const EditPage = () => {
         currentTime={currentTime}
         entities={markupData}
         onEntityRemoved={(id: string) => {
-          remove(getEntityById(id))
+          remove(getEntityById(id));
         }}
-        onEntityCreated={({beginTime, endTime}) => {
-          console.warn('[EditPage] creatingNewEntity...')
+        onEntityCreated={({ beginTime, endTime }) => {
+          console.warn("[EditPage] creatingNewEntity...");
           create({
             markupId,
             beginTime,
             endTime,
-            value: '',
-          })
+            value: "",
+          });
         }}
-        onEntityUpdated={({id, beginTime, endTime}) => {
-          update({ ...getEntityById(id), beginTime, endTime })
+        onEntityUpdated={({ id, beginTime, endTime }) => {
+          update({ ...getEntityById(id), beginTime, endTime });
         }}
         onEntitySelected={(id: string | null) => {
           // Подставить сюда свой setState, необходимый для инициализации формы
@@ -149,6 +163,7 @@ const EditPage = () => {
         onDurationChange={setAudioDuration}
         onTimeUpdate={setCurrentTime}
       />
+      <Entity entity={entity} updateEntity={updateEntity} />
     </Flex>
   );
 };

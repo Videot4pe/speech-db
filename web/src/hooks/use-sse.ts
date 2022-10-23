@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { jwtToken } from "../store";
 import { useToast } from "@chakra-ui/react";
+import { notificationAdded } from "../store/notifications";
 
 export interface SsePayload<T> {
   action: string;
@@ -9,7 +10,7 @@ export interface SsePayload<T> {
   payload: T;
 }
 
-export const useSse = <T>(url: string) => {
+export const useSse = <T = string>(url: string) => {
   const [jwt] = useAtom(jwtToken);
   const [source, setSource] = useState<EventSource | undefined>(undefined);
 
@@ -20,8 +21,13 @@ export const useSse = <T>(url: string) => {
     setSource(source);
     // TODO reconnect
 
+    source.onopen = () => {
+      console.log("open connection");
+    };
+
     source.addEventListener("notification", (message) => {
       const { action, status, payload } = JSON.parse(message.data);
+      console.log({ action, status, payload });
       toast({
         title: action,
         status: status,
@@ -30,6 +36,7 @@ export const useSse = <T>(url: string) => {
         isClosable: true,
       });
 
+      notificationAdded({ action, status, payload });
       // TODO event bus (кидаю ивент с экшеном, его можно перехватывать например для перезагрузки страницы (хотя это и в сторе можно, наверное))
     });
 
