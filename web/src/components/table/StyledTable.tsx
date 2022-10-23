@@ -12,7 +12,7 @@ import {
   InputGroup,
 } from "@chakra-ui/react";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import type { Column } from "react-table";
 import { useSortBy, useTable } from "react-table";
 

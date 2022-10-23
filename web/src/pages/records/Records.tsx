@@ -19,18 +19,17 @@ import { useTablePagination } from "../../hooks/use-table-pagination";
 import { useTableSort } from "../../hooks/use-table-sort";
 import type { RecordDto } from "../../models/record";
 import { useErrorHandler } from "../../utils/handle-get-error";
-
 import Record from "./components/Record";
 import recordsTableColumns from "./records-table-columns";
 
-const Smers = () => {
+const Records = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [activeId, setActiveId] = useState<undefined | number>(undefined);
   const errorHandler = useErrorHandler();
   const { queryParams, setPage, setLimit } = useTablePagination();
   const { sortParams, setSortParams } = useTableSort();
   const { filterParams, arrayFilterParams, setFilterParams } = useTableFilter();
-  const { data, meta, isLoading, fetch } = useTableData<RecordDto>(
+  const { tableQuery } = useTableData<RecordDto>(
     RecordsApi.list,
     queryParams,
     arrayFilterParams,
@@ -39,7 +38,7 @@ const Smers = () => {
 
   const onRemove = (id: number) => {
     RecordsApi.remove(id)
-      .then(() => fetch)
+      .then(() => tableQuery.refetch())
       .catch(errorHandler);
   };
 
@@ -50,9 +49,9 @@ const Smers = () => {
 
   const columns = recordsTableColumns(onRemove, onEdit);
 
-  const onRecordSave = () => {
+  const onRecordSave = async () => {
     onClose();
-    fetch();
+    await tableQuery.refetch();
     setActiveId(undefined);
   };
 
@@ -65,8 +64,8 @@ const Smers = () => {
           </Heading>
           <StyledTable
             columns={columns}
-            data={data}
-            isLoading={isLoading}
+            data={tableQuery.data?.data || []}
+            isLoading={tableQuery.isLoading}
             filterParams={filterParams}
             setSortParams={setSortParams}
             setFilterParams={setFilterParams}
@@ -77,7 +76,7 @@ const Smers = () => {
                   <IconButton
                     icon={<AddIcon />}
                     aria-label="add record"
-                    isLoading={isLoading}
+                    isLoading={tableQuery.isLoading}
                     onClick={onOpen}
                   />
                 </Center>
@@ -86,7 +85,12 @@ const Smers = () => {
           </StyledTable>
           <StyledTablePagination
             my={4}
-            meta={meta}
+            meta={
+              tableQuery.data?.meta || {
+                totalItems: 0,
+                totalPages: 1,
+              }
+            }
             queryParams={queryParams}
             setPage={setPage}
             setLimit={setLimit}
@@ -105,4 +109,4 @@ const Smers = () => {
   );
 };
 
-export default Smers;
+export default Records;

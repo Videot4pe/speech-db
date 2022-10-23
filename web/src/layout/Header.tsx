@@ -14,7 +14,7 @@ import * as R from "ramda";
 import type { ReactElement } from "react";
 import type React from "react";
 import type { IconType } from "react-icons";
-import { ImExit, ImProfile } from "react-icons/all";
+import { ImExit, ImProfile, IoNotifications } from "react-icons/all";
 import { useLocation, useNavigate, Link as ReachLink } from "react-router-dom";
 
 import type { IRoutes } from "../router/routes";
@@ -22,6 +22,9 @@ import routes from "../router/routes";
 import { jwtToken, refreshJwtToken, selfAtom } from "../store";
 
 import ThemeToggle from "./ThemeToggle";
+import { useStore } from "effector-react";
+import { $notifications } from "../store/notifications";
+import NotificationButton from "./NotificationButton";
 
 interface ISidebarItem {
   name: string;
@@ -72,6 +75,8 @@ const Header = () => {
     handleToSignin();
   };
 
+  const notifications = useStore($notifications);
+
   return (
     <Flex
       as="header"
@@ -101,6 +106,7 @@ const Header = () => {
 
       <Box marginLeft="auto">
         <ThemeToggle />
+        <NotificationButton notifications={notifications} />
         <Link as={ReachLink} to="/profile">
           <IconButton ml={2} aria-label="profile" icon={<ImProfile />} />
         </Link>
