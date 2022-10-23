@@ -40,6 +40,7 @@ func (n *Notifier) Notify(action string, status string, payload interface{}) err
 }
 
 func (n *Notifier) Success(action string, payload interface{}) error {
+	n.logger.Infof("NOTIFY: %", payload)
 	return n.streamer.SendJSON("", "notification", Notification[interface{}]{
 		Action:  action,
 		Status:  StatusSuccess,

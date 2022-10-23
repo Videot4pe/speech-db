@@ -10,7 +10,7 @@ import { CreateEntityDto, EntityDto } from "models/markup";
 import { useCRUDWebsocket } from "../../hooks/use-crud-websocket";
 import Entity from "./components/Entity";
 
-import { timeToString } from "./composables/format-time"
+import { timeToString } from "./composables/format-time";
 import { ImPause, ImPlay, ImStop } from "react-icons/im";
 
 interface IEdit {
@@ -81,14 +81,18 @@ const EditPage = () => {
   }, [currentTime]);
 
   function getEntityById(id: string | null) {
-    const entity = markupData.find((e) => e.id!.toString() === id)
-    if (!entity) throw Error('Entity was not found!');
-    return entity
+    const entity = markupData.find((e) => e.id!.toString() === id);
+    if (!entity) throw Error("Entity was not found!");
+    return entity;
   }
 
+  const onSave = () => {
+    console.log({ entity });
+  };
+
   return (
-    <Flex direction={'column'}>
-      <Flex justify={'center'}>
+    <Flex direction={"column"}>
+      <Flex justify={"center"}>
         <IconButton
           className="q-mx-xs bg-green-2"
           aria-label="play"
@@ -108,7 +112,9 @@ const EditPage = () => {
         />
         <span
           className={"q-px-md text-left text-bold self-center"}
-          style={{"width": "200px"}}>{ `${timeToString(currentTime)} - ${timeToString(endTime)}` }
+          style={{ width: "200px" }}
+        >
+          {`${timeToString(currentTime)} - ${timeToString(endTime)}`}
         </span>
       </Flex>
 
@@ -136,24 +142,26 @@ const EditPage = () => {
         onEntitySelected={(id: string | null) => {
           // Подставить сюда свой setState, необходимый для инициализации формы
           if (id === null) {
-            audioPlayerRef.current?.pause()
-            setSelectedEntity(null)
-            setBeginTime(0)
-            setCurrentTime(0)
-            setEndTime(null)
-            return
+            audioPlayerRef.current?.pause();
+            setSelectedEntity(null);
+            setBeginTime(0);
+            setCurrentTime(0);
+            setEndTime(null);
+            return;
           }
 
-          const entity = getEntityById(id)
+          const entity = getEntityById(id);
           if (entity.id === selectedEntity?.id) {
-            const audioIsPlaying = !audioPlayerRef.current?.isPaused()
-            audioIsPlaying ? audioPlayerRef.current?.pause() : audioPlayerRef.current?.play()
+            const audioIsPlaying = !audioPlayerRef.current?.isPaused();
+            audioIsPlaying
+              ? audioPlayerRef.current?.pause()
+              : audioPlayerRef.current?.play();
           } else {
-            setSelectedEntity(entity)
-            audioPlayerRef.current?.pause()
-            setBeginTime(entity.beginTime)
-            setCurrentTime(entity.beginTime)
-            setEndTime(entity.endTime)
+            setSelectedEntity(entity);
+            audioPlayerRef.current?.pause();
+            setBeginTime(entity.beginTime);
+            setCurrentTime(entity.beginTime);
+            setEndTime(entity.endTime);
           }
         }}
       />
@@ -163,7 +171,7 @@ const EditPage = () => {
         onDurationChange={setAudioDuration}
         onTimeUpdate={setCurrentTime}
       />
-      <Entity entity={entity} updateEntity={updateEntity} />
+      <Entity entity={entity} onEntitySet={updateEntity} onSave={onSave} />
     </Flex>
   );
 };
