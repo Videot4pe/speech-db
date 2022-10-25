@@ -25,13 +25,16 @@ const AudioPlayer = forwardRef(({ src, onTimeUpdate, onDurationChange }: AudioPl
     play: () => audioRef.current?.play(),
     pause: () => audioRef.current?.pause(),
     setTime,
+    currentTime: () => audioRef.current?.currentTime,
   }))
 
   useEffect(() => {
     if (audioRef.current === null) return
     if (onTimeUpdate) {
-      audioRef.current.ontimeupdate = () => 
+      audioRef.current.ontimeupdate = () => {
+        if (audioRef.current?.paused) return
         onTimeUpdate(audioRef.current?.currentTime ?? null)
+      }
     }
     if (onDurationChange) {
       audioRef.current.ondurationchange = () => 
