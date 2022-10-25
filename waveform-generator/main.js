@@ -3,10 +3,18 @@
 // Require the framework and instantiate it
 const generator = require("./api/generator.js");
 const fastify = require("fastify")({ logger: true });
+const errorCodes = require("fastify").errorCodes;
 
 fastify.post("/api/generate", async (request, reply) => {
   const { body } = request;
   generator.create(body);
+});
+
+fastify.setErrorHandler(function (error, request, reply) {
+  if (error instanceof errorCodes.FST_ERR_BAD_STATUS_CODE) {
+    this.log.error(error);
+    reply.status(500).send({ ok: false });
+  }
 });
 
 const start = async () => {
