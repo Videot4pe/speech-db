@@ -27,6 +27,8 @@ interface IAudioPlayer {
 }
 
 const EditPage = () => {
+  console.error('EDIT PAGE')
+
   const errorHandler = useErrorHandler();
   const params = useParams();
 
@@ -219,10 +221,16 @@ const EditPage = () => {
       <AudioPlayer
         ref={audioPlayerRef}
         src={audioURL}
-        onDurationChange={setAudioDuration}
+        onDurationChange={(d) => {
+          console.log('[EditPage] onDurationChange:', d)
+
+          setAudioDuration(d)
+        }}
         onTimeUpdate={(t) => setCurrentTime(t ?? 0)}
       />
-      { selectedEntity && <Entity entity={selectedEntity} onEntitySet={updateEntity} onSave={onSave} />}
+      <Flex justifyContent={'center'}>
+        { selectedEntity && <Entity entity={selectedEntity} onEntitySet={updateEntity} onSave={onSave} />}
+      </Flex>
     </Flex>
   );
 };
