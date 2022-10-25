@@ -1,4 +1,4 @@
-import { Button, Flex, IconButton } from "@chakra-ui/react";
+import { Flex, IconButton } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import Edit from "./Edit";
 import AudioPlayer from "./components/AudioPlayer";
@@ -12,6 +12,7 @@ import Entity from "./components/Entity";
 
 import { timeToString } from "./composables/format-time";
 import { ImPause, ImPlay, ImStop } from "react-icons/im";
+import { debounce } from "lodash";
 
 interface IEdit {
   zoomIn: () => void;
@@ -27,7 +28,24 @@ interface IAudioPlayer {
 }
 
 const EditPage = () => {
-  console.error('EDIT PAGE')
+  console.error("EDIT PAGE");
+  const [dimensions, setDimensions] = useState({
+    height: window.innerHeight,
+    width: window.innerWidth,
+  });
+  useEffect(() => {
+    const debouncedHandleResize = debounce(function handleResize() {
+      setDimensions({
+        height: window.innerHeight,
+        width: window.innerWidth,
+      });
+    }, 1000);
+    window.addEventListener("resize", debouncedHandleResize);
+
+    return () => {
+      window.removeEventListener("resize", debouncedHandleResize);
+    };
+  });
 
   const errorHandler = useErrorHandler();
   const params = useParams();
@@ -48,7 +66,7 @@ const EditPage = () => {
   const markupId = +params.id!;
 
   const updateEntity = (key: string, value: any) => {
-    if (!selectedEntity) return
+    if (!selectedEntity) return;
     setSelectedEntity({ ...selectedEntity, [key]: value });
   };
 
@@ -64,17 +82,17 @@ const EditPage = () => {
   } = useCRUDWebsocket<EntityDto>(socketUrl);
 
   function play() {
-    audioPlayerRef.current?.play()
+    audioPlayerRef.current?.play();
   }
 
   function pause() {
-    audioPlayerRef.current?.pause()
+    audioPlayerRef.current?.pause();
   }
 
   function stop() {
-    audioPlayerRef.current?.pause()
-    audioPlayerRef.current?.setTime(beginTime)
-    setCurrentTime(beginTime)
+    audioPlayerRef.current?.pause();
+    audioPlayerRef.current?.setTime(beginTime);
+    setCurrentTime(beginTime);
   }
 
   useEffect(() => {
@@ -105,33 +123,33 @@ const EditPage = () => {
   }
 
   const onSave = () => {
-    update(selectedEntity!)
+    update(selectedEntity!);
   };
 
   return (
     <Flex direction={"column"}>
-      <Flex justify={"center"} gap={'4px'}>
+      <Flex justify={"center"} gap={"4px"}>
         <IconButton
           className="q-mx-xs bg-green-2"
           aria-label="play"
           icon={<ImPlay />}
-          color={!audioPlayerRef.current?.isPaused() ? 'green' : 'black'}
-          background=''
+          color={!audioPlayerRef.current?.isPaused() ? "green" : "black"}
+          background=""
           onClick={play}
         />
         <IconButton
           className="q-mx-xs bg-blue-2"
           aria-label="pause"
           icon={<ImPause />}
-          color={audioPlayerRef.current?.isPaused() ? 'red' : 'black'}
-          background=''
+          color={audioPlayerRef.current?.isPaused() ? "red" : "black"}
+          background=""
           onClick={pause}
         />
         <IconButton
           className={"q-mx-xs bg-red-2"}
           aria-label="stop"
           icon={<ImStop />}
-          background=''
+          background=""
           onClick={stop}
         />
         <span
@@ -178,7 +196,7 @@ const EditPage = () => {
             setSelectedEntity(getEntityById(id));
             setBeginTime(beginTime);
             setEndTime(endTime);
-          }, 50)
+          }, 50);
         }}
         onEntitySelected={(id: string | null, rightClick = false) => {
           if (id === null) {
@@ -188,48 +206,54 @@ const EditPage = () => {
               setBeginTime(0);
               setCurrentTime(0);
               setEndTime(null);
-            }, 50)
+            }, 50);
             return;
           }
 
           const entity = getEntityById(id);
           if (entity.id === selectedEntity?.id) {
-            if (rightClick) return
+            if (rightClick) return;
             const audioIsPlaying = !audioPlayerRef.current?.isPaused();
             if (endTime && endTime - currentTime < 0.5) {
-              setCurrentTime(beginTime)
+              setCurrentTime(beginTime);
             }
-            setTimeout(() => audioIsPlaying ? pause() : play(), 50);
+            setTimeout(() => (audioIsPlaying ? pause() : play()), 50);
           } else {
             setSelectedEntity(entity);
-            pause()
+            pause();
             setTimeout(() => {
               setBeginTime(entity.beginTime);
               setCurrentTime(entity.beginTime);
               setEndTime(entity.endTime);
-            }, 50)
+            }, 50);
           }
         }}
         onPointerPositionChanged={(t) => {
           setTimeout(() => {
-            audioPlayerRef.current?.pause()
-            audioPlayerRef.current?.setTime(t)
-            setCurrentTime(t)
-          }, 50)
+            audioPlayerRef.current?.pause();
+            audioPlayerRef.current?.setTime(t);
+            setCurrentTime(t);
+          }, 50);
         }}
       />
       <AudioPlayer
         ref={audioPlayerRef}
         src={audioURL}
         onDurationChange={(d) => {
-          console.log('[EditPage] onDurationChange:', d)
+          console.log("[EditPage] onDurationChange:", d);
 
-          setAudioDuration(d)
+          setAudioDuration(d);
         }}
         onTimeUpdate={(t) => setCurrentTime(t ?? 0)}
       />
-      <Flex justifyContent={'center'}>
-        { selectedEntity && <Entity entity={selectedEntity} onEntitySet={updateEntity} onSave={onSave} />}
+      <Flex justifyContent={"center"}>
+        {selectedEntity && (
+          <Entity
+            entity={selectedEntity}
+            onEntitySet={updateEntity}
+            onSave={onSave}
+          />
+        )}
       </Flex>
     </Flex>
   );
