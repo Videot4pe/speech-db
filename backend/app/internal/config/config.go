@@ -26,6 +26,7 @@ type Config struct {
 			Email    string `env:"ADMIN_EMAIL" env-default:"admin"`
 			Password string `env:"ADMIN_PWD" env-default:"admin"`
 		}
+		SentryURL string `env:"SENTRY_URL"`
 	}
 	PostgreSQL struct {
 		Username string `env:"PGUSER" env-default:"postgres"`
@@ -65,8 +66,8 @@ type Config struct {
 		ServerIP string `env:"FRONTEND_SERVER_IP" env-default:"https://videot4pe.dev"`
 	}
 	WaveformGenerator struct {
-        IP string `env:"WAVEFORM_GENERATOR_IP" env-default:"http://waveform-generator"`
-    }
+		IP string `env:"WAVEFORM_GENERATOR_IP" env-default:"http://waveform-generator"`
+	}
 }
 
 var instance *Config
