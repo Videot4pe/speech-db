@@ -41,8 +41,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5006:5006"
-    env_file:
-      ./waveform-generator/.env
     depends_on:
       - backend
     restart: unless-stopped
