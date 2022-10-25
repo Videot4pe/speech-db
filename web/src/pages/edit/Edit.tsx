@@ -35,6 +35,8 @@ const Edit = forwardRef(({
   onEntitySelected,
   onPointerPositionChanged,
 }: IEdit, ref) => {
+  console.log('[Edit] audioDuration:', audioDuration)
+
   let [creatingNewRect, setCreatingNewRect] = useState<boolean>(false)
   let [rectWasMoved, setRectWasMoved] = useState<boolean>(false)
   let rectWasChanged = false
@@ -160,6 +162,9 @@ const Edit = forwardRef(({
   function mapEntitiesToRects() {
     const stageWidth = stageRef.current?.width()
     const stageHeight = stageRef.current?.height()
+
+    console.log('[Edit] mapEntitiesToRects // audioDuration:', audioDuration)
+
     if (stageWidth && stageHeight && audioDuration) {
       const editedRectId = editedRect?.id
       const rects = entities.map(entity => mapEntityDtoToRectConfig(entity, audioDuration, stageWidth, stageHeight))
