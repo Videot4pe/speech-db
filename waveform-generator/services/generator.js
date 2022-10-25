@@ -9,6 +9,9 @@ const EventEmitter = require("node:events");
 const fastify = require("fastify")({ logger: true });
 
 const emitter = new EventEmitter();
+emitter.on("error", function (err) {
+  console.log(err);
+});
 
 const generateImage = async ({ filePath, outputPath, callbackUrl }) => {
   var cmd = "ffmpeg";
@@ -25,14 +28,16 @@ const generateImage = async ({ filePath, outputPath, callbackUrl }) => {
 
   const proc = await spawn(cmd, args);
 
-  proc.on("close", function () {
-    emitter.emit("send", { filePath, outputPath, callbackUrl });
-  });
+  // proc.on("close", function () {
+  //   emitter.emit("send", { filePath, outputPath, callbackUrl });
+  // });
 
   proc.on("exit", () => {
     if (proc.exitCode !== 0) {
       fastify.log.error(new Error(`Process exited with code ${proc.exitCode}`));
+      return;
     }
+    emitter.emit("send", { filePath, outputPath, callbackUrl });
   });
 };
 

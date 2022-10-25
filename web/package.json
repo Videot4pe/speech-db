@@ -24,6 +24,8 @@
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@fontsource/plus-jakarta-sans": "^4.5.8",
+    "@sentry/react": "^7.16.0",
+    "@sentry/tracing": "^7.16.0",
     "@types/d3": "^7.4.0",
     "@types/lodash": "^4.14.182",
     "@types/qs": "^6.9.7",

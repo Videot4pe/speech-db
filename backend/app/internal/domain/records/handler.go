@@ -32,9 +32,10 @@ type Handler struct {
 }
 
 const (
-	listURL     = "/api/records"
-	viewURL     = "/api/records/:recordId"
-	setImageURL = "/api/records/set-image/:recordId"
+	listURL          = "/api/records"
+	viewURL          = "/api/records/:recordId"
+	setImageURL      = "/api/records/set-image/:recordId"
+	generateImageURL = "/api/records/generate/:recordId"
 )
 
 func NewRecordsHandler(ctx context.Context, config *config.Config, storage *Storage, filesStorage *files.Storage, waveformClient *waveform_generator.WaveformGeneratorClient, s3Client *s3.Client, logger *logging.Logger) *Handler {
@@ -54,6 +55,7 @@ func (h *Handler) Register(router *httprouter.Router) {
 	router.GET(viewURL, auth.RequireAuth(h.View, nil))
 	router.POST(listURL, auth.RequireAuth(h.Create, nil))
 	router.PATCH(listURL, auth.RequireAuth(h.Update, nil))
+	router.POST(generateImageURL, auth.RequireAuth(h.Generate, nil))
 	router.POST(setImageURL, h.SetImage)
 }
 
@@ -133,6 +135,18 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 
 type ImageFile struct {
 	Image string `json:"image"`
+}
+
+func (h *Handler) Generate(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	recordId, err := strconv.ParseUint(ps.ByName("recordId"), 10, 64)
+	record, err := h.storage.GetById(recordId)
+
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	callbackUrl := fmt.Sprintf("%v/api/records/set-image/%v", h.config.Listen.ServerIP, recordId)
+	go h.waveformClient.SendAudioUrl(record.File, callbackUrl)
 }
 
 func (h *Handler) SetImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
