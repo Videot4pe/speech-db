@@ -6,7 +6,7 @@ import { useErrorHandler } from "../../utils/handle-get-error";
 import { useParams } from "react-router-dom";
 
 import MarkupsApi from "../../api/markups-api";
-import { CreateEntityDto, EntityDto } from "models/markup";
+import { EntityDto } from "models/markup";
 import { useCRUDWebsocket } from "../../hooks/use-crud-websocket";
 import Entity from "./components/Entity";
 
@@ -23,6 +23,7 @@ interface IAudioPlayer {
   play: () => void;
   pause: () => void;
   setTime: (value: number) => void;
+  currentTime: () => number;
 }
 
 const EditPage = () => {
@@ -35,15 +36,14 @@ const EditPage = () => {
   const [imageURL, setImageURL] = useState<string | undefined>(undefined);
   const [audioURL, setAudioURL] = useState<string | undefined>(undefined);
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
-  const [currentTime, setCurrentTime] = useState<number | null>(null);
-  const [beginTime, setBeginTime] = useState<number>(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [beginTime, setBeginTime] = useState(0);
   const [endTime, setEndTime] = useState<number | null>(null);
   const [selectedEntity, setSelectedEntity] = useState<EntityDto | null>(null);
 
-  // TODO FIX THIS PLEASE
+  // TODO FIX THIS PLEASE (Alex)
+  // IMHO, I TAK NOT BAD. ENOUGH LACONI4NO (Nick)
   const markupId = +params.id!;
-  /** Исходный массив сущностей */
-  // const [markupData, setMarkupData] = useState<EntityDto[]>([]);
 
   const updateEntity = (key: string, value: any) => {
     if (!selectedEntity) return
@@ -61,6 +61,20 @@ const EditPage = () => {
     websocketState: markupData,
   } = useCRUDWebsocket<EntityDto>(socketUrl);
 
+  function play() {
+    audioPlayerRef.current?.play()
+  }
+
+  function pause() {
+    audioPlayerRef.current?.pause()
+  }
+
+  function stop() {
+    audioPlayerRef.current?.pause()
+    audioPlayerRef.current?.setTime(beginTime)
+    setCurrentTime(beginTime)
+  }
+
   useEffect(() => {
     MarkupsApi.view(markupId)
       .then((payload) => {
@@ -71,9 +85,16 @@ const EditPage = () => {
   }, []);
 
   useEffect(() => {
-    if (currentTime && endTime && currentTime > endTime)
+    if (currentTime && beginTime && currentTime <= beginTime) {
       audioPlayerRef.current?.pause();
-  }, [currentTime]);
+      audioPlayerRef.current?.setTime(beginTime);
+      setCurrentTime(beginTime);
+    } else if (currentTime && endTime && currentTime >= endTime) {
+      audioPlayerRef.current?.pause();
+      audioPlayerRef.current?.setTime(endTime);
+      setCurrentTime(endTime);
+    }
+  }, [currentTime, beginTime, endTime]);
 
   function getEntityById(id: string | null) {
     const entity = markupData.find((e) => e.id!.toString() === id);
@@ -92,25 +113,39 @@ const EditPage = () => {
           className="q-mx-xs bg-green-2"
           aria-label="play"
           icon={<ImPlay />}
-          onClick={() => audioPlayerRef.current?.play()}
+          onClick={play}
         />
         <IconButton
           className="q-mx-xs bg-blue-2"
           aria-label="pause"
           icon={<ImPause />}
-          onClick={() => audioPlayerRef.current?.pause()}
+          onClick={pause}
         />
         <IconButton
           className={"q-mx-xs bg-red-2"}
           aria-label="stop"
           icon={<ImStop />}
+          onClick={stop}
         />
         <span
-          className={"q-px-md text-left text-bold self-center"}
-          style={{ width: "200px" }}
+          style={{
+            width: "200px",
+            // fontWeight: "bold",
+            alignSelf: "center",
+            textAlign: "center",
+          }}
         >
           {`${timeToString(currentTime)} - ${timeToString(endTime)}`}
         </span>
+      </Flex>
+      <Flex direction={'column'}>
+        <div>
+          <span>selectedEntity: </span>
+          <span color={ selectedEntity ? 'green' : 'black' }>{ `${selectedEntity?.id ?? null}` }</span>
+        </div>
+        <span>{ `currentTime: ${currentTime}` }</span>
+        <span>{ `beginTime: ${beginTime}` }</span>
+        <span>{ `endTime: ${endTime}` }</span>
       </Flex>
 
       <Edit
@@ -123,7 +158,6 @@ const EditPage = () => {
           remove(getEntityById(id));
         }}
         onEntityCreated={({ beginTime, endTime }) => {
-          console.warn("[EditPage] creatingNewEntity...");
           create({
             markupId,
             beginTime,
@@ -133,38 +167,55 @@ const EditPage = () => {
         }}
         onEntityUpdated={({ id, beginTime, endTime }) => {
           update({ ...getEntityById(id), beginTime, endTime });
+          setTimeout(() => {
+            setSelectedEntity(getEntityById(id));
+            setBeginTime(beginTime);
+            setEndTime(endTime);
+          }, 50)
         }}
-        onEntitySelected={(id: string | null) => {
-          // Подставить сюда свой setState, необходимый для инициализации формы
+        onEntitySelected={(id: string | null, rightClick = false) => {
           if (id === null) {
-            audioPlayerRef.current?.pause();
             setSelectedEntity(null);
-            setBeginTime(0);
-            setCurrentTime(0);
-            setEndTime(null);
+            stop();
+            setTimeout(() => {
+              setBeginTime(0);
+              setCurrentTime(0);
+              setEndTime(null);
+            }, 50)
             return;
           }
 
           const entity = getEntityById(id);
           if (entity.id === selectedEntity?.id) {
+            if (rightClick) return
             const audioIsPlaying = !audioPlayerRef.current?.isPaused();
-            audioIsPlaying
-              ? audioPlayerRef.current?.pause()
-              : audioPlayerRef.current?.play();
+            if (endTime && endTime - currentTime < 0.5) {
+              setCurrentTime(beginTime)
+            }
+            setTimeout(() => audioIsPlaying ? pause() : play(), 50);
           } else {
             setSelectedEntity(entity);
-            audioPlayerRef.current?.pause();
-            setBeginTime(entity.beginTime);
-            setCurrentTime(entity.beginTime);
-            setEndTime(entity.endTime);
+            pause()
+            setTimeout(() => {
+              setBeginTime(entity.beginTime);
+              setCurrentTime(entity.beginTime);
+              setEndTime(entity.endTime);
+            }, 50)
           }
+        }}
+        onPointerPositionChanged={(t) => {
+          setTimeout(() => {
+            audioPlayerRef.current?.pause()
+            audioPlayerRef.current?.setTime(t)
+            setCurrentTime(t)
+          }, 50)
         }}
       />
       <AudioPlayer
         ref={audioPlayerRef}
         src={audioURL}
         onDurationChange={setAudioDuration}
-        onTimeUpdate={setCurrentTime}
+        onTimeUpdate={(t) => setCurrentTime(t ?? 0)}
       />
       { selectedEntity && <Entity entity={selectedEntity} onEntitySet={updateEntity} onSave={onSave} />}
     </Flex>

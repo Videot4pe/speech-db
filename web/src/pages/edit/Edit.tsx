@@ -6,18 +6,19 @@ import { EntityDto } from "models/markup";
 import { BaseSyntheticEvent, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Stage, Layer, Image as KImage, Text as KText, Transformer, Rect } from "react-konva";
 import { createEmptyImage } from "./composables/createEmptyImage";
-import { mapEntityDtoToRectConfig, mapRectConfigToEntityDto, mapTimeToStagePosition } from "./composables/mapper";
+import { mapEntityDtoToRectConfig, mapRectConfigToEntityDto, mapStagePositionToTime, mapTimeToStagePosition } from "./composables/mapper";
 
 interface IEdit {
   entities: EntityDto[];
   imageURL: string | undefined;
-  currentTime: number | null;
+  currentTime: number;
   audioDuration: number | null;
 
   onEntityRemoved: (id: string) => void;
   onEntityCreated: (entity: { beginTime: number; endTime: number; }) => void;
   onEntityUpdated: (entity: { id: string, beginTime: number; endTime: number; }) => void;
-  onEntitySelected: (id: string | null) => void;
+  onEntitySelected: (id: string | null, rightClick?: boolean) => void;
+  onPointerPositionChanged: (time: number) => void;
 }
 
 let INITIAL_STAGE_WIDTH = 1082;
@@ -26,15 +27,17 @@ const INITIAL_STAGE_HEIGHT = 200;
 const Edit = forwardRef(({
   entities,
   imageURL,
-  currentTime = null,
+  currentTime = 0,
   audioDuration = null,
   onEntityCreated,
   onEntityUpdated,
   onEntityRemoved,
   onEntitySelected,
+  onPointerPositionChanged,
 }: IEdit, ref) => {
   let [creatingNewRect, setCreatingNewRect] = useState<boolean>(false)
   let [rectWasMoved, setRectWasMoved] = useState<boolean>(false)
+  let rectWasChanged = false
   let [stretchingRight, setStretchingRight] = useState<boolean>(false)
   let [transformerIsActive, setTransformerIsActive ] = useState<boolean>(false)
   let [showMenu, setShowMenu] = useState<boolean>(false)
@@ -82,17 +85,14 @@ const Edit = forwardRef(({
   //
   function deleteSelectedEntity() {
     console.debug('deleteSelectedEntity')
-    // deleteEditedRect()
-
-    // TODO мб слить в одно условие
-    if (editedRect) {
-      if (editedRect.id) {
-        console.debug('[Edit] calling onEntityRemoved for rect with id:', editedRect.id)
-        onEntityRemoved(editedRect.id)
-      }
+    
+    if (editedRect?.id) {
+      console.debug('[Edit] calling onEntityRemoved for rect with id:', editedRect.id)
+      onEntityRemoved(editedRect.id)
+      setEditedRect(null)
+      onEntitySelected(null)
     }
     
-
     setShowMenu(false)
   }
 
@@ -104,6 +104,7 @@ const Edit = forwardRef(({
     }
 
     const editedRectNode = layerRef.current?.children?.find(child => child.id() === editedRect?.id) as Konva.Rect
+    const x = editedRect.x ?? 0
     if (!editedRectNode) {
       console.error('editedRectNode was not found!')
       return
@@ -113,11 +114,12 @@ const Edit = forwardRef(({
     setRects(updatedRects)
     setEditedRect(null)
     onEntitySelected(null)
+    onPointerPositionChanged(mapStagePositionToTime(x, audioDuration!, stageRef.current?.width()!))
   }
 
   function createRectConfig(x: number, width: number, text: string = '', fillColor = 'yellow'): Konva.RectConfig {
     return {
-      id: '-1',
+      id: 'new',
       x: x,
       width: 1,
       scaleX: width,
@@ -156,19 +158,16 @@ const Edit = forwardRef(({
   // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
   /** Сущности из props.entities преобразуются в фигуры канваса */
   function mapEntitiesToRects() {
-    console.warn('mapEntitiesToRects')
-    console.log('stageRef:', stageRef.current)
-    console.log('stageWidth:', stageRef.current?.width())
-    console.log('stageHeight:', stageRef.current?.height())
-    console.log('audioDuration:', audioDuration)
-
     const stageWidth = stageRef.current?.width()
     const stageHeight = stageRef.current?.height()
     if (stageWidth && stageHeight && audioDuration) {
-      console.log('entities:', entities)
-      console.log('rects:', entities.map(entity => mapEntityDtoToRectConfig(entity, audioDuration, stageWidth, stageHeight)))
-
-      setRects(entities.map(entity => mapEntityDtoToRectConfig(entity, audioDuration, stageWidth, stageHeight)))
+      const editedRectId = editedRect?.id
+      const rects = entities.map(entity => mapEntityDtoToRectConfig(entity, audioDuration, stageWidth, stageHeight))
+      setRects(rects)
+      if (editedRectId && editedRectId !== 'new') {
+        const rect = rects.find(r => r.id === editedRectId) ?? null
+        setEditedRect(rect)
+      }
     }
   }
 
@@ -177,7 +176,7 @@ const Edit = forwardRef(({
   
   // ОБРАБОТЧИКИ СОБЫТЫЙ //
   function handleStageMouseDown(e: KonvaEventObject<MouseEvent>) {
-    console.warn('handleStageMouseDown')
+    console.debug('handleStageMouseDown')
 
     // Игнорируем нажатие ПКМ
     if (e.evt.button === 2) {
@@ -195,23 +194,10 @@ const Edit = forwardRef(({
     // Игнорируем клик на редактируемый блок
     if (transformerRef.current?.nodes()[0] === e.target) return
 
-    if (e.target.className === 'Rect') {
-      // Игнорируем клик на временной ползунок
-      if (e.target.id() === 'currentTimePointer') {
-        return
-      }
-
+    // Обрабатываем клики по прямоугольникам, кроме ползунка
+    if (e.target.className === 'Rect' && e.target.id() !== 'currentTimePointer') {
       const editedRect = rects.find(child => child.id === e.target.id()) ?? null
       setEditedRect(editedRect)
-      onEntitySelected(editedRect?.id ?? null)
-
-      return
-    }
-    
-    // 
-    if (transformerIsActive) {
-      setEditedRect(null)
-      onEntitySelected(null)
       return
     }
 
@@ -223,8 +209,12 @@ const Edit = forwardRef(({
     addNewRect(x)
   }
 
-  function handleStageMouseUp() {
-    console.warn('handleStageMouseUp')
+  function handleStageMouseUp(e: KonvaEventObject<MouseEvent>) {
+    console.debug('handleStageMouseUp')
+
+    if (e.evt.button === 2) {
+      return
+    }
 
     if (creatingNewRect) {
       setCreatingNewRect(false)
@@ -250,16 +240,36 @@ const Edit = forwardRef(({
     } else {
       if (rectWasMoved && editedRect !== null) {
         onEntityUpdated(mapRectConfigToEntityDto(editedRect, audioDuration!, stageRef.current!.width()))
+        setRectWasMoved(false)
+        return
       }
       setRectWasMoved(false)
-      if (editedRect === null) {
+
+      if (rectWasChanged) {
+        rectWasChanged = false
+        return
+      }
+
+      if (transformerRef.current?.nodes()[0] === e.target) {
+        onEntitySelected(editedRect?.id ?? null)
+        return
+      }
+
+      if (e.target.className === 'Rect' && e.target.id() !== 'currentTimePointer') {
+        onEntitySelected(editedRect?.id ?? null)
+        return
+      }
+
+      if (transformerIsActive) {
+        setEditedRect(null)
         onEntitySelected(null)
+        return
       }
     }
   }
 
   function handleMouseMove(e: any) {
-    console.debug('handleMouseMove')
+    // console.debug('handleMouseMove')
 
     if (!creatingNewRect || !editedRect || !stageRef.current) return
     // setRectWasMoved(true)
@@ -327,6 +337,8 @@ const Edit = forwardRef(({
   }
 
   function handleTransformEnd(e: KonvaEventObject<Event>) {
+    console.debug('handleTransformEnd')
+
     const rect = e.target
     if (rect.x() < 0) {
       rect.scaleX((rect.width() * rect.scaleX() + rect.x()) / rect.width()  )
@@ -343,8 +355,9 @@ const Edit = forwardRef(({
     srcRect.width = 1
 
     // Если изменяем существующую сущность - вызываем обновление
-    if (rectId === '-1') return
+    if (rectId === 'new') return
     onEntityUpdated(mapRectConfigToEntityDto(srcRect, audioDuration!, stageRef.current!.width()))
+    rectWasChanged = true
   }
 
   function handleDragMove (e: KonvaEventObject<DragEvent>) {
@@ -392,7 +405,7 @@ const Edit = forwardRef(({
     
     const editedRect = rects.find(child => child.id === e.target.id()) ?? null
     setEditedRect(editedRect)
-    onEntitySelected(editedRect?.id ?? null)
+    onEntitySelected(editedRect?.id ?? null, true)
 
     const pointerPosition = stageRef.current?.getPointerPosition()
     if (!pointerPosition) {
@@ -475,11 +488,13 @@ const Edit = forwardRef(({
     onStageContainerResize();
   }, [])
 
-  useEffect(() => updateTransformer(editedRect), [editedRect])
+  useEffect(() => {
+    updateTransformer(editedRect)
+  }, [editedRect])
 
   useEffect(() => {
     const stageWidth = stageRef.current?.width()
-    if (stageWidth && currentTime && audioDuration) {
+    if (stageWidth && audioDuration) {
       setCurrentTimePointerPosition(mapTimeToStagePosition(currentTime, audioDuration, stageWidth))
     }
   }, [currentTime, audioDuration])
@@ -553,7 +568,7 @@ const Edit = forwardRef(({
           <Rect
             key="currentTimePointer"
             id="currentTimePointer"
-            visible={currentTime !== null}
+            visible={currentTime > 0}
             x={currentTimePointerPosition}
             width={1}
             scaleX={1/(stageRef.current?.scaleX() ?? 1)}
@@ -574,25 +589,6 @@ const Edit = forwardRef(({
           />
         </Layer>
       </Stage>
-      {/* <div
-        id="context-menu-container"
-        style={{
-          position: 'absolute',
-          display: showMenu ? 'block' : 'none',
-          top: menuOffset.y,
-          left: menuOffset.x,
-        }}
-      >
-        <Menu
-          isOpen={showMenu}
-        >
-          <MenuList>
-            <MenuItem onClick={deleteSelectedEntity}>Удалить</MenuItem>
-          </MenuList>
-        </Menu>
-      </div> */}
-
-      
       <Menu
         isOpen={showMenu}
       >
