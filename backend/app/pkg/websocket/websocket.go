@@ -8,9 +8,9 @@ import (
 	"net/http"
 )
 
-type Message struct {
-	MessageType int         `json:"type"`
-	Data        interface{} `json:"data"`
+type Message[T any] struct {
+	Action  string `json:"action"`
+	Payload T      `json:"payload"`
 }
 
 /*
@@ -26,14 +26,14 @@ type Websocket struct {
 	clients  map[*websocket.Conn]bool
 	init     func(_ http.ResponseWriter, _ *http.Request, ps httprouter.Params) func(ws *Websocket) error
 	read     func(message []byte) error
-	write    func(ws Websocket, messageType int, message interface{}) error
+	write    func(ws Websocket, action string, payload interface{}) error
 }
 
 func New(
 	logger *logging.Logger,
 	init func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) func(ws *Websocket) error,
 	read func(message []byte) error,
-	write func(ws Websocket, messageType int, message interface{}) error,
+	write func(ws Websocket, action string, payload interface{}) error,
 ) *Websocket {
 	return &Websocket{
 		upgrader: websocket.Upgrader{
@@ -81,13 +81,11 @@ func (ws *Websocket) Connect(w http.ResponseWriter, r *http.Request, ps httprout
 	}
 }
 
-func (ws *Websocket) Write(messageType int, data interface{}) error {
+func (ws *Websocket) Write(action string, payload interface{}) error {
 
-	// TODO реализовать messageType enum
-
-	message := &Message{
-		MessageType: messageType,
-		Data:        data,
+	message := &Message[interface{}]{
+		Action:  action,
+		Payload: payload,
 	}
 	byteData, err := json.Marshal(message)
 	if err != nil {

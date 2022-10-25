@@ -3,6 +3,7 @@ import { Center, IconButton } from "@chakra-ui/react";
 import moment from "moment";
 
 import type { RecordDto } from "../../models/record";
+import { MarkupDto } from "../../models/markup";
 
 const recordsTableColumns = (
   onRemove: (id: number) => void,
@@ -15,6 +16,14 @@ const recordsTableColumns = (
       name: "records.id",
       sortable: true,
       filter: true,
+      width: "80px",
+    },
+    {
+      Header: "Status",
+      name: "status",
+      accessor: (row: MarkupDto) => (row.image ? "Done" : "Pending"),
+      filter: false,
+      width: "90px",
     },
     {
       Header: "Name",
@@ -50,12 +59,12 @@ const recordsTableColumns = (
               icon={<EditIcon />}
               onClick={() => onEdit(id)}
             />
-            <IconButton
-              ml={2}
-              aria-label="remove"
-              icon={<DeleteIcon />}
-              onClick={() => onRemove(id)}
-            />
+            {/*<IconButton*/}
+            {/*  ml={2}*/}
+            {/*  aria-label="remove"*/}
+            {/*  icon={<DeleteIcon />}*/}
+            {/*  onClick={() => onRemove(id)}*/}
+            {/*/>*/}
           </Center>
         );
       },

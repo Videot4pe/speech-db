@@ -6,6 +6,7 @@ import { useErrorHandler } from "../utils/handle-get-error";
 import type { TableFilter } from "./use-table-filter";
 import type { TablePagination } from "./use-table-pagination";
 import type { TableSort } from "./use-table-sort";
+import { useQuery } from "react-query";
 
 export interface QueryParams extends TablePagination {
   sort?: TableSort[];
@@ -16,9 +17,24 @@ export const useTableData = <T>(
   repository: (queryParams: QueryParams) => Promise<MetaData<T[]>>,
   queryParams: TablePagination = {},
   filterParams: TableFilter[] = [],
-  sortParams: TableSort[] = []
+  sortParams: TableSort[] = [],
+  key: string = "table"
 ) => {
   const errorHandler = useErrorHandler();
+
+  const tableQuery = useQuery(
+    [key, queryParams, filterParams, sortParams],
+    () =>
+      repository({
+        ...queryParams,
+        filter: filterParams,
+        sort: sortParams,
+      }).catch(errorHandler)
+  );
+
+  /**
+   * @deprecated
+   */
   const [isLoading, setIsLoading] = useState(false);
 
   const [data, setData] = useState<T[]>([]);
@@ -41,10 +57,13 @@ export const useTableData = <T>(
 
   useEffect(fetch, [queryParams, filterParams, sortParams]);
 
+  // ------------------------------------------------------------
+
   return {
     data,
     meta,
     isLoading,
     fetch,
+    tableQuery,
   };
 };

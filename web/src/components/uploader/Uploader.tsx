@@ -32,7 +32,7 @@ const Uploader = ({ onFileUpload, file }: UploaderProps) => {
       minHeight="100px"
       maxFiles={1}
       maxFileSize={29980000}
-      accept=".mp3,audio/*"
+      // accept=".mp3,audio/*"
       onChange={onUpdate}
       onClean={onClean}
       value={files}

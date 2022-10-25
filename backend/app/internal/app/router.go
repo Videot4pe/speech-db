@@ -3,7 +3,9 @@ package app
 import (
 	_ "backend/docs"
 	"backend/internal/auth"
+	waveform_generator "backend/internal/client/waveform-generator"
 	"backend/internal/config"
+	"backend/internal/domain/collections"
 	entity2 "backend/internal/domain/entity"
 	"backend/internal/domain/files"
 	"backend/internal/domain/markups"
@@ -14,6 +16,7 @@ import (
 	"backend/pkg/client/s3"
 	"backend/pkg/logging"
 	"backend/pkg/metric"
+	notifier2 "backend/pkg/notifier"
 	"backend/pkg/oauth"
 	"context"
 	"net/http"
@@ -38,6 +41,9 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	router.Handler(http.MethodGet, "/swagger", http.RedirectHandler("/swagger/index.html", http.StatusMovedPermanently))
 	router.Handler(http.MethodGet, "/swagger/*any", httpSwagger.WrapHandler)
 
+	notifier := notifier2.GetNotifier()
+	notifier.Register(router, logger, "/api/notifications")
+
 	logger.Println("heartbeat metric initializing")
 	metricHandler := metric.Handler{}
 	metricHandler.Register(router)
@@ -47,6 +53,10 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	filesStorage := files.NewFilesStorage(ctx, pgClient, logger)
 
 	entityStorage := entity2.NewStorage(ctx, pgClient, logger)
+
+	collectionsStorage := collections.NewStorage(ctx, pgClient, logger)
+	collectionsHandler := collections.NewHandler(ctx, collectionsStorage, logger)
+	collectionsHandler.Register(router)
 
 	markupsStorage := markups.NewStorage(ctx, pgClient, logger)
 	markupsHandler := markups.NewHandler(ctx, markupsStorage, entityStorage, logger)
@@ -71,8 +81,9 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	speakersHandler := speakers.NewSpeakersHandler(ctx, speakersStorage, logger)
 	speakersHandler.Register(router)
 
+	waveformGeneratorClient := waveform_generator.NewWaveformGeneratorClient(config.WaveformGenerator.IP, logger)
 	recordsStorage := records.NewRecordsStorage(ctx, pgClient, logger)
-	recordsHandler := records.NewRecordsHandler(ctx, recordsStorage, filesStorage, s3Client, logger)
+	recordsHandler := records.NewRecordsHandler(ctx, config, recordsStorage, filesStorage, waveformGeneratorClient, s3Client, logger)
 	recordsHandler.Register(router)
 
 	return router

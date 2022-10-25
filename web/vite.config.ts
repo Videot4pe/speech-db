@@ -10,9 +10,13 @@ export default defineConfig({
   plugins: [
     react({ babel: { plugins: [jotaiDebugLabel, jotaiReactRefresh] } }),
   ],
+  esbuild: {
+    logOverride: { "this-is-undefined-in-esm": "silent" },
+  },
   resolve: {
     alias: {
-      src: resolve(__dirname, "src")
+      "@": resolve(__dirname, "./src"),
+      src: resolve(__dirname, "src"),
       // lib: resolve(__dirname, "src/lib"),
       // routes: resolve(__dirname, "src/routes"),
     },

@@ -20,6 +20,10 @@ export const getClient = (url: string) => {
         const token = localStorage.getItem("jwt-token");
         // eslint-disable-next-line no-param-reassign
         config.headers.Authorization = `Bearer ${token}`;
+        // TODO проверить - работает ли ограничение вообще
+        // если да, то поставить максимальный размер 
+        config.maxContentLength = Infinity;
+        config.maxBodyLength = Infinity;
       }
 
       return config;

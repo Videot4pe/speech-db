@@ -46,6 +46,7 @@ func NewUserHandler(ctx context.Context, storage *Storage, logger *logging.Logge
 
 func (h *Handler) Register(router *httprouter.Router) {
 	router.GET(usersURL, auth.RequireAuth(h.List, []string{roles.EditUsers}))
+	//router.GET(usersURL, h.List)
 	router.GET(userURL, auth.RequireAuth(h.View, []string{roles.EditUsers}))
 	router.PATCH(userURL, auth.RequireAuth(h.Update, []string{roles.EditUsers}))
 	router.DELETE(usersURL, auth.RequireAuth(h.Delete, []string{roles.EditUsers}))
