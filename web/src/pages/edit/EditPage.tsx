@@ -108,23 +108,28 @@ const EditPage = () => {
 
   return (
     <Flex direction={"column"}>
-      <Flex justify={"center"}>
+      <Flex justify={"center"} gap={'4px'}>
         <IconButton
           className="q-mx-xs bg-green-2"
           aria-label="play"
           icon={<ImPlay />}
+          color={!audioPlayerRef.current?.isPaused() ? 'green' : 'black'}
+          background=''
           onClick={play}
         />
         <IconButton
           className="q-mx-xs bg-blue-2"
           aria-label="pause"
           icon={<ImPause />}
+          color={audioPlayerRef.current?.isPaused() ? 'red' : 'black'}
+          background=''
           onClick={pause}
         />
         <IconButton
           className={"q-mx-xs bg-red-2"}
           aria-label="stop"
           icon={<ImStop />}
+          background=''
           onClick={stop}
         />
         <span
@@ -138,7 +143,7 @@ const EditPage = () => {
           {`${timeToString(currentTime)} - ${timeToString(endTime)}`}
         </span>
       </Flex>
-      <Flex direction={'column'}>
+      {/* <Flex direction={'column'}>
         <div>
           <span>selectedEntity: </span>
           <span color={ selectedEntity ? 'green' : 'black' }>{ `${selectedEntity?.id ?? null}` }</span>
@@ -146,7 +151,7 @@ const EditPage = () => {
         <span>{ `currentTime: ${currentTime}` }</span>
         <span>{ `beginTime: ${beginTime}` }</span>
         <span>{ `endTime: ${endTime}` }</span>
-      </Flex>
+      </Flex> */}
 
       <Edit
         ref={editRef}
