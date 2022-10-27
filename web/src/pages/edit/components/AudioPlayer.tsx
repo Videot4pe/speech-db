@@ -2,11 +2,12 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 
 interface AudioPlayerProps {
   src?: string;
-  onTimeUpdate?: (currentTime: number | null) => any;
-  onDurationChange?: (duration: number | null) => any;
+  onTimeUpdate?: (currentTime: number | null) => void;
+  onDurationChange?: (duration: number | null) => void;
+  onStateChanged?: (isPaused: boolean) => void;
 }
 
-const AudioPlayer = forwardRef(({ src, onTimeUpdate, onDurationChange }: AudioPlayerProps, ref) => {
+const AudioPlayer = forwardRef(({ src, onTimeUpdate, onDurationChange, onStateChanged }: AudioPlayerProps, ref) => {
   const audioRef = useRef<HTMLAudioElement>(null)
 
   function setTime(value: number) {
@@ -22,8 +23,14 @@ const AudioPlayer = forwardRef(({ src, onTimeUpdate, onDurationChange }: AudioPl
 
   useImperativeHandle(ref, () => ({
     isPaused: () => audioRef.current?.paused,
-    play: () => audioRef.current?.play(),
-    pause: () => audioRef.current?.pause(),
+    play: () => {
+      audioRef.current?.play()
+      if (onStateChanged) onStateChanged(false);
+    },
+    pause: () => {
+      audioRef.current?.pause()
+      if (onStateChanged) onStateChanged(true);
+    },
     setTime,
     currentTime: () => audioRef.current?.currentTime,
   }))
