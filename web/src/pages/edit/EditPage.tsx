@@ -12,7 +12,6 @@ import Entity, { SelectOption } from "./components/Entity";
 
 import { timeToString } from "./composables/format-time";
 import { ImPause, ImPlay, ImStop } from "react-icons/im";
-import { debounce } from "lodash";
 
 interface IEdit {
   zoomIn: () => void;
@@ -46,7 +45,7 @@ const EditPage = () => {
   const [editContainerWidth, setEditContainerWidth] = useState<number | undefined>(undefined);
   const [languageOptions, setLanguageOptions] = useState<SelectOption[]>([]);
   const [dialectOptions, setDialectOptions] = useState<SelectOption[]>([]);
-  const [phonemeOptions, setPhonemeOptions] = useState<SelectOption[]>([]);
+  const [phonemeOptions, setPhonemeOptions] = useState<SelectOption[]>([{ label: 'a', value: 1 }]);
   const [stressOptions, setStressOptions] = useState<SelectOption[]>([]);
   const [imageURL, setImageURL] = useState<string | undefined>(undefined);
   const [audioURL, setAudioURL] = useState<string | undefined>(undefined);
@@ -176,15 +175,6 @@ const EditPage = () => {
           {`${timeToString(currentTime)} - ${timeToString(endTime)}`}
         </span>
       </SimpleGrid>
-      {/* <Flex direction={'column'}>
-        <div>
-          <span>selectedEntity: </span>
-          <span color={ selectedEntity ? 'green' : 'black' }>{ `${selectedEntity?.id ?? null}` }</span>
-        </div>
-        <span>{ `currentTime: ${currentTime}` }</span>
-        <span>{ `beginTime: ${beginTime}` }</span>
-        <span>{ `endTime: ${endTime}` }</span>
-      </Flex> */}
 
       <Edit
         ref={editRef}
