@@ -8,7 +8,7 @@ import { useParams } from "react-router-dom";
 import MarkupsApi from "../../api/markups-api";
 import { EntityDto } from "models/markup";
 import { useCRUDWebsocket } from "../../hooks/use-crud-websocket";
-import Entity from "./components/Entity";
+import Entity, { SelectOption } from "./components/Entity";
 
 import { timeToString } from "./composables/format-time";
 import { ImPause, ImPlay, ImStop } from "react-icons/im";
@@ -44,6 +44,10 @@ const EditPage = () => {
   const audioPlayerRef = useRef<IAudioPlayer>(null);
 
   const [editContainerWidth, setEditContainerWidth] = useState<number | undefined>(undefined);
+  const [languageOptions, setLanguageOptions] = useState<SelectOption[]>([]);
+  const [dialectOptions, setDialectOptions] = useState<SelectOption[]>([]);
+  const [phonemeOptions, setPhonemeOptions] = useState<SelectOption[]>([]);
+  const [stressOptions, setStressOptions] = useState<SelectOption[]>([]);
   const [imageURL, setImageURL] = useState<string | undefined>(undefined);
   const [audioURL, setAudioURL] = useState<string | undefined>(undefined);
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
@@ -257,6 +261,10 @@ const EditPage = () => {
         {selectedEntity && (
           <Entity
             entity={selectedEntity}
+            languageOptions={languageOptions}
+            dialectOptions={dialectOptions}
+            phonemeOptions={phonemeOptions}
+            stressOptions={stressOptions}
             onEntitySet={updateEntity}
             onSave={onSave}
           />
