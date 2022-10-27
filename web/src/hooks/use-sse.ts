@@ -22,12 +22,12 @@ export const useSse = <T = string>(url: string) => {
     // TODO reconnect
 
     source.onopen = () => {
-      console.log("open connection");
+      console.debug("open connection");
     };
 
     source.addEventListener("notification", (message) => {
       const { action, status, payload } = JSON.parse(message.data);
-      console.log({ action, status, payload });
+      console.debug({ action, status, payload });
       toast({
         title: action,
         status: status,

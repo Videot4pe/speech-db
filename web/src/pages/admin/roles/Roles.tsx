@@ -30,17 +30,18 @@ const Roles = () => {
   const { queryParams, setPage, setLimit } = useTablePagination();
   const { sortParams, setSortParams } = useTableSort();
   const { filterParams, arrayFilterParams, setFilterParams } = useTableFilter();
-  const { data, meta, isLoading, fetch } = useTableData<RoleDto>(
+  const { data, meta, refetch, tableQuery } = useTableData<RoleDto>(
     RolesApi.roles.list,
     queryParams,
     arrayFilterParams,
-    sortParams
+    sortParams,
+    "roles"
   );
 
   const onRemove = (id: number) => {
     RolesApi.roles
       .remove(id)
-      .then(() => fetch)
+      .then(() => refetch())
       .catch(errorHandler);
   };
 
@@ -53,7 +54,7 @@ const Roles = () => {
 
   const onUserSave = () => {
     onClose();
-    fetch();
+    refetch();
     setActiveId(undefined);
   };
 
@@ -67,7 +68,7 @@ const Roles = () => {
           <StyledTable
             columns={columns}
             data={data}
-            isLoading={isLoading}
+            isLoading={tableQuery.isLoading}
             filterParams={filterParams}
             setSortParams={setSortParams}
             setFilterParams={setFilterParams}
@@ -78,7 +79,7 @@ const Roles = () => {
                   <IconButton
                     icon={<AddIcon />}
                     aria-label="add record"
-                    isLoading={isLoading}
+                    isLoading={tableQuery.isLoading}
                     onClick={onOpen}
                   />
                 </Center>

@@ -32,16 +32,17 @@ const Speakers = () => {
   const { queryParams, setPage, setLimit } = useTablePagination();
   const { sortParams, setSortParams } = useTableSort();
   const { filterParams, arrayFilterParams, setFilterParams } = useTableFilter();
-  const { data, meta, isLoading, fetch } = useTableData<SpeakerDto>(
+  const { data, meta, refetch, tableQuery } = useTableData<SpeakerDto>(
     SpeakersApi.list,
     queryParams,
     arrayFilterParams,
-    sortParams
+    sortParams,
+    "speakers"
   );
 
   const onRemove = (id: number) => {
     SpeakersApi.remove(id)
-      .then(() => fetch)
+      .then(() => refetch())
       .catch(errorHandler);
   };
 
@@ -52,9 +53,9 @@ const Speakers = () => {
 
   const columns = speakersTableColumns(onRemove, onEdit);
 
-  const onSpeakerSave = () => {
+  const onSpeakerSave = async () => {
     onClose();
-    fetch();
+    await refetch();
     setActiveSpeakerId(undefined);
   };
 
@@ -68,7 +69,7 @@ const Speakers = () => {
           <StyledTable
             columns={columns}
             data={data}
-            isLoading={isLoading}
+            isLoading={tableQuery.isLoading}
             filterParams={filterParams}
             setSortParams={setSortParams}
             setFilterParams={setFilterParams}
@@ -79,7 +80,7 @@ const Speakers = () => {
                   <IconButton
                     icon={<AddIcon />}
                     aria-label="add speaker"
-                    isLoading={isLoading}
+                    isLoading={tableQuery.isLoading}
                     onClick={onOpen}
                   />
                 </Center>

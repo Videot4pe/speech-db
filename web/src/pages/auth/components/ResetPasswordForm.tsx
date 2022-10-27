@@ -15,19 +15,21 @@ import { useSuccessHandler } from "../../../utils/handle-success";
 import { useErrorHandler } from "../../../utils/handle-get-error";
 
 const ResetPasswordForm = (props: HTMLChakraProps<"form">) => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const errorHandler = useErrorHandler();
-  const successHandler = useSuccessHandler('Link for changing password was sent');
+  const successHandler = useSuccessHandler(
+    "Link for changing password was sent"
+  );
 
   return (
     <chakra.form
       onSubmit={(e) => {
         e.preventDefault();
 
-        console.log('email:', email);
+        console.debug({ email });
 
         AuthApi.reset(email)
-          .then(() => successHandler('Check your email address'))
+          .then(() => successHandler("Check your email address"))
           .catch(errorHandler);
       }}
       {...props}
@@ -37,9 +39,7 @@ const ResetPasswordForm = (props: HTMLChakraProps<"form">) => {
           <FormLabel>Email address</FormLabel>
           <Input
             value={email}
-            onChange={(event) =>
-              setEmail(event.target.value)
-            }
+            onChange={(event) => setEmail(event.target.value)}
             name="email"
             type="email"
             autoComplete="email"

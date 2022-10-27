@@ -17,13 +17,12 @@ export const useWebsocketSubscription = <T>(url: string) => {
     setWebsocket(websocket);
 
     websocket.onopen = () => {
-      console.log("connected");
+      console.debug("connected");
     };
 
     websocket.onmessage = (event) => {
       // TODO - flexibility ([])
       const data: WebsocketPayload<T[]> = JSON.parse(event.data);
-      // console.log({ data });
       setWebsocketState(data.payload);
     };
 

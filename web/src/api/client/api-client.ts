@@ -21,7 +21,7 @@ export const getClient = (url: string) => {
         // eslint-disable-next-line no-param-reassign
         config.headers.Authorization = `Bearer ${token}`;
         // TODO проверить - работает ли ограничение вообще
-        // если да, то поставить максимальный размер 
+        // если да, то поставить максимальный размер
         config.maxContentLength = Infinity;
         config.maxBodyLength = Infinity;
       }
@@ -48,9 +48,11 @@ export const getClient = (url: string) => {
             // window.location.href = `${
             //   import.meta.env.VITE_FRONTEND_URL
             // }/signin`;
-            console.log(error);
+            console.error(error);
           }
           return client(originalRequest);
+        } else {
+          window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/signin`;
         }
       }
       return Promise.reject(error.response);

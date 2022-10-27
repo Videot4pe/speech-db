@@ -20,8 +20,6 @@ const RequireAuth = ({
   const [self, _] = useAtom(selfAtom);
   const location = useLocation();
 
-  console.log(permissions, self.permissions);
-
   const hasPermissions = useMemo(
     () =>
       !permissions.length ||
