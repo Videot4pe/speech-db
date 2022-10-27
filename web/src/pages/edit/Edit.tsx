@@ -582,9 +582,11 @@ const Edit = forwardRef(
           mapTimeToStagePosition(currentTime, audioDuration, stageWidth)
         );
       }
-    }, [currentTime, audioDuration]);
+    }, [width, currentTime, audioDuration]);
 
-    useEffect(mapEntitiesToRects, [width, audioDuration, entities]);
+    useEffect(() => {
+      mapEntitiesToRects()
+    }, [width, audioDuration, entities]);
 
     useImperativeHandle(ref, () => ({
       zoomIn,
