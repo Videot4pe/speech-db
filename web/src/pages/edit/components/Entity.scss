@@ -1,0 +1,9 @@
+.entity {
+  select > option {
+    background: green;
+  }
+
+  * {
+    background: red;
+  }
+}
