@@ -67,7 +67,7 @@ export const permissionsAtom = atom(
       set(permissions, list);
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.log(error);
+      console.error(error);
     }
   }
 );
@@ -80,7 +80,7 @@ export const rolesAtom = atom(
       set(roles, list.data);
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.log(error);
+      console.error(error);
     }
   }
 );
@@ -93,7 +93,7 @@ export const collectionsAtom = atom(
       set(collections, payload);
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.log(error);
+      console.error(error);
     }
   }
 );

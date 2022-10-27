@@ -7,6 +7,7 @@ import {
   Icon,
   IconButton,
   Link,
+  MenuButton,
   Text,
 } from "@chakra-ui/react";
 import { useAtom } from "jotai";
@@ -25,6 +26,8 @@ import ThemeToggle from "./ThemeToggle";
 import { useStore } from "effector-react";
 import { $notifications } from "../store/notifications";
 import NotificationButton from "./NotificationButton";
+import { Menu, MenuItem, MenuList } from "@chakra-ui/menu";
+import { HamburgerIcon } from "@chakra-ui/icons";
 
 interface ISidebarItem {
   name: string;
@@ -36,6 +39,10 @@ interface SidebarItemProps extends BoxProps {
   item: IRoutes;
 }
 
+interface SidebarItemsProps {
+  routes: any[];
+}
+
 const SidebarItem: React.FC<SidebarItemProps> = ({
   item,
 }: SidebarItemProps): ReactElement => {
@@ -45,20 +52,52 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   const { pathname } = location;
 
   return (
-    <Flex mx={2} height="100%" justifyContent="center" flexDirection="column">
+    <MenuItem
+      py={0}
+      px={0}
+      cursor="pointer"
+      width={{ base: "100%", md: "auto" }}
+      bg={path === pathname ? "gray.300" : undefined}
+      _focus={{ bg: "gray.300" }}
+      _hover={{ bg: "gray.400" }}
+    >
       <Link
         as={ReachLink}
-        _hover={{ color: "red.600" }}
-        color={path === pathname ? "red.600" : undefined}
+        px={4}
+        py={2}
+        w="100%"
+        h="100%"
+        // _hover={{ color: "red.600" }}
+        // color={path === pathname ? "red.600" : undefined}
         to={path}
-        height="100%"
       >
         <Flex>
           <Icon fontSize="24px" as={icon} />
           <Text ml={1}>{name}</Text>
         </Flex>
       </Link>
-    </Flex>
+    </MenuItem>
+  );
+};
+
+const SidebarItems: React.FC<SidebarItemsProps> = ({
+  routes,
+}: SidebarItemsProps): ReactElement => {
+  const [self] = useAtom(selfAtom);
+
+  return (
+    <>
+      {routes
+        .filter((route) => route.name && route.icon && !route.internal)
+        .filter(
+          (route) =>
+            !route.permissions ||
+            R.intersection(route.permissions, self?.permissions || []).length
+        )
+        .map((item) => (
+          <SidebarItem key={item.name} item={item} />
+        ))}
+    </>
   );
 };
 
@@ -66,7 +105,6 @@ const Header = () => {
   const navigate = useNavigate();
   const [, setToken] = useAtom(jwtToken);
   const [, setRefreshJwt] = useAtom(refreshJwtToken);
-  const [self] = useAtom(selfAtom);
   const handleToSignin = () => navigate("/signin");
 
   const logOut = () => {
@@ -86,27 +124,32 @@ const Header = () => {
       justifyContent="center"
       gridGap={2}
     >
-      <Link as={ReachLink} to="/">
-        <Heading className="multicolor" as="h1" size="sm">
-          SpeechDB
-        </Heading>
-      </Link>
-      <Flex>
-        {routes
-          .filter((route) => route.name && route.icon && !route.internal)
-          .filter(
-            (route) =>
-              !route.permissions ||
-              R.intersection(route.permissions, self?.permissions || []).length
-          )
-          .map((item) => (
-            <SidebarItem key={item.name} item={item} />
-          ))}
+      <Flex display={{ base: "none", md: "flex" }}>
+        <Menu>
+          {/*<Link alignSelf="center" as={ReachLink} to="/">*/}
+          {/*  <Heading className="multicolor" as="h1" size="sm">*/}
+          {/*    SpeechDB*/}
+          {/*  </Heading>*/}
+          {/*</Link>*/}
+          <SidebarItems routes={routes} />
+        </Menu>
       </Flex>
+      <Box ml={2} display={{ base: "inline-block", md: "none" }}>
+        <Menu closeOnSelect>
+          <MenuButton
+            as={IconButton}
+            icon={<HamburgerIcon />}
+            aria-label="Меню"
+          />
+          <MenuList py={0}>
+            <SidebarItems routes={routes} />
+          </MenuList>
+        </Menu>
+      </Box>
 
       <Box marginLeft="auto">
         <ThemeToggle />
-        <NotificationButton notifications={notifications} />
+        {/*<NotificationButton notifications={notifications} />*/}
         <Link as={ReachLink} to="/profile">
           <IconButton ml={2} aria-label="profile" icon={<ImProfile />} />
         </Link>
