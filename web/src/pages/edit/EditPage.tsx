@@ -1,4 +1,4 @@
-import { Flex, IconButton } from "@chakra-ui/react";
+import { Flex, Grid, IconButton, SimpleGrid } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import Edit from "./Edit";
 import AudioPlayer from "./components/AudioPlayer";
@@ -133,42 +133,45 @@ const EditPage = () => {
   };
 
   return (
-    <Flex direction={"column"}>
-      <Flex justify={"center"} gap={"4px"}>
-        <IconButton
-          className="q-mx-xs bg-green-2"
-          aria-label="play"
-          icon={<ImPlay />}
-          color={isAudioPaused ? "current" : "green"}
-          background=""
-          onClick={play}
-        />
-        <IconButton
-          className="q-mx-xs bg-blue-2"
-          aria-label="pause"
-          icon={<ImPause />}
-          color={isAudioPaused ? "red" : "current"}
-          background=""
-          onClick={pause}
-        />
-        <IconButton
-          className={"q-mx-xs bg-red-2"}
-          aria-label="stop"
-          icon={<ImStop />}
-          background=""
-          onClick={stop}
-        />
+    <Flex direction="column">
+      <SimpleGrid columns={3}>
+        <Flex gridColumnStart={2} justifyContent="center">
+          <IconButton
+            className="q-mx-xs bg-green-2"
+            aria-label="play"
+            icon={<ImPlay />}
+            color={isAudioPaused ? "current" : "green"}
+            background=""
+            onClick={play}
+          />
+          <IconButton
+            className="q-mx-xs bg-blue-2"
+            aria-label="pause"
+            icon={<ImPause />}
+            color={isAudioPaused ? "red" : "current"}
+            background=""
+            onClick={pause}
+          />
+          <IconButton
+            className={"q-mx-xs bg-red-2"}
+            aria-label="stop"
+            icon={<ImStop />}
+            background=""
+            onClick={stop}
+          />
+        </Flex>
         <span
           style={{
+            gridColumnStart: 3,
             width: "200px",
-            // fontWeight: "bold",
             alignSelf: "center",
             textAlign: "center",
+            justifySelf: "end"
           }}
         >
           {`${timeToString(currentTime)} - ${timeToString(endTime)}`}
         </span>
-      </Flex>
+      </SimpleGrid>
       {/* <Flex direction={'column'}>
         <div>
           <span>selectedEntity: </span>
