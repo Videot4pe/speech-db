@@ -229,16 +229,18 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.P
 
 	jwtClaims := auth.AuthJwt{
 		Data: auth.AuthJwtData{
-			Id:    userId,
-			Email: userInfo.Email,
+			Id:          userId,
+			Email:       userInfo.Email,
+			Permissions: userInfo.Permissions,
 		},
 	}
 	payload.Token, err = auth.Encode(&jwtClaims, 10)
 
 	refreshJwtClaims := auth.AuthJwt{
 		Data: auth.AuthJwtData{
-			Id:    userId,
-			Email: payload.Token,
+			Id:          userId,
+			Email:       payload.Token,
+			Permissions: userInfo.Permissions,
 		},
 	}
 	refreshToken, err := auth.Encode(&refreshJwtClaims, 10)
