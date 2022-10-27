@@ -39,6 +39,8 @@ const Entity = ({
     console.log(entity);
     if (error) {
       toast({
+        status: 'error',
+        position: 'top',
         title: 'Ошибка',
         description: error,
       })
@@ -47,23 +49,53 @@ const Entity = ({
     }
   }
 
+  const isAllophone = entity.type === 'Allophone';
+  const isWord = entity.type === 'Word';
+  const isSentence = entity.type === 'Sentence';
+
   return (
-    <Card className="entity" w="600px" p={4}>
-      <FormControl id="value">
-        <Flex gap="4px" direction="column">
-          <Input
-            value={entity.value}
-            onChange={(event) => onEntitySet("value", event.target.value)}
-            placeholder="Значение"
-          />
-          <Select placeholder="Ударение" options={stressOptions} defaultValue={undefined} />
-          <Select placeholder="Язык" options={languageOptions} />
-          <Select placeholder="Диалект" options={dialectOptions} />
-        </Flex>
-      </FormControl>
+    <Card className="entity" w="600px" p={4} m={2}>
+      {entity.type && (
+        <FormControl>
+          <Flex gap="4px" direction="column">
+            {isAllophone && (
+              <Select
+                placeholder="Фонема"
+                options={phonemeOptions}
+                // onChange={(event) => onEntitySet("value", event.target.value)}
+              />
+            )}
+            {!isAllophone && (
+              <Input
+                value={entity.value}
+                onChange={(event) => onEntitySet("value", event.target.value)}
+                placeholder="Значение"
+              />
+            )}
+            <Select placeholder="Ударение" options={stressOptions} defaultValue={undefined} />
+            <Select placeholder="Язык" options={languageOptions} />
+            <Select placeholder="Диалект" options={dialectOptions} />
+          </Flex>
+        </FormControl>
+      )}
+      {!entity.type && (
+        <FormControl>
+          <Flex direction="column">
+            <Select
+              placeholder="Выберите тип сущности"
+              options={[
+                { label: 'Аллофон', value: 'Allophone' },
+                { label: 'Слово', value: 'Word' },
+                { label: 'Предложение', value: 'Sentence' },
+              ]}
+              onChange={(option) => onEntitySet("type", option?.value)}
+            />
+          </Flex>
+        </FormControl>
+      )}
       <Flex justifyContent='center'>
         <Button mt={4} onClick={validateAndSave}>
-          Сохранить
+          { entity.type ? 'Сохранить' : 'Выбрать' }
         </Button>
       </Flex>
     </Card>
