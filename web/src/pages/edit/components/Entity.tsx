@@ -1,5 +1,5 @@
 import Card from "../../auth/components/Card";
-import { Button, Flex, FormControl, FormLabel, Input } from "@chakra-ui/react";
+import { Button, Flex, FormControl, FormLabel, Input, Select } from "@chakra-ui/react";
 import { useState } from "react";
 import { EntityDto } from "../../../models/markup";
 
@@ -13,16 +13,26 @@ const Entity = ({ entity, onEntitySet, onSave }: EntityProps) => {
   return (
     <Card w="400px" p={4}>
       <FormControl id="value">
-        <FormLabel>Value</FormLabel>
-        <Input
-          value={entity.value}
-          onChange={(event) => onEntitySet("value", event.target.value)}
-          name="value"
-        />
+        <Flex gap="4px">
+          <Input
+            value={entity.value}
+            onChange={(event) => onEntitySet("value", event.target.value)}
+            placeholder="Значение"
+          />
+          <Select>
+            <option value={undefined}>Ударение</option>
+          </Select>
+        </Flex>
+      <Select>
+        <option value={undefined}>Язык</option>
+      </Select>
+      <Select>
+        <option value={undefined}>Диалект</option>
+      </Select>
       </FormControl>
       <Flex justifyContent='center'>
         <Button mt={4} onClick={onSave}>
-          Save
+          Сохранить
         </Button>
       </Flex>
     </Card>
