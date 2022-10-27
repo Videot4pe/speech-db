@@ -30,8 +30,8 @@ export interface EntityDto {
   value: string;
   beginTime: number;
   endTime: number;
-  type: EntityType;
-  properties: AllophoneProperties | WordProperties | SentenceProperties;
+  type?: EntityType;
+  properties?: AllophoneProperties | WordProperties | SentenceProperties;
 }
 export type CreateEntityDto = Omit<EntityDto, 'id'>
 
