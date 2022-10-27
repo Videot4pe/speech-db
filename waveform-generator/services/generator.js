@@ -9,8 +9,8 @@ const EventEmitter = require("node:events");
 const fastify = require("fastify")({ logger: true });
 
 const emitter = new EventEmitter();
-emitter.on("error", function (err) {
-  console.log(err);
+emitter.on("error", function (error) {
+  console.error(error);
 });
 
 const generateImage = async ({ filePath, outputPath, callbackUrl }) => {
