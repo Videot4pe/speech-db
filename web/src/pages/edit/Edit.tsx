@@ -28,6 +28,7 @@ import {
 } from "./composables/mapper";
 
 interface IEdit {
+  width?: number;
   entities: EntityDto[];
   imageURL: string | undefined;
   currentTime: number;
@@ -50,6 +51,7 @@ const INITIAL_STAGE_HEIGHT = 200;
 const Edit = forwardRef(
   (
     {
+      width,
       entities,
       imageURL,
       currentTime = 0,
@@ -62,8 +64,6 @@ const Edit = forwardRef(
     }: IEdit,
     ref
   ) => {
-    console.log("[Edit] audioDuration:", audioDuration);
-
     let [creatingNewRect, setCreatingNewRect] = useState<boolean>(false);
     let [rectWasMoved, setRectWasMoved] = useState<boolean>(false);
     let rectWasChanged = false;
@@ -93,18 +93,8 @@ const Edit = forwardRef(
     const [currentTimePointerPosition, setCurrentTimePointerPosition] =
       useState(0);
 
-    let [rects, setRects] = useState<Konva.RectConfig[]>([]);
+    const [rects, setRects] = useState<Konva.RectConfig[]>([]);
     const [editedRect, setEditedRect] = useState<Konva.RectConfig | null>(null);
-
-    const image = new Image();
-    image.src = imageURL!;
-    image.onload = () => {
-      imageConfig.current = {
-        image: image,
-        width: INITIAL_STAGE_WIDTH,
-        height: INITIAL_STAGE_HEIGHT,
-      };
-    };
 
     function zoomIn() {
       const newScale = stageRef.current?.scaleX() ?? 1 + 0.1;
@@ -211,9 +201,6 @@ const Edit = forwardRef(
     function mapEntitiesToRects() {
       const stageWidth = stageRef.current?.width();
       const stageHeight = stageRef.current?.height();
-
-      console.log("[Edit] mapEntitiesToRects // audioDuration:", audioDuration);
-
       if (stageWidth && stageHeight && audioDuration) {
         const editedRectId = editedRect?.id;
         const rects = entities.map((entity) =>
@@ -491,19 +478,10 @@ const Edit = forwardRef(
       srcRect.y = newPosY;
     }
 
-    function onStageContainerResize() {
-      console.warn("onStageContainerResize");
-
-      const scrollContainer = document.getElementById(
-        "scroll-container"
-      ) as HTMLDivElement;
-      if (!scrollContainer) return;
-      const width = scrollContainer.clientWidth;
-
-      stageRef.current!.width(width);
-      imageRef.current!.width(width);
-
-      mapEntitiesToRects();
+    function setStageWidth(width?: number) {
+      const newWidth = width ?? INITIAL_STAGE_WIDTH;
+      stageRef.current!.width(newWidth);
+      imageRef.current!.width(newWidth);
     }
 
     function handleContextMenu(e: KonvaEventObject<PointerEvent>) {
@@ -587,16 +565,11 @@ const Edit = forwardRef(
       stageRef.current.x(newX);
     }
     /********************** */
-
-    useImperativeHandle(ref, () => ({
-      zoomIn,
-      zoomOut,
-    }));
+    useEffect(() => setStageWidth(width), [width]);
 
     useEffect(() => {
-      window.addEventListener("resize", onStageContainerResize);
-      onStageContainerResize();
-    }, []);
+      if (imageURL) (imageConfig.current.image as HTMLImageElement).src = imageURL;
+    }, [imageURL]);
 
     useEffect(() => {
       updateTransformer(editedRect);
@@ -611,7 +584,12 @@ const Edit = forwardRef(
       }
     }, [currentTime, audioDuration]);
 
-    useEffect(mapEntitiesToRects, [audioDuration, entities]);
+    useEffect(mapEntitiesToRects, [width, audioDuration, entities]);
+
+    useImperativeHandle(ref, () => ({
+      zoomIn,
+      zoomOut,
+    }));
 
     return (
       <div
@@ -623,7 +601,7 @@ const Edit = forwardRef(
           e.nativeEvent.stopPropagation();
         }}
       >
-        <Stage
+        {/* <Stage
           width={120}
           height={100}
           style={{
@@ -661,7 +639,7 @@ const Edit = forwardRef(
               fill={editedRect ? "lightgreen" : "red"}
             />
           </Layer>
-        </Stage>
+        </Stage> */}
         <Stage
           ref={stageRef}
           {...stageConfig.current}

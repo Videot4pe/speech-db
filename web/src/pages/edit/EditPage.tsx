@@ -28,22 +28,12 @@ interface IAudioPlayer {
 }
 
 const EditPage = () => {
-  console.error("EDIT PAGE");
-  const [dimensions, setDimensions] = useState({
-    height: window.innerHeight,
-    width: window.innerWidth,
-  });
   useEffect(() => {
-    const debouncedHandleResize = debounce(function handleResize() {
-      setDimensions({
-        height: window.innerHeight,
-        width: window.innerWidth,
-      });
-    }, 1000);
-    window.addEventListener("resize", debouncedHandleResize);
+    window.addEventListener("resize", onWindowResize);
+    onWindowResize();
 
     return () => {
-      window.removeEventListener("resize", debouncedHandleResize);
+      window.removeEventListener("resize", onWindowResize);
     };
   });
 
@@ -53,6 +43,7 @@ const EditPage = () => {
   const editRef = useRef<IEdit>(null);
   const audioPlayerRef = useRef<IAudioPlayer>(null);
 
+  const [editContainerWidth, setEditContainerWidth] = useState<number | undefined>(undefined);
   const [imageURL, setImageURL] = useState<string | undefined>(undefined);
   const [audioURL, setAudioURL] = useState<string | undefined>(undefined);
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
@@ -60,6 +51,7 @@ const EditPage = () => {
   const [beginTime, setBeginTime] = useState(0);
   const [endTime, setEndTime] = useState<number | null>(null);
   const [selectedEntity, setSelectedEntity] = useState<EntityDto | null>(null);
+  const [isAudioPaused, setAudioPaused] = useState(true);
 
   // TODO FIX THIS PLEASE (Alex)
   // IMHO, I TAK NOT BAD. ENOUGH LACONI4NO (Nick)
@@ -94,6 +86,20 @@ const EditPage = () => {
     audioPlayerRef.current?.setTime(beginTime);
     setCurrentTime(beginTime);
   }
+
+  /** Функции для отслеживания изменения размера окна  */
+  function getContainerWidth() {
+    const scrollContainer = document.getElementById(
+      "scroll-container"
+    ) as HTMLDivElement;
+    if (!scrollContainer) return;
+    return scrollContainer.clientWidth;
+  }
+
+  function onWindowResize() {
+    setEditContainerWidth(getContainerWidth());
+  }
+  /** */
 
   useEffect(() => {
     MarkupsApi.view(markupId)
@@ -133,7 +139,7 @@ const EditPage = () => {
           className="q-mx-xs bg-green-2"
           aria-label="play"
           icon={<ImPlay />}
-          color={!audioPlayerRef.current?.isPaused() ? "green" : "black"}
+          color={isAudioPaused ? "current" : "green"}
           background=""
           onClick={play}
         />
@@ -141,7 +147,7 @@ const EditPage = () => {
           className="q-mx-xs bg-blue-2"
           aria-label="pause"
           icon={<ImPause />}
-          color={audioPlayerRef.current?.isPaused() ? "red" : "black"}
+          color={isAudioPaused ? "red" : "current"}
           background=""
           onClick={pause}
         />
@@ -175,6 +181,7 @@ const EditPage = () => {
 
       <Edit
         ref={editRef}
+        width={editContainerWidth}
         imageURL={imageURL}
         audioDuration={audioDuration}
         currentTime={currentTime}
@@ -239,12 +246,9 @@ const EditPage = () => {
       <AudioPlayer
         ref={audioPlayerRef}
         src={audioURL}
-        onDurationChange={(d) => {
-          console.log("[EditPage] onDurationChange:", d);
-
-          setAudioDuration(d);
-        }}
+        onDurationChange={(d) => setAudioDuration(d)}
         onTimeUpdate={(t) => setCurrentTime(t ?? 0)}
+        onStateChanged={(isPaused) => setAudioPaused(isPaused)}
       />
       <Flex justifyContent={"center"}>
         {selectedEntity && (
