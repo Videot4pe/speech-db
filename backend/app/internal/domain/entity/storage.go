@@ -47,6 +47,7 @@ func (s *Storage) All(markupId uint16) ([]Entity, *utils.Meta, error) {
 		"begin_time",
 		"end_time",
 		"created_at",
+		"properties",
 	).
 		From(scheme + "." + table).
 		Where(sq.Eq{"markup_id": markupId})
@@ -74,7 +75,7 @@ func (s *Storage) All(markupId uint16) ([]Entity, *utils.Meta, error) {
 	for rows.Next() {
 		p := Entity{}
 		if err = rows.Scan(
-			&p.Id, &p.MarkupId, &p.Value, &p.BeginTime, &p.EndTime, &p.CreatedAt,
+			&p.Id, &p.MarkupId, &p.Value, &p.BeginTime, &p.EndTime, &p.CreatedAt, &p.Properties,
 		); err != nil {
 			err = db.ErrScan(err)
 			logger.Error(err)
@@ -105,8 +106,8 @@ func (s *Storage) Create(entity Entity) (uint16, error) {
 	lastInsertId := uint16(0)
 
 	query := s.queryBuilder.Insert(table).
-		Columns("markup_id", "value", "begin_time", "end_time").
-		Values(entity.MarkupId, entity.Value, entity.BeginTime, entity.EndTime).
+		Columns("markup_id", "value", "begin_time", "end_time", "properties").
+		Values(entity.MarkupId, entity.Value, entity.BeginTime, entity.EndTime, entity.Properties).
 		Suffix("RETURNING id")
 
 	sql, args, err := query.ToSql()
@@ -135,6 +136,7 @@ func (s *Storage) Update(id uint16, entity Entity) error {
 		Set("value", entity.Value).
 		Set("begin_time", entity.BeginTime).
 		Set("end_time", entity.EndTime).
+		Set("properties", entity.Properties).
 		Where(sq.Eq{"id": id})
 
 	sql, args, err := query.ToSql()
