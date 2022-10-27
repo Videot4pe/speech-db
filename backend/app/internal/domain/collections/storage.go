@@ -28,6 +28,7 @@ const (
 	scheme         = "public"
 	countriesTable = "collection_countries"
 	languagesTable = "collection_languages"
+	phonemesTable  = "collection_phonemes"
 )
 
 func (s *Storage) queryLogger(sql, table string, args []interface{}) *logging.Logger {
@@ -62,6 +63,43 @@ func (s *Storage) Countries() ([]Country, error) {
 		p := Country{}
 		if err = rows.Scan(
 			&p.Id, &p.Name,
+		); err != nil {
+			err = db.ErrScan(err)
+			logger.Error(err)
+			return nil, err
+		}
+
+		list = append(list, p)
+	}
+
+	return list, nil
+}
+
+func (s *Storage) Phonemes() ([]Phoneme, error) {
+	query := s.queryBuilder.Select(
+		"id",
+		"value",
+		"is_vowel",
+	).From(phonemesTable)
+
+	sql, args, err := query.ToSql()
+	logger := s.queryLogger(sql, phonemesTable, args)
+
+	rows, err := s.client.Query(s.ctx, sql, args...)
+	if err != nil {
+		err = db.ErrDoQuery(err)
+		logger.Error(err)
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	list := make([]Phoneme, 0)
+
+	for rows.Next() {
+		p := Phoneme{}
+		if err = rows.Scan(
+			&p.Id, &p.Value, &p.IsVowel,
 		); err != nil {
 			err = db.ErrScan(err)
 			logger.Error(err)
