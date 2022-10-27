@@ -29,16 +29,17 @@ const Records = () => {
   const { queryParams, setPage, setLimit } = useTablePagination();
   const { sortParams, setSortParams } = useTableSort();
   const { filterParams, arrayFilterParams, setFilterParams } = useTableFilter();
-  const { tableQuery } = useTableData<RecordDto>(
+  const { data, meta, refetch, tableQuery } = useTableData<RecordDto>(
     RecordsApi.list,
     queryParams,
     arrayFilterParams,
-    sortParams
+    sortParams,
+    "records"
   );
 
   const onRemove = (id: number) => {
     RecordsApi.remove(id)
-      .then(() => tableQuery.refetch())
+      .then(() => refetch())
       .catch(errorHandler);
   };
 
@@ -51,7 +52,7 @@ const Records = () => {
 
   const onRecordSave = async () => {
     onClose();
-    await tableQuery.refetch();
+    await refetch();
     setActiveId(undefined);
   };
 
@@ -64,7 +65,7 @@ const Records = () => {
           </Heading>
           <StyledTable
             columns={columns}
-            data={tableQuery.data?.data || []}
+            data={data}
             isLoading={tableQuery.isLoading}
             filterParams={filterParams}
             setSortParams={setSortParams}
@@ -85,12 +86,7 @@ const Records = () => {
           </StyledTable>
           <StyledTablePagination
             my={4}
-            meta={
-              tableQuery.data?.meta || {
-                totalItems: 0,
-                totalPages: 1,
-              }
-            }
+            meta={meta}
             queryParams={queryParams}
             setPage={setPage}
             setLimit={setLimit}

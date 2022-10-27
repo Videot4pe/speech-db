@@ -22,16 +22,17 @@ const Users = () => {
   const { queryParams, setPage, setLimit } = useTablePagination();
   const { sortParams, setSortParams } = useTableSort();
   const { filterParams, arrayFilterParams, setFilterParams } = useTableFilter();
-  const { data, meta, isLoading, fetch } = useTableData<UserDto>(
+  const { data, meta, refetch, tableQuery } = useTableData<UserDto>(
     UsersApi.list,
     queryParams,
     arrayFilterParams,
-    sortParams
+    sortParams,
+    "users"
   );
 
   const onRemove = (id: number) => {
     UsersApi.remove(id)
-      .then(() => fetch)
+      .then(() => refetch())
       .catch(errorHandler);
   };
 
@@ -44,7 +45,7 @@ const Users = () => {
 
   const onUserSave = () => {
     onClose();
-    fetch();
+    refetch();
     setActiveId(undefined);
   };
 
@@ -58,7 +59,7 @@ const Users = () => {
           <StyledTable
             columns={columns}
             data={data}
-            isLoading={isLoading}
+            isLoading={tableQuery.isLoading}
             filterParams={filterParams}
             setSortParams={setSortParams}
             setFilterParams={setFilterParams}

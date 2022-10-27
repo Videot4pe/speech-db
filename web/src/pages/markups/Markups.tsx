@@ -31,16 +31,17 @@ const Markups = () => {
   const { queryParams, setPage, setLimit } = useTablePagination();
   const { sortParams, setSortParams } = useTableSort();
   const { filterParams, arrayFilterParams, setFilterParams } = useTableFilter();
-  const { data, meta, isLoading, fetch } = useTableData<MarkupDto>(
+  const { data, meta, refetch, tableQuery } = useTableData<MarkupDto>(
     MarkupsApi.list,
     queryParams,
     arrayFilterParams,
-    sortParams
+    sortParams,
+    "markups"
   );
 
   const onRemove = (id: number) => {
     RecordsApi.remove(id)
-      .then(() => fetch)
+      .then(() => refetch())
       .catch(errorHandler);
   };
 
@@ -52,7 +53,7 @@ const Markups = () => {
 
   const onSave = () => {
     onClose();
-    fetch();
+    refetch();
     setActiveId(undefined);
   };
 
@@ -66,7 +67,7 @@ const Markups = () => {
           <StyledTable
             columns={columns}
             data={data}
-            isLoading={isLoading}
+            isLoading={tableQuery.isLoading}
             filterParams={filterParams}
             setSortParams={setSortParams}
             setFilterParams={setFilterParams}
@@ -77,7 +78,7 @@ const Markups = () => {
                   <IconButton
                     icon={<AddIcon />}
                     aria-label="add record"
-                    isLoading={isLoading}
+                    isLoading={tableQuery.isLoading}
                     onClick={onOpen}
                   />
                 </Center>

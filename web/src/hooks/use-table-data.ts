@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { MetaData } from "../api/client/json-api-document";
 import { useErrorHandler } from "../utils/handle-get-error";
@@ -32,38 +32,21 @@ export const useTableData = <T>(
       }).catch(errorHandler)
   );
 
-  /**
-   * @deprecated
-   */
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [data, setData] = useState<T[]>([]);
-  const [meta, setMeta] = useState({
-    totalItems: 0,
-    totalPages: 1,
-  });
-
-  const fetch = () => {
-    // TODO useLoading hook
-    setIsLoading(true);
-    repository({ ...queryParams, filter: filterParams, sort: sortParams })
-      .then((payload) => {
-        setData(payload.data);
-        setMeta(payload.meta);
-      })
-      .catch(errorHandler)
-      .finally(() => setIsLoading(false));
-  };
-
-  useEffect(fetch, [queryParams, filterParams, sortParams]);
-
-  // ------------------------------------------------------------
+  const data = useMemo(() => tableQuery?.data?.data || [], [tableQuery]);
+  const meta = useMemo(
+    () =>
+      tableQuery?.data?.meta || {
+        totalItems: 0,
+        totalPages: 1,
+      },
+    [tableQuery]
+  );
+  const refetch = useCallback(() => tableQuery.refetch() || [], [tableQuery]);
 
   return {
     data,
     meta,
-    isLoading,
-    fetch,
+    refetch,
     tableQuery,
   };
 };
