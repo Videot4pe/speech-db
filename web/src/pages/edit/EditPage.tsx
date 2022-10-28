@@ -1,6 +1,6 @@
-import { Flex, Grid, IconButton, SimpleGrid } from "@chakra-ui/react";
+import { Flex, IconButton, SimpleGrid } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
-import Edit from "./Edit";
+import Edit from "./components/Edit";
 import AudioPlayer from "./components/AudioPlayer";
 import { useErrorHandler } from "../../utils/handle-get-error";
 import { useParams } from "react-router-dom";
@@ -15,7 +15,7 @@ import { ImPause, ImPlay, ImStop } from "react-icons/im";
 
 import { useAtom } from "jotai";
 import { languagesAtom, phonemesAtom, stressesAtom } from "../../store/index";
-import { translate } from "utils/translate";
+import { translate } from "../../utils/translate";
 
 interface IEdit {
   zoomIn: () => void;
