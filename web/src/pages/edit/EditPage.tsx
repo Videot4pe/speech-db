@@ -6,7 +6,7 @@ import { useErrorHandler } from "../../utils/handle-get-error";
 import { useParams } from "react-router-dom";
 
 import MarkupsApi from "../../api/markups-api";
-import { EntityDto } from "models/markup";
+import { EntityDto, EntityType } from "models/markup";
 import { useCRUDWebsocket } from "../../hooks/use-crud-websocket";
 import Entity, { SelectOption } from "./components/Entity";
 
@@ -16,6 +16,7 @@ import { ImPause, ImPlay, ImStop } from "react-icons/im";
 import { useAtom } from "jotai";
 import { languagesAtom, phonemesAtom, stressesAtom } from "../../store/index";
 import { translate } from "../../utils/translate";
+import { Select } from "chakra-react-select";
 
 interface IEdit {
   zoomIn: () => void;
@@ -47,7 +48,6 @@ const EditPage = () => {
   const audioPlayerRef = useRef<IAudioPlayer>(null);
 
   const [languages] = useAtom(languagesAtom);
-  console.log(languages);
   const [phonemes] = useAtom(phonemesAtom);
   const [stresses] = useAtom(stressesAtom);
 
@@ -65,6 +65,9 @@ const EditPage = () => {
   const [endTime, setEndTime] = useState<number | null>(null);
   const [selectedEntity, setSelectedEntity] = useState<EntityDto | null>(null);
   const [isAudioPaused, setAudioPaused] = useState(true);
+
+  const entityTypes = ['All', 'Allophone', 'Word', 'Sentence'].map((type) => { return { label: translate(type), value: type } })
+  const [selectedEntityType, setSelectedEntityType] = useState(entityTypes[0])
 
   // TODO FIX THIS PLEASE (Alex)
   // IMHO, I TAK NOT BAD. ENOUGH LACONI4NO (Nick)
@@ -87,6 +90,11 @@ const EditPage = () => {
   } = useCRUDWebsocket<EntityDto>(socketUrl);
 
   function play() {
+    if (endTime && Math.abs(currentTime - endTime) < 1e-5) {
+      audioPlayerRef.current?.pause();
+      audioPlayerRef.current?.setTime(beginTime);
+    }
+
     audioPlayerRef.current?.play();
   }
 
@@ -113,6 +121,9 @@ const EditPage = () => {
     setEditContainerWidth(getContainerWidth());
   }
   /** */
+
+  // remove (dbg)
+  useEffect(() => console.log('[EditPage] selectedEntity:', selectedEntity), [selectedEntity]);
 
   useEffect(() => {
     MarkupsApi.view(markupId)
@@ -179,7 +190,12 @@ const EditPage = () => {
 
   return (
     <Flex direction="column">
-      <SimpleGrid columns={3}>
+      <SimpleGrid columns={3} mb={2}>
+        <Select
+          value={selectedEntityType}
+          options={entityTypes}
+          onChange={(opt) => opt && setSelectedEntityType(opt)}
+        />
         <Flex gridColumnStart={2} justifyContent="center">
           <IconButton
             className="q-mx-xs bg-green-2"
@@ -217,24 +233,20 @@ const EditPage = () => {
           {`${timeToString(currentTime)} - ${timeToString(endTime)}`}
         </span>
       </SimpleGrid>
-
       <Edit
         ref={editRef}
         width={editContainerWidth}
         imageURL={imageURL}
         audioDuration={audioDuration}
         currentTime={currentTime}
-        entities={markupData}
-        onEntityRemoved={(id: string) => {
-          remove(getEntityById(id));
-        }}
+        entities={
+          selectedEntityType.value === 'All' ? markupData
+          : markupData.filter(e => !e.type || e.type === selectedEntityType.value)
+        }
+        onEntityRemoved={(id: string) => remove(getEntityById(id))}
         onEntityCreated={({ beginTime, endTime }) => {
-          create({
-            markupId,
-            beginTime,
-            endTime,
-            value: "",
-          });
+          console.debug('[EditPage] onEntityCreated'); 
+          create({ markupId, beginTime, endTime, value: '', type: selectedEntityType.value === 'All' ? undefined : selectedEntityType.value as EntityType })
         }}
         onEntityUpdated={({ id, beginTime, endTime }) => {
           update({ ...getEntityById(id), beginTime, endTime });
@@ -245,6 +257,8 @@ const EditPage = () => {
           }, 50);
         }}
         onEntitySelected={(id: string | null, rightClick = false) => {
+          console.error('[EditPage] onEntitySelected:', id);
+
           if (id === null) {
             setSelectedEntity(null);
             stop();
@@ -257,6 +271,9 @@ const EditPage = () => {
           }
 
           const entity = getEntityById(id);
+          
+          console.log('entity:', entity);
+
           if (entity.id === selectedEntity?.id) {
             if (rightClick) return;
             const audioIsPlaying = !audioPlayerRef.current?.isPaused();
@@ -274,13 +291,13 @@ const EditPage = () => {
             }, 50);
           }
         }}
-        onPointerPositionChanged={(t) => {
+        onPointerPositionChanged={(t) =>
           setTimeout(() => {
             audioPlayerRef.current?.pause();
             audioPlayerRef.current?.setTime(t);
             setCurrentTime(t);
-          }, 50);
-        }}
+          }, 50)
+        }
       />
       <AudioPlayer
         ref={audioPlayerRef}
