@@ -1,5 +1,5 @@
 import { Box, Heading, useDisclosure } from "@chakra-ui/react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 import UsersApi from "../../../api/users-api";
 import StyledTable from "../../../components/table/StyledTable";
@@ -14,6 +14,8 @@ import { useErrorHandler } from "../../../utils/handle-get-error";
 import usersTableColumns from "./users-table-columns";
 import Record from "../../records/components/Record";
 import User from "./components/User";
+import TablePageLayout from "../../../layout/TablePageLayout";
+import StyledTableHeader from "../../../components/table/StyledTableHeader";
 
 const Users = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -50,29 +52,23 @@ const Users = () => {
   };
 
   return (
-    <Box as="section" py="12">
-      <Box maxW={{ base: "xl", md: "7xl" }} mx="auto">
-        <Box overflowX="auto">
-          <Heading size="lg" mb="2">
-            <div>Users</div>
-          </Heading>
-          <StyledTable
-            columns={columns}
-            data={data}
-            isLoading={tableQuery.isLoading}
-            filterParams={filterParams}
-            setSortParams={setSortParams}
-            setFilterParams={setFilterParams}
-          />
-          <StyledTablePagination
-            my={4}
-            meta={meta}
-            queryParams={queryParams}
-            setPage={setPage}
-            setLimit={setLimit}
-          />
-        </Box>
-      </Box>
+    <TablePageLayout>
+      <StyledTableHeader title="Users" />
+      <StyledTable
+        columns={columns}
+        data={data}
+        isLoading={tableQuery.isLoading}
+        filterParams={filterParams}
+        setSortParams={setSortParams}
+        setFilterParams={setFilterParams}
+      />
+      <StyledTablePagination
+        my={4}
+        meta={meta}
+        queryParams={queryParams}
+        setPage={setPage}
+        setLimit={setLimit}
+      />
       {isOpen && (
         <User
           isOpen={isOpen}
@@ -81,7 +77,7 @@ const Users = () => {
           onUserSave={onUserSave}
         />
       )}
-    </Box>
+    </TablePageLayout>
   );
 };
 

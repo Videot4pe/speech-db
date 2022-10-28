@@ -111,6 +111,8 @@ const Header = () => {
       alignSelf="flex-start"
       justifyContent="center"
       gridGap={2}
+      position="sticky"
+      mb={8}
     >
       <Flex display={{ base: "none", md: "flex" }}>
         <Menu>
