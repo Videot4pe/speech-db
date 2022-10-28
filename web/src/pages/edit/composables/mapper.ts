@@ -18,7 +18,7 @@ export function mapEntityDtoToRectConfig(entityDto: EntityDto, duration: number,
     name: entityDto.value,
     height: stageHeight,
     // TODO выбирать по типу сущности
-    fill: 'yellow',
+    fill: 'green',
     opacity: 0.2,
     draggable: true,
   }

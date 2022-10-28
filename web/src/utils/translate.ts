@@ -10,6 +10,12 @@ const dict: Record<string, string> = {
   'None': 'Нет',
   'Primary': 'Основное',
   'Secondary': 'Вторичное',
+
+  // Типы сущностей
+  'Allophone': 'Фонема',
+  'Word': 'Слово',
+  'Sentence': 'Предложение',
+  'All': 'Любой',
 };
 
 export const translate = (value: string) => {

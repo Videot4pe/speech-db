@@ -506,7 +506,8 @@ const Edit = forwardRef(
       e.evt.preventDefault();
       if (!stageRef.current) return;
 
-      const SCALE_BY = 1.045;
+      // const SCALE_BY = 1.045;
+      const SCALE_BY = 1.1;
       if (e.evt.ctrlKey) {
         const oldScaleX = stageRef.current.scaleX();
         let newScale =
