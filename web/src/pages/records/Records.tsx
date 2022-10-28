@@ -1,14 +1,6 @@
-import { AddIcon } from "@chakra-ui/icons";
-import {
-  Box,
-  Center,
-  Heading,
-  IconButton,
-  Td,
-  Tr,
-  useDisclosure,
-} from "@chakra-ui/react";
-import { useState } from "react";
+import { useDisclosure } from "@chakra-ui/react";
+import TablePageLayout from "../../layout/TablePageLayout";
+import React, { useState } from "react";
 
 import RecordsApi from "../../api/records-api";
 import StyledTable from "../../components/table/StyledTable";
@@ -21,6 +13,7 @@ import type { RecordDto } from "../../models/record";
 import { useErrorHandler } from "../../utils/handle-get-error";
 import Record from "./components/Record";
 import recordsTableColumns from "./records-table-columns";
+import StyledTableHeader from "../../components/table/StyledTableHeader";
 
 const Records = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -57,42 +50,27 @@ const Records = () => {
   };
 
   return (
-    <Box as="section" py="12">
-      <Box maxW={{ base: "xl", md: "7xl" }} mx="auto">
-        <Box overflowX="auto">
-          <Heading size="lg" mb="2">
-            <div>Records</div>
-          </Heading>
-          <StyledTable
-            columns={columns}
-            data={data}
-            isLoading={tableQuery.isLoading}
-            filterParams={filterParams}
-            setSortParams={setSortParams}
-            setFilterParams={setFilterParams}
-          >
-            <Tr>
-              <Td colSpan={columns.length} p={2}>
-                <Center minW="100%">
-                  <IconButton
-                    icon={<AddIcon />}
-                    aria-label="add record"
-                    isLoading={tableQuery.isLoading}
-                    onClick={onOpen}
-                  />
-                </Center>
-              </Td>
-            </Tr>
-          </StyledTable>
-          <StyledTablePagination
-            my={4}
-            meta={meta}
-            queryParams={queryParams}
-            setPage={setPage}
-            setLimit={setLimit}
-          />
-        </Box>
-      </Box>
+    <TablePageLayout>
+      <StyledTableHeader
+        title="Records"
+        onOpen={onOpen}
+        isLoading={tableQuery.isLoading}
+      />
+      <StyledTable
+        columns={columns}
+        data={data}
+        isLoading={tableQuery.isLoading}
+        filterParams={filterParams}
+        setSortParams={setSortParams}
+        setFilterParams={setFilterParams}
+      />
+      <StyledTablePagination
+        my={4}
+        meta={meta}
+        queryParams={queryParams}
+        setPage={setPage}
+        setLimit={setLimit}
+      />
       {isOpen && (
         <Record
           isOpen={isOpen}
@@ -101,7 +79,7 @@ const Records = () => {
           onRecordSave={onRecordSave}
         />
       )}
-    </Box>
+    </TablePageLayout>
   );
 };
 

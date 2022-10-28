@@ -16,16 +16,14 @@ const Layout = ({ children }: LayoutProps) => {
   useSse(notificationsUrl);
 
   return (
-    <Box transition="0.5s ease-out">
-      <VStack padding="8" minHeight="100vh">
-        <Header />
-        <Box width="full" as="main" marginY={22} height="100%">
-          {children}
-        </Box>
-        {/*<Spacer />*/}
-        {/*<Footer />*/}
-      </VStack>
-    </Box>
+    <VStack transition="0.5s ease-out" padding="8" height="100vh">
+      <Header />
+      <Box width="full" as="main" height="100%" overflowY="scroll">
+        {children}
+      </Box>
+      {/*<Spacer />*/}
+      {/*<Footer />*/}
+    </VStack>
   );
 };
 
