@@ -10,47 +10,28 @@ const tableColumns = (
 ) => {
   const columns: any[] = [
     {
-      Header: "Id",
+      Header: "ID",
       accessor: "id",
       name: "id",
       sortable: true,
     },
     {
-      Header: "Name",
+      Header: "Название",
       accessor: "name",
       name: "roles.name",
       sortable: true,
       filter: true,
     },
     {
-      Header: "Permissions",
-      accessor: (row: RoleDto) =>
-        row.permissions
-          .map((permission: string) => translate(permission))
-          .join(", "),
+      Header: "Права",
+      accessor: (row: RoleDto) => (
+        <pre>
+          {row.permissions
+            .map((permission: string) => translate(permission))
+            .join("\n")}
+        </pre>
+      ),
       name: "permissions",
-    },
-    {
-      Header: "Actions",
-      // TODO fix data type
-      Cell: (data: any) => {
-        const { id } = data.row.original;
-        return (
-          <Center display="flex">
-            <IconButton
-              aria-label="edit"
-              icon={<EditIcon />}
-              onClick={() => onEdit(id)}
-            />
-            <IconButton
-              ml={2}
-              aria-label="remove"
-              icon={<DeleteIcon />}
-              onClick={() => onRemove(id)}
-            />
-          </Center>
-        );
-      },
     },
   ];
   return columns;

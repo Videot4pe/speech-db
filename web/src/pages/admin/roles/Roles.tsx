@@ -62,7 +62,7 @@ const Roles = () => {
 
   return (
     <TablePageLayout>
-      <StyledTableHeader title="Roles" />
+      {/*<StyledTableHeader title="Роли" />*/}
       <StyledTable
         columns={columns}
         data={data}

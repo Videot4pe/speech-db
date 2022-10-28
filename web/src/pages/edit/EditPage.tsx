@@ -322,4 +322,4 @@ const EditPage = () => {
   );
 };
 
-export default EditPage;
+export default withRouter(EditPage);

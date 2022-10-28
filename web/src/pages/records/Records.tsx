@@ -52,7 +52,7 @@ const Records = () => {
   return (
     <TablePageLayout>
       <StyledTableHeader
-        title="Records"
+        title="Записи"
         onOpen={onOpen}
         isLoading={tableQuery.isLoading}
       />

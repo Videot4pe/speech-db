@@ -8,8 +8,8 @@ const Admin = () => {
   return (
     <Tabs>
       <TabList>
-        <Tab>Users</Tab>
-        <Tab>Roles</Tab>
+        <Tab>Пользователи</Tab>
+        <Tab>Роли</Tab>
       </TabList>
 
       <TabPanels>

@@ -53,7 +53,7 @@ const Users = () => {
 
   return (
     <TablePageLayout>
-      <StyledTableHeader title="Users" />
+      {/*<StyledTableHeader title="Пользователи" />*/}
       <StyledTable
         columns={columns}
         data={data}

@@ -66,7 +66,7 @@ const Speakers = () => {
   return (
     <TablePageLayout>
       <StyledTableHeader
-        title="Speakers"
+        title="Дикторы"
         onOpen={onOpen}
         isLoading={tableQuery.isLoading}
       />
