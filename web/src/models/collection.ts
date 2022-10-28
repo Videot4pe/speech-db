@@ -8,6 +8,11 @@ export interface Country {
   name: string;
 }
 
+export interface Stress {
+  id: number;
+  value: string;
+}
+
 export interface Phoneme {
   id: number;
   value: string;

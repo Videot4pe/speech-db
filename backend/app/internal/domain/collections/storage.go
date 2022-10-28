@@ -29,6 +29,7 @@ const (
 	countriesTable = "collection_countries"
 	languagesTable = "collection_languages"
 	phonemesTable  = "collection_phonemes"
+	stressesTable  = "collection_stresses"
 )
 
 func (s *Storage) queryLogger(sql, table string, args []interface{}) *logging.Logger {
@@ -63,6 +64,42 @@ func (s *Storage) Countries() ([]Country, error) {
 		p := Country{}
 		if err = rows.Scan(
 			&p.Id, &p.Name,
+		); err != nil {
+			err = db.ErrScan(err)
+			logger.Error(err)
+			return nil, err
+		}
+
+		list = append(list, p)
+	}
+
+	return list, nil
+}
+
+func (s *Storage) Stresses() ([]Stress, error) {
+	query := s.queryBuilder.Select(
+		"id",
+		"value",
+	).From(stressesTable)
+
+	sql, args, err := query.ToSql()
+	logger := s.queryLogger(sql, stressesTable, args)
+
+	rows, err := s.client.Query(s.ctx, sql, args...)
+	if err != nil {
+		err = db.ErrDoQuery(err)
+		logger.Error(err)
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	list := make([]Stress, 0)
+
+	for rows.Next() {
+		p := Stress{}
+		if err = rows.Scan(
+			&p.Id, &p.Value,
 		); err != nil {
 			err = db.ErrScan(err)
 			logger.Error(err)

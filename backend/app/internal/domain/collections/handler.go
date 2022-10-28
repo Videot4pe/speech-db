@@ -35,6 +35,7 @@ func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 	countries, err := h.storage.Countries()
 	languages, err := h.storage.Languages()
 	phonemes, err := h.storage.Phonemes()
+	stresses, err := h.storage.Stresses()
 
 	// TODO fix
 	if err != nil {
@@ -45,6 +46,7 @@ func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 		Countries: countries,
 		Languages: languages,
 		Phonemes:  phonemes,
+		Stresses:  stresses,
 	}
 
 	utils.WriteResponse(w, http.StatusOK, collection)
