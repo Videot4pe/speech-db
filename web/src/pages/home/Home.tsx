@@ -1,14 +1,27 @@
-import { Flex } from "@chakra-ui/react";
+import { Center, Flex, VStack } from "@chakra-ui/react";
 
 const Home = () => {
   return (
-    <Flex p={10} justifyContent="center">
-      <p>Видишь ошибку на сайте? Пиши сюда 👉</p>
+    <VStack p={10} justifyContent="center">
+      <div>Видишь ошибку на сайте (или просто хочешь сходить погулять)?</div>
+      <div>
+        <div>Пиши 👇 сюда</div>
+      </div>
       <Flex>
-        <img style={{padding: "0px 4px 0px 4px"}} src="https://telegram.org/img/website_icon.svg?4" />
-        @videot4pe @strooom
+        <a target="_blank" href="https://t.me/videot4pe">
+          @videot4pe
+        </a>
+        <Flex mx={2}>
+          <img
+            style={{ padding: "0px 4px 0px 4px" }}
+            src="https://telegram.org/img/website_icon.svg?4"
+          />
+        </Flex>
+        <a target="_blank" href="https://t.me/strooom">
+          @strooom
+        </a>
       </Flex>
-    </Flex>
+    </VStack>
   );
 };
 
