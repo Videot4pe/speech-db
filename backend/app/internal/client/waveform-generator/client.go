@@ -23,7 +23,7 @@ func NewWaveformGeneratorClient(host string, logger *logging.Logger) *WaveformGe
 
 func (client *WaveformGeneratorClient) SendAudioUrl(url, callbackUrl string) {
 	req := client.Client.Request()
-	req.Path("/api/generate")
+	req.Path("/generate")
 	req.Method("POST")
 
 	data := map[string]string{"url": url, "callbackUrl": callbackUrl}
