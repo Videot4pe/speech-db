@@ -78,7 +78,7 @@ const Entity = ({
             displayIf={isAllophone}
             placeholder="Фонема"
             options={phonemeOptions}
-            defaultValue={stressOptions.find(o => o.value === entity.value)}
+            defaultValue={phonemeOptions.find(o => o.value === entity.value)}
             onChange={(option: any) => onEntitySet("value", option?.label)}
           />
           <Input
