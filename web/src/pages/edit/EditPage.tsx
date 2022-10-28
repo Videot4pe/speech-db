@@ -13,6 +13,9 @@ import Entity, { SelectOption } from "./components/Entity";
 import { timeToString } from "./composables/format-time";
 import { ImPause, ImPlay, ImStop } from "react-icons/im";
 
+import { useAtom } from "jotai";
+import { languagesAtom, phonemesAtom } from "../../store/index";
+
 interface IEdit {
   zoomIn: () => void;
   zoomOut: () => void;
@@ -42,9 +45,11 @@ const EditPage = () => {
   const editRef = useRef<IEdit>(null);
   const audioPlayerRef = useRef<IAudioPlayer>(null);
 
+  const [languages] = useAtom(languagesAtom);
+  const [phonemes] = useAtom(phonemesAtom);
+
   const [editContainerWidth, setEditContainerWidth] = useState<number | undefined>(undefined);
   const [languageOptions, setLanguageOptions] = useState<SelectOption[]>([]);
-  const [dialectOptions, setDialectOptions] = useState<SelectOption[]>([]);
   const [phonemeOptions, setPhonemeOptions] = useState<SelectOption[]>([{ label: 'a', value: 1 }]);
   const [stressOptions, setStressOptions] = useState<SelectOption[]>([]);
   const [imageURL, setImageURL] = useState<string | undefined>(undefined);
@@ -111,6 +116,21 @@ const EditPage = () => {
         setAudioURL(payload.record);
       })
       .catch(errorHandler);
+
+    setPhonemeOptions(phonemes?.map(p => { return { label: p.value, value: p.value, isVowel: p.isVowel } }) ?? [])
+
+    const neededLanguages = languages?.filter(
+      lang => [
+        'русский',
+        'английский',
+        'французский',
+        'немецкий',
+      ]
+      .includes(lang.name)
+    ) ?? []
+    console.log('languages:', languages);
+    console.log('neededLanguages:', neededLanguages);
+    setLanguageOptions(neededLanguages.map(lang => { return { label: lang.name, value: lang.id } }))
   }, []);
 
   useEffect(() => {
@@ -252,7 +272,6 @@ const EditPage = () => {
           <Entity
             entity={selectedEntity}
             languageOptions={languageOptions}
-            dialectOptions={dialectOptions}
             phonemeOptions={phonemeOptions}
             stressOptions={stressOptions}
             onEntitySet={updateEntity}

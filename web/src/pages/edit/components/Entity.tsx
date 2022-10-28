@@ -3,6 +3,7 @@ import { Button, Flex, FormControl, Input, useToast } from "@chakra-ui/react";
 import { EntityDto, WordProperties } from "../../../models/markup";
 import { validate } from "../composables/validate-entity";
 import { Props, Select as ChakraReactSelect } from "chakra-react-select";
+import { useEffect } from "react";
 
 export interface SelectOption {
   label: string;
@@ -15,7 +16,6 @@ export interface EntityProps {
   onSave: () => void;
 
   languageOptions: SelectOption[];
-  dialectOptions?: SelectOption[]; // мб сделать string
   phonemeOptions: SelectOption[];
   stressOptions: SelectOption[];
 }
@@ -34,7 +34,6 @@ const Entity = ({
   onSave,
   stressOptions,
   languageOptions,
-  dialectOptions,
   phonemeOptions,
 }: EntityProps) => {
   const toast = useToast();
@@ -64,6 +63,14 @@ const Entity = ({
   const isAllophone = entity.type === 'Allophone';
   const isWord = entity.type === 'Word';
   const isSentence = entity.type === 'Sentence';
+  let isVowel = false;
+
+  console.log('languageOptions', languageOptions);
+  useEffect(() => {
+    const matchingPhoneme = phonemeOptions.find(p => p.label === entity.value) as any
+    isVowel = !!matchingPhoneme?.isVowel
+    console.log('isVowel:', isVowel);
+  }, [entity]);
 
   return (
     <Card className="entity" w="600px" p={4} m={2}>
