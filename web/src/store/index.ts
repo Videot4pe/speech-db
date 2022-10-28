@@ -101,5 +101,6 @@ export const collectionsAtom = atom(
 export const languagesAtom = atom((get) => get(collections)?.languages);
 export const countriesAtom = atom((get) => get(collections)?.countries);
 export const phonemesAtom = atom((get) => get(collections)?.phonemes);
+export const stressesAtom = atom((get) => get(collections)?.stresses);
 
 export const isLoggedIn = atom<boolean>((get) => !!get(jwtToken));

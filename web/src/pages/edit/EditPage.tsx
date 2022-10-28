@@ -14,7 +14,8 @@ import { timeToString } from "./composables/format-time";
 import { ImPause, ImPlay, ImStop } from "react-icons/im";
 
 import { useAtom } from "jotai";
-import { languagesAtom, phonemesAtom } from "../../store/index";
+import { languagesAtom, phonemesAtom, stressesAtom } from "../../store/index";
+import { translate } from "utils/translate";
 
 interface IEdit {
   zoomIn: () => void;
@@ -47,6 +48,7 @@ const EditPage = () => {
 
   const [languages] = useAtom(languagesAtom);
   const [phonemes] = useAtom(phonemesAtom);
+  const [stresses] = useAtom(stressesAtom);
 
   const [editContainerWidth, setEditContainerWidth] = useState<number | undefined>(undefined);
   const [languageOptions, setLanguageOptions] = useState<SelectOption[]>([]);
@@ -118,9 +120,13 @@ const EditPage = () => {
       .catch(errorHandler);
   }, []);
 
-  useEffect(() => {
-    setPhonemeOptions(phonemes?.map(p => { return { label: p.value, value: p.value, isVowel: p.isVowel } }) ?? [])
-  }, [phonemes]);
+  useEffect(() => 
+    setPhonemeOptions(phonemes?.map(p => { return { label: p.value, value: p.value, isVowel: p.isVowel } }) ?? []),
+  [phonemes]);
+
+  useEffect(() => 
+    setPhonemeOptions(stresses?.map(s => { return { label: translate(s.value), value: s.id } }) ?? []),
+  [stresses]);
 
   useEffect(() => {
     const neededLanguages = languages?.filter(

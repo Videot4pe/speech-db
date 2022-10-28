@@ -14,8 +14,14 @@ export interface Phoneme {
   isVowel: boolean;
 }
 
+export interface Stress {
+  id: number;
+  value: string;
+}
+
 export interface Collections {
   countries: Country[];
   languages: Language[];
   phonemes: Phoneme[];
+  stresses: Stress[];
 }
