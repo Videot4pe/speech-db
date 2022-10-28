@@ -66,8 +66,10 @@ const EditPage = () => {
   const [selectedEntity, setSelectedEntity] = useState<EntityDto | null>(null);
   const [isAudioPaused, setAudioPaused] = useState(true);
 
-  const entityTypes = ['All', 'Allophone', 'Word', 'Sentence'].map((type) => { return { label: translate(type), value: type } })
-  const [selectedEntityType, setSelectedEntityType] = useState(entityTypes[0])
+  const entityTypes = ["All", "Allophone", "Word", "Sentence"].map((type) => {
+    return { label: translate(type), value: type };
+  });
+  const [selectedEntityType, setSelectedEntityType] = useState(entityTypes[0]);
 
   // TODO FIX THIS PLEASE (Alex)
   // IMHO, I TAK NOT BAD. ENOUGH LACONI4NO (Nick)
@@ -123,7 +125,10 @@ const EditPage = () => {
   /** */
 
   // remove (dbg)
-  useEffect(() => console.log('[EditPage] selectedEntity:', selectedEntity), [selectedEntity]);
+  useEffect(
+    () => console.log("[EditPage] selectedEntity:", selectedEntity),
+    [selectedEntity]
+  );
 
   useEffect(() => {
     MarkupsApi.view(markupId)
@@ -240,13 +245,25 @@ const EditPage = () => {
         audioDuration={audioDuration}
         currentTime={currentTime}
         entities={
-          selectedEntityType.value === 'All' ? markupData
-          : markupData.filter(e => !e.type || e.type === selectedEntityType.value)
+          selectedEntityType.value === "All"
+            ? markupData
+            : markupData.filter(
+                (e) => !e.type || e.type === selectedEntityType.value
+              )
         }
         onEntityRemoved={(id: string) => remove(getEntityById(id))}
         onEntityCreated={({ beginTime, endTime }) => {
-          console.debug('[EditPage] onEntityCreated'); 
-          create({ markupId, beginTime, endTime, value: '', type: selectedEntityType.value === 'All' ? undefined : selectedEntityType.value as EntityType })
+          console.debug("[EditPage] onEntityCreated");
+          create({
+            markupId,
+            beginTime,
+            endTime,
+            value: "",
+            type:
+              selectedEntityType.value === "All"
+                ? undefined
+                : (selectedEntityType.value as EntityType),
+          });
         }}
         onEntityUpdated={({ id, beginTime, endTime }) => {
           update({ ...getEntityById(id), beginTime, endTime });
@@ -257,7 +274,7 @@ const EditPage = () => {
           }, 50);
         }}
         onEntitySelected={(id: string | null, rightClick = false) => {
-          console.error('[EditPage] onEntitySelected:', id);
+          console.error("[EditPage] onEntitySelected:", id);
 
           if (id === null) {
             setSelectedEntity(null);
@@ -271,8 +288,8 @@ const EditPage = () => {
           }
 
           const entity = getEntityById(id);
-          
-          console.log('entity:', entity);
+
+          console.log("entity:", entity);
 
           if (entity.id === selectedEntity?.id) {
             if (rightClick) return;
@@ -322,4 +339,4 @@ const EditPage = () => {
   );
 };
 
-export default withRouter(EditPage);
+export default EditPage;

@@ -11,14 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  Stage,
-  Layer,
-  Image as KImage,
-  Text as KText,
-  Transformer,
-  Rect,
-} from "react-konva";
+import { Stage, Layer, Image as KImage, Transformer, Rect } from "react-konva";
 import { createEmptyImage } from "../composables/createEmptyImage";
 import {
   mapEntityDtoToRectConfig,
@@ -569,7 +562,8 @@ const Edit = forwardRef(
     useEffect(() => setStageWidth(width), [width]);
 
     useEffect(() => {
-      if (imageURL) (imageConfig.current.image as HTMLImageElement).src = imageURL;
+      if (imageURL)
+        (imageConfig.current.image as HTMLImageElement).src = imageURL;
     }, [imageURL]);
 
     useEffect(() => {
@@ -586,7 +580,7 @@ const Edit = forwardRef(
     }, [width, currentTime, audioDuration]);
 
     useEffect(() => {
-      mapEntitiesToRects()
+      mapEntitiesToRects();
     }, [width, audioDuration, entities]);
 
     useImperativeHandle(ref, () => ({
