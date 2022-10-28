@@ -100,7 +100,7 @@ const Entity = ({
             onChange={(event) => onEntityPropertySet("dialect", event.target.value)}
           />
           <Select
-            displayIf={entity.type === undefined}
+            displayIf={!hasType}
             placeholder="Выберите тип сущности"
             options={[
               { label: 'Аллофон', value: 'Allophone' },
