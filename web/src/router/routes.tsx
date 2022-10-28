@@ -94,7 +94,7 @@ const routes: Array<IRoutes> = [
     auth: true,
   },
   {
-    path: "/markup/:id",
+    path: "/markups/:id",
     icon: FiMousePointer,
     name: Page.Markup,
     internal: true,
@@ -105,17 +105,6 @@ const routes: Array<IRoutes> = [
     ),
     auth: true,
   },
-  // TEST only
-  // {
-  //   path: "/edit",
-  //   icon: FiEdit,
-  //   name: "Edit",
-  //   element: (
-  //     <Layout>
-  //       <EditPage />
-  //     </Layout>
-  //   ),
-  // },
   {
     path: "/admin",
     icon: FiUser,

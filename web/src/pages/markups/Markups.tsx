@@ -25,6 +25,7 @@ import Markup from "./components/Markup";
 import tableColumns from "./table-columns";
 import TablePageLayout from "../../layout/TablePageLayout";
 import StyledTableHeader from "../../components/table/StyledTableHeader";
+import { useNavigate } from "react-router-dom";
 
 const Markups = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -47,8 +48,9 @@ const Markups = () => {
       .catch(errorHandler);
   };
 
+  const navigate = useNavigate();
   const onEdit = (id: number) => {
-    window.location.href = `/markup/${id}`;
+    navigate(`/markups/${id}`);
   };
 
   const columns = tableColumns(onRemove, onEdit);
