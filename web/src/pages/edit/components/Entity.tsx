@@ -88,7 +88,7 @@ const Entity = ({
             displayIf={isAllophone}
             placeholder="Фонема"
             options={phonemeOptions}
-            defaultValue={phonemeOptions.find((o) => o.value === entity.value)}
+            value={phonemeOptions.find((o) => o.value === entity.value)}
             onChange={(option: any) => onEntitySet("value", option?.label)}
           />
           <Input
@@ -101,7 +101,7 @@ const Entity = ({
             displayIf={isAllophone}
             placeholder="Ударение"
             options={stressOptions}
-            defaultValue={stressOptions.find(
+            value={stressOptions.find(
               (o) =>
                 o.value === (entity.properties as AllophoneProperties).stressId
             )}
@@ -113,7 +113,7 @@ const Entity = ({
             displayIf={isWord}
             placeholder="Язык"
             options={languageOptions}
-            defaultValue={languageOptions.find(
+            value={languageOptions.find(
               (o) =>
                 o.value === (entity.properties as WordProperties).languageId
             )}
