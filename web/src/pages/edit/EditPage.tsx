@@ -55,9 +55,7 @@ const EditPage = () => {
     number | undefined
   >(undefined);
   const [languageOptions, setLanguageOptions] = useState<SelectOption[]>([]);
-  const [phonemeOptions, setPhonemeOptions] = useState<SelectOption[]>([
-    { label: "a", value: 1 },
-  ]);
+  const [phonemeOptions, setPhonemeOptions] = useState<SelectOption[]>([]);
   const [stressOptions, setStressOptions] = useState<SelectOption[]>([]);
   const [imageURL, setImageURL] = useState<string | undefined>(undefined);
   const [audioURL, setAudioURL] = useState<string | undefined>(undefined);
@@ -137,7 +135,7 @@ const EditPage = () => {
 
   useEffect(
     () =>
-      setPhonemeOptions(
+      setStressOptions(
         stresses?.map((s) => {
           return { label: translate(s.value), value: s.id };
         }) ?? []
