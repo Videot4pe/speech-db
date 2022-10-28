@@ -47,12 +47,17 @@ const EditPage = () => {
   const audioPlayerRef = useRef<IAudioPlayer>(null);
 
   const [languages] = useAtom(languagesAtom);
+  console.log(languages);
   const [phonemes] = useAtom(phonemesAtom);
   const [stresses] = useAtom(stressesAtom);
 
-  const [editContainerWidth, setEditContainerWidth] = useState<number | undefined>(undefined);
+  const [editContainerWidth, setEditContainerWidth] = useState<
+    number | undefined
+  >(undefined);
   const [languageOptions, setLanguageOptions] = useState<SelectOption[]>([]);
-  const [phonemeOptions, setPhonemeOptions] = useState<SelectOption[]>([{ label: 'a', value: 1 }]);
+  const [phonemeOptions, setPhonemeOptions] = useState<SelectOption[]>([
+    { label: "a", value: 1 },
+  ]);
   const [stressOptions, setStressOptions] = useState<SelectOption[]>([]);
   const [imageURL, setImageURL] = useState<string | undefined>(undefined);
   const [audioURL, setAudioURL] = useState<string | undefined>(undefined);
@@ -120,25 +125,36 @@ const EditPage = () => {
       .catch(errorHandler);
   }, []);
 
-  useEffect(() => 
-    setPhonemeOptions(phonemes?.map(p => { return { label: p.value, value: p.value, isVowel: p.isVowel } }) ?? []),
-  [phonemes]);
+  useEffect(
+    () =>
+      setPhonemeOptions(
+        phonemes?.map((p) => {
+          return { label: p.value, value: p.value, isVowel: p.isVowel };
+        }) ?? []
+      ),
+    [phonemes]
+  );
 
-  useEffect(() => 
-    setPhonemeOptions(stresses?.map(s => { return { label: translate(s.value), value: s.id } }) ?? []),
-  [stresses]);
+  useEffect(
+    () =>
+      setPhonemeOptions(
+        stresses?.map((s) => {
+          return { label: translate(s.value), value: s.id };
+        }) ?? []
+      ),
+    [stresses]
+  );
 
   useEffect(() => {
-    const neededLanguages = languages?.filter(
-      lang => [
-        'русский',
-        'английский',
-        'французский',
-        'немецкий',
-      ]
-      .includes(lang.name)
-    ) ?? []
-    setLanguageOptions(neededLanguages.map(lang => { return { label: lang.name, value: lang.id } }));
+    const neededLanguages =
+      languages?.filter((lang) =>
+        ["русский", "английский", "французский", "немецкий"].includes(lang.name)
+      ) ?? [];
+    setLanguageOptions(
+      neededLanguages.map((lang) => {
+        return { label: lang.name, value: lang.id };
+      })
+    );
   }, [languages]);
 
   useEffect(() => {
@@ -197,7 +213,7 @@ const EditPage = () => {
             width: "200px",
             alignSelf: "center",
             textAlign: "center",
-            justifySelf: "end"
+            justifySelf: "end",
           }}
         >
           {`${timeToString(currentTime)} - ${timeToString(endTime)}`}
