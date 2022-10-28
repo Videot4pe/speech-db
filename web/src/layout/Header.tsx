@@ -1,21 +1,19 @@
-import "./Layout.scss";
 import type { BoxProps } from "@chakra-ui/react";
 import {
   Box,
   Flex,
-  Heading,
   Icon,
   IconButton,
   Link,
   MenuButton,
   Text,
+  useColorMode,
 } from "@chakra-ui/react";
 import { useAtom } from "jotai";
 import * as R from "ramda";
 import type { ReactElement } from "react";
 import type React from "react";
-import type { IconType } from "react-icons";
-import { ImExit, ImProfile, IoNotifications } from "react-icons/all";
+import { ImExit, ImProfile } from "react-icons/all";
 import { useLocation, useNavigate, Link as ReachLink } from "react-router-dom";
 
 import type { IRoutes } from "../router/routes";
@@ -25,15 +23,8 @@ import { jwtToken, refreshJwtToken, selfAtom } from "../store";
 import ThemeToggle from "./ThemeToggle";
 import { useStore } from "effector-react";
 import { $notifications } from "../store/notifications";
-import NotificationButton from "./NotificationButton";
 import { Menu, MenuItem, MenuList } from "@chakra-ui/menu";
 import { HamburgerIcon } from "@chakra-ui/icons";
-
-interface ISidebarItem {
-  name: string;
-  icon: IconType;
-  href: string;
-}
 
 interface SidebarItemProps extends BoxProps {
   item: IRoutes;
@@ -47,9 +38,9 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   item,
 }: SidebarItemProps): ReactElement => {
   const { name, icon, path } = item;
-  // TODO fix
   const location = useLocation();
   const { pathname } = location;
+  const { colorMode } = useColorMode();
 
   return (
     <MenuItem
@@ -57,20 +48,17 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
       px={0}
       cursor="pointer"
       width={{ base: "100%", md: "auto" }}
-      bg={path === pathname ? "gray.300" : undefined}
-      _focus={{ bg: "gray.300" }}
-      _hover={{ bg: "gray.400" }}
+      bg={
+        path === pathname
+          ? colorMode === "light"
+            ? "gray.300"
+            : "gray.700"
+          : undefined
+      }
+      _focus={{ bg: colorMode === "light" ? "gray.300" : "gray.700" }}
+      _hover={{ bg: colorMode === "light" ? "gray.400" : "gray.600" }}
     >
-      <Link
-        as={ReachLink}
-        px={4}
-        py={2}
-        w="100%"
-        h="100%"
-        // _hover={{ color: "red.600" }}
-        // color={path === pathname ? "red.600" : undefined}
-        to={path}
-      >
+      <Link as={ReachLink} px={4} py={2} w="100%" h="100%" to={path}>
         <Flex>
           <Icon fontSize="24px" as={icon} />
           <Text ml={1}>{name}</Text>
@@ -126,11 +114,6 @@ const Header = () => {
     >
       <Flex display={{ base: "none", md: "flex" }}>
         <Menu>
-          {/*<Link alignSelf="center" as={ReachLink} to="/">*/}
-          {/*  <Heading className="multicolor" as="h1" size="sm">*/}
-          {/*    SpeechDB*/}
-          {/*  </Heading>*/}
-          {/*</Link>*/}
           <SidebarItems routes={routes} />
         </Menu>
       </Flex>
@@ -149,7 +132,6 @@ const Header = () => {
 
       <Box marginLeft="auto">
         <ThemeToggle />
-        {/*<NotificationButton notifications={notifications} />*/}
         <Link as={ReachLink} to="/profile">
           <IconButton ml={2} aria-label="profile" icon={<ImProfile />} />
         </Link>

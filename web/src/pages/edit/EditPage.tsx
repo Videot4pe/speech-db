@@ -47,7 +47,6 @@ const EditPage = () => {
   const audioPlayerRef = useRef<IAudioPlayer>(null);
 
   const [languages] = useAtom(languagesAtom);
-  console.log(languages);
   const [phonemes] = useAtom(phonemesAtom);
   const [stresses] = useAtom(stressesAtom);
 
