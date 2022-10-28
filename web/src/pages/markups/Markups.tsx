@@ -62,7 +62,7 @@ const Markups = () => {
   return (
     <TablePageLayout>
       <StyledTableHeader
-        title="Markups"
+        title="Разметки"
         onOpen={onOpen}
         isLoading={tableQuery.isLoading}
       />

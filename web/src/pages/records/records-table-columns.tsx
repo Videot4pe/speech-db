@@ -11,7 +11,7 @@ const recordsTableColumns = (
 ) => {
   const columns: any[] = [
     {
-      Header: "Id",
+      Header: "ID",
       accessor: "id",
       name: "records.id",
       sortable: true,
@@ -19,55 +19,33 @@ const recordsTableColumns = (
       width: "80px",
     },
     {
-      Header: "Status",
+      Header: "Статус",
       name: "status",
-      accessor: (row: MarkupDto) => (row.image ? "Done" : "Pending"),
+      accessor: (row: MarkupDto) => (row.image ? "Готово" : "В процессе"),
       filter: false,
       width: "90px",
     },
     {
-      Header: "Name",
+      Header: "Название",
       accessor: "name",
       name: "records.name",
       sortable: true,
       filter: true,
     },
     {
-      Header: "Speaker",
+      Header: "Диктор",
       accessor: "speaker",
       name: "speakers.name",
       sortable: true,
       filter: true,
     },
     {
-      Header: "Created at",
+      Header: "Дата создания",
       name: "records.created_at",
       sortable: true,
       filter: true,
       accessor: (row: RecordDto) =>
         moment(row.createdAt).local().format("DD.MM.YYYY hh:mm:ss"),
-    },
-    {
-      Header: "Actions",
-      // TODO fix data type
-      Cell: (data: any) => {
-        const { id } = data.row.original;
-        return (
-          <Center display="flex">
-            <IconButton
-              aria-label="edit"
-              icon={<EditIcon />}
-              onClick={() => onEdit(id)}
-            />
-            {/*<IconButton*/}
-            {/*  ml={2}*/}
-            {/*  aria-label="remove"*/}
-            {/*  icon={<DeleteIcon />}*/}
-            {/*  onClick={() => onRemove(id)}*/}
-            {/*/>*/}
-          </Center>
-        );
-      },
     },
   ];
   return columns;

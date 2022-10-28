@@ -8,7 +8,7 @@ const usersTableColumns = (
 ) => {
   const columns: any[] = [
     {
-      Header: "Ava",
+      Header: "Аватар",
       width: "48px",
       Cell: (data: any) => {
         const { avatar } = data.row.original;
@@ -18,21 +18,21 @@ const usersTableColumns = (
       },
     },
     {
-      Header: "Id",
+      Header: "ID",
       accessor: "id",
       name: "id",
       sortable: true,
       filter: true,
     },
     {
-      Header: "Name",
+      Header: "Имя",
       accessor: "name",
       name: "name",
       sortable: true,
       filter: true,
     },
     {
-      Header: "Surname",
+      Header: "Фамилия",
       accessor: "surname",
       name: "surname",
       sortable: true,
@@ -46,24 +46,16 @@ const usersTableColumns = (
       filter: true,
     },
     {
-      Header: "Actions",
-      // TODO fix data type
+      Header: " ",
+      width: "60px",
       Cell: (data: any) => {
         const { id } = data.row.original;
         return (
-          <Center display="flex">
-            <IconButton
-              aria-label="edit"
-              icon={<EditIcon />}
-              onClick={() => onEdit(id)}
-            />
-            <IconButton
-              ml={2}
-              aria-label="remove"
-              icon={<DeleteIcon />}
-              onClick={() => onRemove(id)}
-            />
-          </Center>
+          <IconButton
+            aria-label="edit"
+            icon={<EditIcon />}
+            onClick={() => onEdit(id)}
+          />
         );
       },
     },

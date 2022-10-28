@@ -11,13 +11,13 @@ const tableColumns = (
   // TODO fix any type (!)
   const columns: any[] = [
     {
-      Header: "Id",
+      Header: "ID",
       accessor: "id",
       name: "id",
       width: 50,
     },
     {
-      Header: "Record",
+      Header: "Запись",
       Cell: (data: any) => {
         return (
           <Link color="teal" href={data.row.original.record} target="_blank">
@@ -27,7 +27,7 @@ const tableColumns = (
       },
     },
     {
-      Header: "Created at",
+      Header: "Дата создания",
       // TODO FIX
       name: "m.created_at",
       accessor: (row: MarkupDto) =>
@@ -35,30 +35,22 @@ const tableColumns = (
       filter: false,
     },
     {
-      Header: "Created by",
+      Header: "Автор",
       name: "createdBy",
       accessor: "createdBy",
       // TODO fix
       filter: false,
     },
     {
-      Header: "Actions",
-      // TODO fix data type
+      Header: " ",
+      width: "42px",
       Cell: (data: any) => {
         return (
-          <Center display="flex">
-            <IconButton
-              aria-label="edit"
-              icon={<EditIcon />}
-              onClick={() => onEdit(data.row.original.id)}
-            />
-            <IconButton
-              ml={2}
-              aria-label="remove"
-              icon={<DeleteIcon />}
-              onClick={() => onRemove(data.row.original.id)}
-            />
-          </Center>
+          <IconButton
+            aria-label="edit"
+            icon={<EditIcon />}
+            onClick={() => onEdit(data.row.original.id)}
+          />
         );
       },
     },

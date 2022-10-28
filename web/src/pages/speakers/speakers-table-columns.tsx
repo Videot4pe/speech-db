@@ -12,19 +12,19 @@ const speakersTableColumns = (
 ) => {
   const columns: Column[] = [
     {
-      Header: "Id",
+      Header: "ID",
       accessor: "id",
       name: "id",
       width: 50,
     },
     {
-      Header: "Name",
+      Header: "Имя",
       accessor: "name",
       name: "name",
       filter: true,
     },
     {
-      Header: "Properties",
+      Header: "Свойства",
       accessor: (row: SpeakerDto) =>
         Object.entries(row.properties).map(
           (entry) => `${entry[0]}: ${entry[1]}`
@@ -32,30 +32,23 @@ const speakersTableColumns = (
       name: "properties",
     },
     {
-      Header: "Created at",
+      Header: "Дата создания",
       name: "createdAt",
       accessor: (row: SpeakerDto) =>
         moment(row.createdAt).local().format("DD.MM.YYYY hh:mm:ss"),
       filter: true,
     },
     {
-      Header: "Actions",
+      Header: " ",
+      width: "42px",
       // TODO fix data type
       Cell: (data: any) => {
         return (
-          <Center display="flex">
-            <IconButton
-              aria-label="edit"
-              icon={<EditIcon />}
-              onClick={() => onEdit(data.row.original.id)}
-            />
-            {/*<IconButton*/}
-            {/*  ml={2}*/}
-            {/*  aria-label="remove"*/}
-            {/*  icon={<DeleteIcon />}*/}
-            {/*  onClick={() => onRemove(data.row.original.id)}*/}
-            {/*/>*/}
-          </Center>
+          <IconButton
+            aria-label="edit"
+            icon={<EditIcon />}
+            onClick={() => onEdit(data.row.original.id)}
+          />
         );
       },
     },
