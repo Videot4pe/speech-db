@@ -8,7 +8,7 @@ import {
   Tr,
   useDisclosure,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 import MarkupsApi from "../../api/markups-api";
 import RecordsApi from "../../api/records-api";
@@ -23,6 +23,8 @@ import { useErrorHandler } from "../../utils/handle-get-error";
 
 import Markup from "./components/Markup";
 import tableColumns from "./table-columns";
+import TablePageLayout from "../../layout/TablePageLayout";
+import StyledTableHeader from "../../components/table/StyledTableHeader";
 
 const Markups = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -58,42 +60,40 @@ const Markups = () => {
   };
 
   return (
-    <Box as="section" py="12">
-      <Box maxW={{ base: "xl", md: "7xl" }} mx="auto">
-        <Box overflowX="auto">
-          <Heading size="lg" mb="2">
-            <div>Markups</div>
-          </Heading>
-          <StyledTable
-            columns={columns}
-            data={data}
-            isLoading={tableQuery.isLoading}
-            filterParams={filterParams}
-            setSortParams={setSortParams}
-            setFilterParams={setFilterParams}
-          >
-            <Tr>
-              <Td colSpan={columns.length} p={2}>
-                <Center minW="100%">
-                  <IconButton
-                    icon={<AddIcon />}
-                    aria-label="add record"
-                    isLoading={tableQuery.isLoading}
-                    onClick={onOpen}
-                  />
-                </Center>
-              </Td>
-            </Tr>
-          </StyledTable>
-          <StyledTablePagination
-            my={4}
-            meta={meta}
-            queryParams={queryParams}
-            setPage={setPage}
-            setLimit={setLimit}
-          />
-        </Box>
-      </Box>
+    <TablePageLayout>
+      <StyledTableHeader
+        title="Markups"
+        onOpen={onOpen}
+        isLoading={tableQuery.isLoading}
+      />
+      <StyledTable
+        columns={columns}
+        data={data}
+        isLoading={tableQuery.isLoading}
+        filterParams={filterParams}
+        setSortParams={setSortParams}
+        setFilterParams={setFilterParams}
+      >
+        <Tr>
+          <Td colSpan={columns.length} p={2}>
+            <Center minW="100%">
+              <IconButton
+                icon={<AddIcon />}
+                aria-label="add record"
+                isLoading={tableQuery.isLoading}
+                onClick={onOpen}
+              />
+            </Center>
+          </Td>
+        </Tr>
+      </StyledTable>
+      <StyledTablePagination
+        my={4}
+        meta={meta}
+        queryParams={queryParams}
+        setPage={setPage}
+        setLimit={setLimit}
+      />
       {isOpen && (
         <Markup
           isOpen={isOpen}
@@ -102,7 +102,7 @@ const Markups = () => {
           onMarkupSave={onSave}
         />
       )}
-    </Box>
+    </TablePageLayout>
   );
 };
 

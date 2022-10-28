@@ -7,7 +7,7 @@ import {
   Tr,
   useDisclosure,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 import UsersApi from "../../../api/users-api";
 import StyledTable from "../../../components/table/StyledTable";
@@ -22,6 +22,8 @@ import tableColumns from "./table-columns";
 import { RoleDto } from "../../../models/role";
 import RolesApi from "../../../api/roles-api";
 import { AddIcon } from "@chakra-ui/icons";
+import TablePageLayout from "../../../layout/TablePageLayout";
+import StyledTableHeader from "../../../components/table/StyledTableHeader";
 
 const Roles = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -59,51 +61,37 @@ const Roles = () => {
   };
 
   return (
-    <Box as="section" py="12">
-      <Box maxW={{ base: "xl", md: "7xl" }} mx="auto">
-        <Box overflowX="auto">
-          <Heading size="lg" mb="2">
-            <div>Roles</div>
-          </Heading>
-          <StyledTable
-            columns={columns}
-            data={data}
-            isLoading={tableQuery.isLoading}
-            filterParams={filterParams}
-            setSortParams={setSortParams}
-            setFilterParams={setFilterParams}
-          >
-            <Tr>
-              <Td colSpan={columns.length} p={2}>
-                <Center minW="100%">
-                  <IconButton
-                    icon={<AddIcon />}
-                    aria-label="add record"
-                    isLoading={tableQuery.isLoading}
-                    onClick={onOpen}
-                  />
-                </Center>
-              </Td>
-            </Tr>
-          </StyledTable>
-          <StyledTablePagination
-            my={4}
-            meta={meta}
-            queryParams={queryParams}
-            setPage={setPage}
-            setLimit={setLimit}
-          />
-        </Box>
-      </Box>
-      {/*{isOpen && (*/}
-      {/*  <User*/}
-      {/*    isOpen={isOpen}*/}
-      {/*    activeId={activeId}*/}
-      {/*    onClose={onClose}*/}
-      {/*    onUserSave={onUserSave}*/}
-      {/*  />*/}
-      {/*)}*/}
-    </Box>
+    <TablePageLayout>
+      <StyledTableHeader title="Roles" />
+      <StyledTable
+        columns={columns}
+        data={data}
+        isLoading={tableQuery.isLoading}
+        filterParams={filterParams}
+        setSortParams={setSortParams}
+        setFilterParams={setFilterParams}
+      >
+        <Tr>
+          <Td colSpan={columns.length} p={2}>
+            <Center minW="100%">
+              <IconButton
+                icon={<AddIcon />}
+                aria-label="add record"
+                isLoading={tableQuery.isLoading}
+                onClick={onOpen}
+              />
+            </Center>
+          </Td>
+        </Tr>
+      </StyledTable>
+      <StyledTablePagination
+        my={4}
+        meta={meta}
+        queryParams={queryParams}
+        setPage={setPage}
+        setLimit={setLimit}
+      />
+    </TablePageLayout>
   );
 };
 

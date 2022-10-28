@@ -20,7 +20,7 @@ const generateImage = async ({ filePath, outputPath, callbackUrl }) => {
     "-i",
     filePath,
     "-filter_complex",
-    "color=c=#F0EBCE[color];aformat=channel_layouts=mono,showwavespic=s=4000x720:colors=#632626[wave];[color][wave]scale2ref[bg][fg];[bg][fg]overlay=format=auto",
+    "color=c=#F0EBCE[color];aformat=channel_layouts=mono,showwavespic=s=6000x720:colors=#632626[wave];[color][wave]scale2ref[bg][fg];[bg][fg]overlay=format=auto",
     "-frames:v",
     "1",
     outputPath,

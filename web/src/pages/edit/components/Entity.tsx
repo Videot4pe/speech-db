@@ -1,9 +1,14 @@
 import Card from "../../auth/components/Card";
 import { Button, Flex, FormControl, Input, useToast } from "@chakra-ui/react";
-import { AllophoneProperties, EntityDto, WordProperties } from "../../../models/markup";
+import {
+  AllophoneProperties,
+  EntityDto,
+  WordProperties,
+} from "../../../models/markup";
 import { validate } from "../composables/validate-entity";
 import { Props, Select as ChakraReactSelect } from "chakra-react-select";
 import { useEffect } from "react";
+import { useToastHandler } from "../../../utils/toast-handler";
 
 export interface SelectOption {
   label: string;
@@ -20,9 +25,12 @@ export interface EntityProps {
   stressOptions: SelectOption[];
 }
 
-const Select = ({displayIf, ...props}: Props<SelectOption> & { displayIf?: boolean }) => {
+const Select = ({
+  displayIf,
+  ...props
+}: Props<SelectOption> & { displayIf?: boolean }) => {
   return (
-    <div style={{ display: displayIf !== false ? 'block' : 'none' }}>
+    <div style={{ display: displayIf !== false ? "block" : "none" }}>
       <ChakraReactSelect {...props} />
     </div>
   );
@@ -36,38 +44,40 @@ const Entity = ({
   languageOptions,
   phonemeOptions,
 }: EntityProps) => {
-  const toast = useToast();
+  const toastHandler = useToastHandler();
 
-  function validateAndSave() {
+  const validateAndSave = async () => {
     const error = validate(entity);
     if (error) {
-      toast({
-        status: 'error',
-        position: 'top',
-        title: 'Ошибка',
-        description: error,
-      })
+      toastHandler.error("Ошибка", error);
     } else {
-      onSave()
+      try {
+        await onSave();
+        toastHandler.success("", "Успешно сохранено");
+      } catch (error) {
+        toastHandler.error("Ошибка", error);
+      }
     }
-  }
+  };
 
   const onEntityPropertySet = (key: string, value: any) => {
     const properties: any = entity.properties;
     properties[key] = value;
-    onEntitySet('properties', properties);
+    onEntitySet("properties", properties);
   };
-  const displayIf = (condition: boolean) => condition ? 'block' : 'none';
+  const displayIf = (condition: boolean) => (condition ? "block" : "none");
 
   const hasType = !!entity.type;
-  const isAllophone = entity.type === 'Allophone';
-  const isWord = entity.type === 'Word';
-  const isSentence = entity.type === 'Sentence';
+  const isAllophone = entity.type === "Allophone";
+  const isWord = entity.type === "Word";
+  const isSentence = entity.type === "Sentence";
   let isVowel = false;
 
   useEffect(() => {
-    const matchingPhoneme = phonemeOptions.find(p => p.label === entity.value) as any
-    isVowel = !!matchingPhoneme?.isVowel
+    const matchingPhoneme = phonemeOptions.find(
+      (p) => p.label === entity.value
+    ) as any;
+    isVowel = !!matchingPhoneme?.isVowel;
   }, [entity]);
 
   return (
@@ -78,7 +88,7 @@ const Entity = ({
             displayIf={isAllophone}
             placeholder="Фонема"
             options={phonemeOptions}
-            defaultValue={phonemeOptions.find(o => o.value === entity.value)}
+            defaultValue={phonemeOptions.find((o) => o.value === entity.value)}
             onChange={(option: any) => onEntitySet("value", option?.label)}
           />
           <Input
@@ -91,37 +101,49 @@ const Entity = ({
             displayIf={isAllophone}
             placeholder="Ударение"
             options={stressOptions}
-            defaultValue={stressOptions.find(o => o.value === (entity.properties as AllophoneProperties).stressId)}
-            onChange={(option: any) => onEntityPropertySet("stressId", option?.value)}
+            defaultValue={stressOptions.find(
+              (o) =>
+                o.value === (entity.properties as AllophoneProperties).stressId
+            )}
+            onChange={(option: any) =>
+              onEntityPropertySet("stressId", option?.value)
+            }
           />
           <Select
             displayIf={isWord}
             placeholder="Язык"
             options={languageOptions}
-            defaultValue={languageOptions.find(o => o.value === (entity.properties as WordProperties).languageId)}
-            onChange={(option: any) => onEntityPropertySet("languageId", option?.value)}
+            defaultValue={languageOptions.find(
+              (o) =>
+                o.value === (entity.properties as WordProperties).languageId
+            )}
+            onChange={(option: any) =>
+              onEntityPropertySet("languageId", option?.value)
+            }
           />
           <Input
             display={displayIf(isWord)}
             placeholder="Диалект"
             value={(entity.properties as WordProperties).dialect}
-            onChange={(event) => onEntityPropertySet("dialect", event.target.value)}
+            onChange={(event) =>
+              onEntityPropertySet("dialect", event.target.value)
+            }
           />
           <Select
             displayIf={!hasType}
             placeholder="Выберите тип сущности"
             options={[
-              { label: 'Аллофон', value: 'Allophone' },
-              { label: 'Слово', value: 'Word' },
-              { label: 'Предложение', value: 'Sentence' },
+              { label: "Аллофон", value: "Allophone" },
+              { label: "Слово", value: "Word" },
+              { label: "Предложение", value: "Sentence" },
             ]}
             onChange={(option: any) => onEntitySet("type", option?.value)}
           />
         </Flex>
       </FormControl>
-      <Flex justifyContent='center'>
+      <Flex justifyContent="center">
         <Button mt={4} onClick={validateAndSave}>
-          { entity.type ? 'Сохранить' : 'Выбрать' }
+          {entity.type ? "Сохранить" : "Выбрать"}
         </Button>
       </Flex>
     </Card>

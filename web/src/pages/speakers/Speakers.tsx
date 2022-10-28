@@ -1,14 +1,16 @@
 import { AddIcon } from "@chakra-ui/icons";
 import {
   Box,
+  Button,
   Center,
+  Flex,
   Heading,
   IconButton,
   Td,
   Tr,
   useDisclosure,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 import SpeakersApi from "../../api/speakers-api";
 import StyledTable from "../../components/table/StyledTable";
@@ -22,6 +24,8 @@ import { useErrorHandler } from "../../utils/handle-get-error";
 
 import Speaker from "./components/Speaker";
 import speakersTableColumns from "./speakers-table-columns";
+import TablePageLayout from "../../layout/TablePageLayout";
+import StyledTableHeader from "../../components/table/StyledTableHeader";
 
 const Speakers = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -60,42 +64,27 @@ const Speakers = () => {
   };
 
   return (
-    <Box as="section" py="12">
-      <Box maxW={{ base: "xl", md: "7xl" }} mx="auto">
-        <Box overflowX="auto">
-          <Heading size="lg" mb="2">
-            <div>Speakers</div>
-          </Heading>
-          <StyledTable
-            columns={columns}
-            data={data}
-            isLoading={tableQuery.isLoading}
-            filterParams={filterParams}
-            setSortParams={setSortParams}
-            setFilterParams={setFilterParams}
-          >
-            <Tr>
-              <Td colSpan={columns.length} p={2}>
-                <Center minW="100%">
-                  <IconButton
-                    icon={<AddIcon />}
-                    aria-label="add speaker"
-                    isLoading={tableQuery.isLoading}
-                    onClick={onOpen}
-                  />
-                </Center>
-              </Td>
-            </Tr>
-          </StyledTable>
-          <StyledTablePagination
-            my={4}
-            meta={meta}
-            queryParams={queryParams}
-            setPage={setPage}
-            setLimit={setLimit}
-          />
-        </Box>
-      </Box>
+    <TablePageLayout>
+      <StyledTableHeader
+        title="Speakers"
+        onOpen={onOpen}
+        isLoading={tableQuery.isLoading}
+      />
+      <StyledTable
+        columns={columns}
+        data={data}
+        isLoading={tableQuery.isLoading}
+        filterParams={filterParams}
+        setSortParams={setSortParams}
+        setFilterParams={setFilterParams}
+      />
+      <StyledTablePagination
+        my={4}
+        meta={meta}
+        queryParams={queryParams}
+        setPage={setPage}
+        setLimit={setLimit}
+      />
       {isOpen && (
         <Speaker
           isOpen={isOpen}
@@ -104,7 +93,7 @@ const Speakers = () => {
           onSpeakerSave={onSpeakerSave}
         />
       )}
-    </Box>
+    </TablePageLayout>
   );
 };
 
