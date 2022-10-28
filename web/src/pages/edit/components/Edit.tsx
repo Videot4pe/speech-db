@@ -19,13 +19,13 @@ import {
   Transformer,
   Rect,
 } from "react-konva";
-import { createEmptyImage } from "./composables/createEmptyImage";
+import { createEmptyImage } from "../composables/createEmptyImage";
 import {
   mapEntityDtoToRectConfig,
   mapRectConfigToEntityDto,
   mapStagePositionToTime,
   mapTimeToStagePosition,
-} from "./composables/mapper";
+} from "../composables/mapper";
 
 interface IEdit {
   width?: number;
