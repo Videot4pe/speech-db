@@ -1,6 +1,6 @@
 import Card from "../../auth/components/Card";
 import { Button, Flex, FormControl, Input, useToast } from "@chakra-ui/react";
-import { EntityDto, WordProperties } from "../../../models/markup";
+import { AllophoneProperties, EntityDto, WordProperties } from "../../../models/markup";
 import { validate } from "../composables/validate-entity";
 import { Props, Select as ChakraReactSelect } from "chakra-react-select";
 import { useEffect } from "react";
@@ -65,11 +65,9 @@ const Entity = ({
   const isSentence = entity.type === 'Sentence';
   let isVowel = false;
 
-  console.log('languageOptions', languageOptions);
   useEffect(() => {
     const matchingPhoneme = phonemeOptions.find(p => p.label === entity.value) as any
     isVowel = !!matchingPhoneme?.isVowel
-    console.log('isVowel:', isVowel);
   }, [entity]);
 
   return (
@@ -80,6 +78,7 @@ const Entity = ({
             displayIf={isAllophone}
             placeholder="Фонема"
             options={phonemeOptions}
+            defaultValue={stressOptions.find(o => o.value === entity.value)}
             onChange={(option: any) => onEntitySet("value", option?.label)}
           />
           <Input
@@ -92,13 +91,15 @@ const Entity = ({
             displayIf={isAllophone}
             placeholder="Ударение"
             options={stressOptions}
-            onChange={(option: any) => onEntityPropertySet("stressId", option?.id)}
+            defaultValue={stressOptions.find(o => o.value === (entity.properties as AllophoneProperties).stressId)}
+            onChange={(option: any) => onEntityPropertySet("stressId", option?.value)}
           />
           <Select
             displayIf={isWord}
             placeholder="Язык"
             options={languageOptions}
-            onChange={(option: any) => onEntityPropertySet("languageId", option?.id)}
+            defaultValue={languageOptions.find(o => o.value === (entity.properties as WordProperties).languageId)}
+            onChange={(option: any) => onEntityPropertySet("languageId", option?.value)}
           />
           <Input
             display={displayIf(isWord)}
