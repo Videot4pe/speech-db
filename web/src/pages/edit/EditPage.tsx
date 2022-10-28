@@ -116,9 +116,13 @@ const EditPage = () => {
         setAudioURL(payload.record);
       })
       .catch(errorHandler);
+  }, []);
 
+  useEffect(() => {
     setPhonemeOptions(phonemes?.map(p => { return { label: p.value, value: p.value, isVowel: p.isVowel } }) ?? [])
+  }, [phonemes]);
 
+  useEffect(() => {
     const neededLanguages = languages?.filter(
       lang => [
         'русский',
@@ -128,10 +132,8 @@ const EditPage = () => {
       ]
       .includes(lang.name)
     ) ?? []
-    console.log('languages:', languages);
-    console.log('neededLanguages:', neededLanguages);
-    setLanguageOptions(neededLanguages.map(lang => { return { label: lang.name, value: lang.id } }))
-  }, []);
+    setLanguageOptions(neededLanguages.map(lang => { return { label: lang.name, value: lang.id } }));
+  }, [languages]);
 
   useEffect(() => {
     if (currentTime && beginTime && currentTime <= beginTime) {

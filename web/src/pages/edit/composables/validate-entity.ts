@@ -1,14 +1,14 @@
 import { AllophoneProperties, EntityDto, SentenceProperties, WordProperties } from "models/markup";
 
 function validateAllophone(properties: AllophoneProperties) {
-  if (!properties.stressId) {
+  if (isNaN(properties.stressId)) {
     return 'Необходимо выбрать "Ударение"';
   }
   return '';
 }
 
 function validateWord(properties: WordProperties) {
-  if (!properties.languageId) {
+  if (isNaN(properties.languageId)) {
     return 'Необходимо выбрать "Язык"';
   }
   return '';
