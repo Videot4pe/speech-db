@@ -34,9 +34,10 @@ func NewUserStorage(ctx context.Context, client postgresql.Client, logger *loggi
 }
 
 const (
-	scheme      = "public"
-	table       = "users"
-	tokensTable = "tokens"
+	scheme          = "public"
+	table           = "users"
+	tokensTable     = "tokens"
+	defaultUserRole = 0
 )
 
 func (s *Storage) queryLogger(sql, table string, args []interface{}) *logging.Logger {
@@ -106,14 +107,12 @@ func (s *Storage) List(filters []*db.Filter, pagination *db.Pagination, sorts ..
 }
 
 func (s *Storage) Create(user User, isOAuth bool) (uint16, string, error) {
+	// Явно устанавливаем роль пользователя по-умолчанию
+	user.Role = defaultUserRole
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	lastInsertId := uint16(0)
 	token := ""
-
-	if user.Role == 0 {
-		// TODO FIX
-		user.Role = 1
-	}
 
 	query := s.queryBuilder.Insert(table).
 		Columns("email", "username", "name", "surname", "patronymic", "role_id", "is_active", "is_verified", "is_oauth", "password").
