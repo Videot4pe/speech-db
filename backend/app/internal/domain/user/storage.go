@@ -6,6 +6,7 @@ import (
 	"backend/pkg/logging"
 	"backend/pkg/utils"
 	"context"
+	"errors"
 	"fmt"
 	"math"
 
@@ -16,6 +17,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 )
+
+var ErrNoRows = errors.New("no rows in result set")
 
 type Storage struct {
 	queryBuilder sq.StatementBuilderType
@@ -222,6 +225,12 @@ func (s *Storage) GetByCredentials(email, password string) (uint16, bool, []stri
 	row := s.client.QueryRow(s.ctx, sql, args...)
 
 	if err = row.Scan(&user.Id, &user.Password, &user.IsActive, &user.IsVerified, (*pq.StringArray)(&user.Permissions)); err != nil {
+		logger.Info("err:", err)
+
+		if err.Error() == ErrNoRows.Error() {
+			return 0, false, nil, fmt.Errorf("User was not found")
+		}
+
 		err = db.ErrScan(err)
 		logger.Error(err)
 		return 0, false, nil, err
