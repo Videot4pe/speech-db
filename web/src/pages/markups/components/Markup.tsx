@@ -104,6 +104,7 @@ const Markup = ({ onClose, onMarkupSave, isOpen, activeId }: MarkupProps) => {
               defaultOptions
               loadOptions={fetchRecords}
               onChange={onRecordSelect}
+              menuPosition='fixed'
             />
           </FormControl>
           <FormControl my={12} id="record">
