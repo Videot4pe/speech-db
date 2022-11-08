@@ -75,20 +75,7 @@ const Markups = () => {
         filterParams={filterParams}
         setSortParams={setSortParams}
         setFilterParams={setFilterParams}
-      >
-        <Tr>
-          <Td colSpan={columns.length} p={2}>
-            <Center minW="100%">
-              <IconButton
-                icon={<AddIcon />}
-                aria-label="add record"
-                isLoading={tableQuery.isLoading}
-                onClick={onOpen}
-              />
-            </Center>
-          </Td>
-        </Tr>
-      </StyledTable>
+      />
       <StyledTablePagination
         my={4}
         meta={meta}
