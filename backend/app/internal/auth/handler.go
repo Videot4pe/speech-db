@@ -300,7 +300,12 @@ func (h *Handler) Activate(w http.ResponseWriter, r *http.Request, ps httprouter
 			}
 		}
 
-		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Activation error: ")
+		if auth.IsError(err, auth.ErrInvalidToken) {
+			http.Redirect(w, r, fmt.Sprintf("%v/activation-link-invalid", h.cfg.Frontend.ServerIP), http.StatusTemporaryRedirect)
+			return
+		}
+
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Activation error: "+err.Error())
 		return
 	}
 	http.Redirect(w, r, fmt.Sprintf("%v/signin", h.cfg.Frontend.ServerIP), http.StatusTemporaryRedirect)

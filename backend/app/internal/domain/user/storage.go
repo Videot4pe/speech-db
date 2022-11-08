@@ -300,6 +300,31 @@ func (s *Storage) Update(id uint16, user User) error {
 }
 
 func (s *Storage) Activate(token string) (error, uint16, string) {
+	sql, args, err := s.queryBuilder.
+		Select("token").
+		From(tokensTable).
+		Where(sq.And{
+			sq.Eq{"token": token},
+			sq.Eq{"token_type": "ACTIVATE"},
+		}).
+		ToSql()
+
+	logger := s.queryLogger(sql, table, args)
+	if err != nil {
+		err = db.ErrCreateQuery(err)
+		logger.Error(err)
+		return err, 0, ""
+	}
+
+	existingToken := ""
+	logger.Trace("Checking activation token")
+	row := s.client.QueryRow(s.ctx, sql, args...)
+	if err = row.Scan(&existingToken); err != nil {
+		if err.Error() == ErrNoRows.Error() {
+			return auth.ErrInvalidToken, 0, ""
+		}
+	}
+
 	_, linkJwt, err := auth.Decode(&auth.LinkJwt{}, token)
 
 	if err != nil {
@@ -328,8 +353,8 @@ func (s *Storage) Activate(token string) (error, uint16, string) {
 		Set("is_active", true).
 		Where(sq.Eq{"id": userId})
 
-	sql, args, err := query.ToSql()
-	logger := s.queryLogger(sql, table, args)
+	sql, args, err = query.ToSql()
+	logger = s.queryLogger(sql, table, args)
 	if err != nil {
 		err = db.ErrCreateQuery(err)
 		logger.Error(err)
