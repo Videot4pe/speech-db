@@ -173,15 +173,30 @@ func (s *Storage) GetById(id uint16) (*User, error) {
 
 	var user User
 
-	query := s.queryBuilder.Select("u.id", "u.email", "u.username", "u.name", "u.surname", "u.patronymic", "u.role_id", "u.is_active", "u.avatar_id", "array_agg(p.name)").
+	query := s.queryBuilder.
+		Select(
+			"u.id",
+			"u.email",
+			"u.username",
+			"u.name",
+			"u.surname",
+			"u.patronymic",
+			"u.role_id",
+			"u.is_active",
+			"u.avatar_id",
+			"array_remove(array_agg(p.name), NULL) AS tags",
+		).
 		From("users as u").
 		Where(sq.Eq{"u.id": id}).
-		Join("roles as r on r.id = u.role_id").
-		Join("roles_permissions as rp on rp.role_id = r.id").
-		Join("permissions as p on rp.permission_id = p.id").
+		JoinClause("FULL JOIN roles as r on r.id = u.role_id").
+		JoinClause("FULL JOIN roles_permissions as rp on rp.role_id = r.id").
+		JoinClause("FULL JOIN permissions as p on rp.permission_id = p.id").
 		GroupBy("u.id")
 
 	sql, args, err := query.ToSql()
+
+	s.logger.Infof("%\n%v\n", sql)
+
 	logger := s.queryLogger(sql, table, args)
 	if err != nil {
 		err = db.ErrCreateQuery(err)
@@ -205,12 +220,19 @@ func (s *Storage) GetByCredentials(email, password string) (uint16, bool, []stri
 
 	var user User
 
-	query := s.queryBuilder.Select("u.id", "u.password", "u.is_active", "u.is_verified", "array_agg(p.name)").
+	query := s.queryBuilder.
+		Select(
+			"u.id",
+			"u.password",
+			"u.is_active",
+			"u.is_verified",
+			"array_remove(array_agg(p.name), NULL) AS tags",
+		).
 		From("users as u").
 		Where(sq.Eq{"u.email": email}).
-		Join("roles as r on r.id = u.role_id").
-		Join("roles_permissions as rp on rp.role_id = r.id").
-		Join("permissions as p on rp.permission_id = p.id").
+		JoinClause("FULL JOIN roles as r on r.id = u.role_id").
+		JoinClause("FULL JOIN roles_permissions as rp on rp.role_id = r.id").
+		JoinClause("FULL JOIN permissions as p on rp.permission_id = p.id").
 		GroupBy("u.id")
 
 	sql, args, err := query.ToSql()
@@ -277,13 +299,27 @@ func (s *Storage) Update(id uint16, user User) error {
 	return nil
 }
 
-func (s *Storage) Activate(token string) error {
+func (s *Storage) Activate(token string) (error, uint16, string) {
 	_, linkJwt, err := auth.Decode(&auth.LinkJwt{}, token)
 
 	if err != nil {
+		if auth.IsError(err, auth.ErrExpiredToken) {
+			userId, err := s.getUserIdByToken(token, "ACTIVATE")
+			if err != nil {
+				return err, 0, ""
+			}
+
+			s.removeToken(token, "ACTIVATE")
+			newToken, err := s.createActivationToken(userId)
+			if err == nil {
+				return auth.ErrExpiredToken, userId, newToken
+			}
+			return err, 0, ""
+		}
+
 		s.logger.Error("Activation token decode error\n", err)
 		s.removeToken(token, "ACTIVATE")
-		return err
+		return err, 0, ""
 	}
 
 	userId := linkJwt.Data.Id
@@ -297,7 +333,7 @@ func (s *Storage) Activate(token string) error {
 	if err != nil {
 		err = db.ErrCreateQuery(err)
 		logger.Error(err)
-		return err
+		return err, 0, ""
 	}
 
 	logger.Trace("Activating user account")
@@ -305,12 +341,12 @@ func (s *Storage) Activate(token string) error {
 
 	if err != nil {
 		logger.Error(err)
-		return err
+		return err, 0, ""
 	}
 
 	s.removeToken(token, "ACTIVATE")
 
-	return nil
+	return nil, 0, ""
 }
 
 func (s *Storage) Delete(id uint16) error {
@@ -570,4 +606,36 @@ func (s *Storage) removeTokenByUserId(user_id uint16, tokenType string) {
 	if err != nil {
 		logger.Error(err)
 	}
+}
+
+func (s *Storage) createActivationToken(userId uint16) (string, error) {
+	jwt := auth.LinkJwt{
+		Data: auth.LinkJwtData{
+			Id: userId,
+		},
+	}
+
+	token, err := auth.Encode(&jwt, 10)
+
+	tokenQuery := s.queryBuilder.Insert(tokensTable).
+		Columns("user_id", "token", "token_type").
+		Values(userId, token, "ACTIVATE")
+
+	sql, args, err := tokenQuery.ToSql()
+	logger := s.queryLogger(sql, tokensTable, args)
+	if err != nil {
+		err = db.ErrCreateQuery(err)
+		logger.Error(err)
+		return "", err
+	}
+
+	logger.Trace("Creating activation token")
+	_, err = s.client.Exec(s.ctx, sql, args...)
+
+	if err != nil {
+		logger.Error(err)
+		return "", err
+	}
+
+	return token, err
 }
