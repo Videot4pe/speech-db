@@ -41,7 +41,7 @@ func (s *Storage) queryLogger(sql, table string, args []interface{}) *logging.Lo
 	})
 }
 
-func (s *Storage) All(params *db.Params) ([]Markup, *utils.Meta, error) {
+func (s *Storage) All(params *db.Params, userId uint16) ([]Markup, *utils.Meta, error) {
 	query := s.queryBuilder.Select(
 		"m.id",
 		"f.path",
@@ -49,6 +49,7 @@ func (s *Storage) All(params *db.Params) ([]Markup, *utils.Meta, error) {
 		"m.created_at",
 		"u.email",
 	).From(fmt.Sprintf("%v as m", table)).
+		Where(sq.Eq{"m.created_by": userId}).
 		Join("records as r on r.id = m.record_id").
 		Join("files as f on f.id = r.file_id").
 		LeftJoin("files as fi on fi.id = r.image_id").
@@ -133,13 +134,14 @@ func (s *Storage) Create(markup NewMarkup) (uint16, error) {
 	return lastInsertId, nil
 }
 
-func (s *Storage) GetById(id uint16) (*Markup, error) {
+func (s *Storage) GetById(id uint16, userId uint16) (*Markup, error) {
 
 	var markup Markup
 
 	query := s.queryBuilder.Select("m.id", "f.path", "fi.path", "m.created_at", "u.email").
 		From(fmt.Sprintf("%v as m", table)).
 		Where(sq.Eq{"m.id": id}).
+		Where(sq.Eq{"m.created_by": userId}).
 		Join("records as r on r.id = m.record_id").
 		Join("files as f on f.id = r.file_id").
 		LeftJoin("files as fi on fi.id = r.image_id").
@@ -165,11 +167,12 @@ func (s *Storage) GetById(id uint16) (*Markup, error) {
 	return &markup, nil
 }
 
-func (s *Storage) Update(id uint16, markup NewMarkup) error {
+func (s *Storage) Update(id uint16, markup NewMarkup, userId uint16) error {
 
 	query := s.queryBuilder.Update(table).
 		Set("record_id", markup.Record).
-		Where(sq.Eq{"id": id})
+		Where(sq.Eq{"id": id}).
+		Where(sq.Eq{"created_by": userId})
 
 	sql, args, err := query.ToSql()
 	logger := s.queryLogger(sql, table, args)
