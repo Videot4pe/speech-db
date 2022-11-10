@@ -61,6 +61,7 @@ func (h *Handler) Register(router *httprouter.Router) {
 func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	// TODO self filter
+	userId := r.Context().Value("userId").(uint16)
 
 	pagination, err := model.NewPagination(r)
 	sorts, err := model.NewSorts(r)
@@ -68,7 +69,7 @@ func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 
 	params := model.NewParams(filters, sorts, pagination)
 
-	list, meta, err := h.storage.All(params)
+	list, meta, err := h.storage.All(params, userId)
 	if err != nil {
 		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -82,11 +83,12 @@ func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 
 func (h *Handler) View(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id, err := strconv.ParseUint(ps.ByName("markupId"), 10, 64)
+	userId := r.Context().Value("userId").(uint16)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	markup, err := h.storage.GetById(uint16(id))
+	markup, err := h.storage.GetById(uint16(id), userId)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 		return
@@ -121,7 +123,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	id := r.Context().Value("userId").(uint16)
-
+	userId := r.Context().Value("userId").(uint16)
 	var markup NewMarkup
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
@@ -135,7 +137,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 		return
 	}
 
-	err = h.storage.Update(uint16(id), markup)
+	err = h.storage.Update(uint16(id), markup, userId)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
