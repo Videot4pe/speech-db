@@ -32,18 +32,22 @@ const SigninForm = (props: HTMLChakraProps<"form">) => {
   const location = useLocation();
   // @ts-ignore
   const from = location.state?.from || "/";
+  const [loading, setLoading] = useState(false);
 
   return (
     <chakra.form
       onSubmit={(e) => {
         e.preventDefault();
+
+        setLoading(true);
         AuthApi.signin(user)
           .then((payload) => {
             setJwt(payload.token);
             setRefreshJwt(payload.refreshToken);
             navigate(from, { replace: true });
           })
-          .catch(errorHandler);
+          .catch(errorHandler)
+          .finally(() => setLoading(true));
       }}
       {...props}
     >

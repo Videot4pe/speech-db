@@ -21,6 +21,8 @@ const Home = lazy(() => import("../pages/home/Home"));
 const Markups = lazy(() => import("../pages/markups/Markups"));
 const Markup = lazy(() => import("../pages/markup/Markup"));
 const EditPage = lazy(() => import("../pages/edit/EditPage"));
+const ActivationLinkExpired = lazy(() => import("../pages/auth/ActivationLinkExpired"));
+const ActivationLinkInvalid = lazy(() => import("../pages/auth/ActivationLinkInvalid"));
 
 export interface IRoutes extends PathRouteProps {
   permissions?: string[];
@@ -46,6 +48,14 @@ const routes: Array<IRoutes> = [
   {
     path: "/change-password",
     element: <ChangePassword />,
+  },
+  {
+    path: "/activation-link-expired",
+    element: <ActivationLinkExpired />,
+  },
+  {
+    path: "/activation-link-invalid",
+    element: <ActivationLinkInvalid />,
   },
   {
     path: "/",

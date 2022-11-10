@@ -24,11 +24,12 @@ import {
 
 import type { IRoutes } from "./routes";
 import routes from "./routes";
+import * as Sentry from "@sentry/react";
 
 const Routings = () => {
   const [, setPermissions] = useAtom(permissionsAtom);
   const [, setRoles] = useAtom(rolesAtom);
-  const [, setSelf] = useAtom(selfAtom);
+  const [self, setSelf] = useAtom(selfAtom);
   const [, setCollections] = useAtom(collectionsAtom);
   const [loggedIn] = useAtom(isLoggedIn);
 
@@ -40,6 +41,16 @@ const Routings = () => {
       setCollections().catch(console.error);
     }
   }, [loggedIn]);
+
+  useEffect(() => {
+    if (self) {
+      Sentry.setUser({
+        id: self.id,
+        email: self.email,
+        username: self.username,
+      });
+    }
+  }, [self]);
 
   return (
     <Routes>

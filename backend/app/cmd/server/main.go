@@ -16,10 +16,7 @@ func main() {
 	logger := logging.GetLogger(cfg.AppConfig.LogLevel)
 
 	err := sentry.Init(sentry.ClientOptions{
-		Dsn: cfg.AppConfig.SentryURL,
-		// Set TracesSampleRate to 1.0 to capture 100%
-		// of transactions for performance monitoring.
-		// We recommend adjusting this value in production,
+		Dsn:              cfg.AppConfig.SentryURL,
 		TracesSampleRate: 1.0,
 	})
 	if err != nil {

@@ -279,18 +279,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 		return
 	}
 
-	cfg := config.GetConfig()
-
-	authMailerClient := GetMailerAuth(cfg, h.logger)
-	activationLink := fmt.Sprintf("%v/api/auth/activate/%v", cfg.Listen.ServerIP, token)
-
-	emailConfirmationParams := EmailConfirmationParams{
-		Name:  newUser.Name,
-		Email: newUser.Email,
-		Link:  activationLink,
-	}
-
-	err = authMailerClient.SendMail(newUser.Email, "Email confirmation", EmailConfirmationTemplate, emailConfirmationParams)
+	err = h.sendActivationLink(userId, token)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Mail error")
 		return
@@ -301,9 +290,22 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 
 func (h *Handler) Activate(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	hash := ps.ByName("hash")
-	err := h.storage.Activate(hash)
+	err, userId, newToken := h.storage.Activate(hash)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Activation error")
+		if auth.IsError(err, auth.ErrExpiredToken) {
+			err = h.sendActivationLink(userId, newToken)
+			if err == nil {
+				http.Redirect(w, r, fmt.Sprintf("%v/activation-link-expired", h.cfg.Frontend.ServerIP), http.StatusTemporaryRedirect)
+				return
+			}
+		}
+
+		if auth.IsError(err, auth.ErrInvalidToken) {
+			http.Redirect(w, r, fmt.Sprintf("%v/activation-link-invalid", h.cfg.Frontend.ServerIP), http.StatusTemporaryRedirect)
+			return
+		}
+
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Activation error: "+err.Error())
 		return
 	}
 	http.Redirect(w, r, fmt.Sprintf("%v/signin", h.cfg.Frontend.ServerIP), http.StatusTemporaryRedirect)
@@ -379,4 +381,26 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) sendActivationLink(userId uint16, token string) error {
+	user, err := h.storage.GetById(userId)
+	if err != nil {
+		return err
+	}
+
+	cfg := config.GetConfig()
+
+	authMailerClient := GetMailerAuth(cfg, h.logger)
+	activationLink := fmt.Sprintf("%v/api/auth/activate/%v", cfg.Listen.ServerIP, token)
+
+	emailConfirmationParams := EmailConfirmationParams{
+		Name:  user.Name,
+		Email: user.Email,
+		Link:  activationLink,
+	}
+
+	err = authMailerClient.SendMail(user.Email, "Email confirmation", EmailConfirmationTemplate, emailConfirmationParams)
+
+	return err
 }

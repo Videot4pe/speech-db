@@ -115,6 +115,7 @@ const Record = ({ onClose, onRecordSave, isOpen, activeId }: RecordProps) => {
               defaultOptions
               loadOptions={fetchSpeakers}
               onChange={onSpeakerSelect}
+              menuPosition='fixed'
             />
           </FormControl>
           <FormControl id="username">

@@ -25,12 +25,14 @@ const SignupForm = (props: HTMLChakraProps<"form">) => {
   const toast = useToast();
   const errorHandler = useErrorHandler();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   return (
     <chakra.form
       onSubmit={(e) => {
         e.preventDefault();
-        e.preventDefault();
+
+        setLoading(true);
         AuthApi.signup(user)
           .then(() => {
             toast({
@@ -40,7 +42,8 @@ const SignupForm = (props: HTMLChakraProps<"form">) => {
             });
             navigate("/signin");
           })
-          .catch(errorHandler);
+          .catch(errorHandler)
+          .finally(() => setLoading(true));
       }}
       {...props}
     >
@@ -64,7 +67,7 @@ const SignupForm = (props: HTMLChakraProps<"form">) => {
             setUser({ ...user, password: event.target.value })
           }
         />
-        <Button type="submit" colorScheme="blue" size="lg" fontSize="md">
+        <Button type="submit" colorScheme="blue" size="lg" fontSize="md" isLoading={loading}>
           Sign up
         </Button>
       </Stack>

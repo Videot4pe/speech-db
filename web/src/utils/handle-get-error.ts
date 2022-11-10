@@ -2,6 +2,7 @@ import { useToast } from "@chakra-ui/react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import type { JsonErrorResponse } from "./json-api-document";
+import * as Sentry from "@sentry/react";
 
 export const useErrorHandler = () => {
   const toast = useToast();
@@ -9,6 +10,7 @@ export const useErrorHandler = () => {
   const location = useLocation();
 
   return (e: JsonErrorResponse) => {
+    Sentry.captureException(e);
     toast({
       title: e.statusText,
       description: e.data.error.title,
