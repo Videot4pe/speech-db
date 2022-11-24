@@ -25,9 +25,12 @@ func extractToken(r *http.Request) (bearer string) {
 }
 
 func isAllowed(permissions []string, claims *AuthJwt) bool {
+	// return (permissions == nil ||
+	// 	len(permissions) == 0 ||
+	// 	len(lo.Intersect(permissions, claims.Data.Permissions)) > 0)
 	return !(permissions != nil &&
 		len(permissions) != 0 &&
-		len(lo.Intersect[string](permissions, claims.Data.Permissions)) == 0)
+		len(lo.Intersect(permissions, claims.Data.Permissions)) == 0)
 }
 
 func RequireAuth(next httprouter.Handle, permissions []string) httprouter.Handle {
@@ -48,6 +51,7 @@ func RequireAuth(next httprouter.Handle, permissions []string) httprouter.Handle
 			return
 		}
 		r = r.WithContext(context.WithValue(r.Context(), "userId", claims.Data.Id))
+		r = r.WithContext(context.WithValue(r.Context(), "permissions", claims.Data.Permissions))
 		next(w, r, ps)
 	}
 }

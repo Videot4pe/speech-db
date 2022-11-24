@@ -8,10 +8,11 @@ import (
 	"backend/pkg/utils"
 	"context"
 	"encoding/json"
-	"github.com/julienschmidt/httprouter"
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type Handler struct {
@@ -36,8 +37,8 @@ func NewSpeakersHandler(ctx context.Context, storage *Storage, logger *logging.L
 func (h *Handler) Register(router *httprouter.Router) {
 	router.GET(speakersURL, auth.RequireAuth(h.All, nil))
 	router.GET(speakerURL, auth.RequireAuth(h.View, nil))
-	router.POST(speakersURL, auth.RequireAuth(h.Create, []string{roles.EditSpeakers}))
-	router.PATCH(speakerURL, auth.RequireAuth(h.Update, []string{roles.EditSpeakers}))
+	router.POST(speakersURL, auth.RequireAuth(h.Create, []string{roles.CreateSpeakers}))
+	router.PATCH(speakerURL, auth.RequireAuth(h.Update, []string{roles.UpdateSpeakers, roles.UpdateAllSpeakers}))
 }
 
 func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

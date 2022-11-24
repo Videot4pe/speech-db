@@ -9,6 +9,7 @@ import (
 	"math"
 
 	db "backend/pkg/client/postgresql/model"
+
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -41,7 +42,7 @@ func (s *Storage) queryLogger(sql, table string, args []interface{}) *logging.Lo
 	})
 }
 
-func (s *Storage) All(params *db.Params, userId uint16) ([]Markup, *utils.Meta, error) {
+func (s *Storage) All(params *db.Params, userId uint16, all bool) ([]Markup, *utils.Meta, error) {
 	query := s.queryBuilder.Select(
 		"m.id",
 		"f.path",
@@ -49,11 +50,14 @@ func (s *Storage) All(params *db.Params, userId uint16) ([]Markup, *utils.Meta, 
 		"m.created_at",
 		"u.email",
 	).From(fmt.Sprintf("%v as m", table)).
-		Where(sq.Eq{"m.created_by": userId}).
 		Join("records as r on r.id = m.record_id").
 		Join("files as f on f.id = r.file_id").
 		LeftJoin("files as fi on fi.id = r.image_id").
 		Join("users as u on u.id = m.created_by")
+
+	if !all {
+		query = query.Where(sq.Eq{"m.created_by": userId})
+	}
 
 	query = params.Apply(query)
 

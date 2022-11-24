@@ -12,11 +12,6 @@ type Permission struct {
 }
 
 const (
-	EditSpeakers = "EDIT_SPEAKERS"
-	EditMarkups  = "EDIT_MARKUPS"
-	EditRecords  = "EDIT_RECORDS"
-	EditUsers    = "EDIT_USERS"
-
 	CreateMarkups     = "CREATE_MARKUPS"
 	ReadAllMarkups    = "READ_ALL_MARKUPS"
 	ReadMarkups       = "READ_MARKUPS"
