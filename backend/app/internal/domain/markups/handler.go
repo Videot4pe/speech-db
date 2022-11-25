@@ -2,6 +2,7 @@ package markups
 
 import (
 	entity2 "backend/internal/domain/entity"
+	"backend/internal/domain/roles"
 	"backend/pkg/auth"
 	"backend/pkg/client/postgresql/model"
 	"backend/pkg/logging"
@@ -9,12 +10,14 @@ import (
 	websocket2 "backend/pkg/websocket"
 	"context"
 	"encoding/json"
-	"github.com/gorilla/websocket"
-	"github.com/julienschmidt/httprouter"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/websocket"
+	"github.com/julienschmidt/httprouter"
+	"github.com/samber/lo"
 )
 
 type Handler struct {
@@ -49,8 +52,18 @@ func NewHandler(ctx context.Context, storage *Storage, entityStorage *entity2.St
 	}
 }
 
+var getListUrlRoles = []string{
+	roles.CreateMarkups,
+	roles.ReadMarkups,
+	roles.ReadAllMarkups,
+	roles.UpdateMarkups,
+	roles.UpdateAllMarkups,
+	roles.DeleteMarkups,
+	roles.DeleteAllMarkups,
+}
+
 func (h *Handler) Register(router *httprouter.Router) {
-	router.GET(listURL, auth.RequireAuth(h.All, nil))
+	router.GET(listURL, auth.RequireAuth(h.All, getListUrlRoles))
 	router.GET(viewURL, auth.RequireAuth(h.View, nil))
 	router.POST(listURL, auth.RequireAuth(h.Create, []string{}))
 	router.POST(viewURL, auth.RequireAuth(h.Update, []string{}))
@@ -62,6 +75,9 @@ func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 
 	// TODO self filter
 	userId := r.Context().Value("userId").(uint16)
+	permissions := r.Context().Value("permissions").([]string)
+
+	all := len(lo.Intersect(permissions, []string{roles.ReadAllMarkups, roles.UpdateAllMarkups, roles.DeleteAllMarkups})) > 0
 
 	pagination, err := model.NewPagination(r)
 	sorts, err := model.NewSorts(r)
@@ -69,7 +85,7 @@ func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 
 	params := model.NewParams(filters, sorts, pagination)
 
-	list, meta, err := h.storage.All(params, userId)
+	list, meta, err := h.storage.All(params, userId, all)
 	if err != nil {
 		h.logger.Error(err)
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
