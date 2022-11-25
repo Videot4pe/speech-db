@@ -4,6 +4,7 @@ import (
 	waveform_generator "backend/internal/client/waveform-generator"
 	"backend/internal/config"
 	"backend/internal/domain/files"
+	"backend/internal/domain/roles"
 	"backend/pkg/auth"
 	"backend/pkg/client/postgresql/model"
 	"backend/pkg/client/s3"
@@ -50,8 +51,18 @@ func NewRecordsHandler(ctx context.Context, config *config.Config, storage *Stor
 	}
 }
 
+var getListUrlRoles = []string{
+	roles.CreateRecords,
+	roles.ReadRecords,
+	roles.ReadAllRecords,
+	roles.UpdateRecords,
+	roles.UpdateAllRecords,
+	roles.DeleteRecords,
+	roles.DeleteAllRecords,
+}
+
 func (h *Handler) Register(router *httprouter.Router) {
-	router.GET(listURL, auth.RequireAuth(h.All, nil))
+	router.GET(listURL, auth.RequireAuth(h.All, getListUrlRoles))
 	router.GET(viewURL, auth.RequireAuth(h.View, nil))
 	router.POST(listURL, auth.RequireAuth(h.Create, nil))
 	router.PATCH(listURL, auth.RequireAuth(h.Update, nil))

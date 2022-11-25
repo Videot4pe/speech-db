@@ -1,6 +1,6 @@
 import { lazy } from "react";
 import { FiFile, FiMousePointer, FiSpeaker, FiUser } from "react-icons/all";
-import { FiEdit, FiHome } from "react-icons/fi";
+import { FiHome } from "react-icons/fi";
 import type { IconType } from "react-icons/lib";
 import type { PathRouteProps } from "react-router-dom";
 
@@ -21,8 +21,12 @@ const Home = lazy(() => import("../pages/home/Home"));
 const Markups = lazy(() => import("../pages/markups/Markups"));
 const Markup = lazy(() => import("../pages/markup/Markup"));
 const EditPage = lazy(() => import("../pages/edit/EditPage"));
-const ActivationLinkExpired = lazy(() => import("../pages/auth/ActivationLinkExpired"));
-const ActivationLinkInvalid = lazy(() => import("../pages/auth/ActivationLinkInvalid"));
+const ActivationLinkExpired = lazy(
+  () => import("../pages/auth/ActivationLinkExpired")
+);
+const ActivationLinkInvalid = lazy(
+  () => import("../pages/auth/ActivationLinkInvalid")
+);
 
 export interface IRoutes extends PathRouteProps {
   permissions?: string[];
@@ -78,7 +82,7 @@ const routes: Array<IRoutes> = [
       </Layout>
     ),
     auth: true,
-    permissions: [Permission.EDIT_SPEAKERS],
+    permissions: [Permission.READ_ALL_SPEAKERS, Permission.READ_SPEAKERS],
   },
   {
     path: "/records",
@@ -90,7 +94,7 @@ const routes: Array<IRoutes> = [
       </Layout>
     ),
     auth: true,
-    permissions: [Permission.EDIT_RECORDS],
+    permissions: [Permission.READ_ALL_RECORDS, Permission.READ_RECORDS],
   },
   {
     path: "/markups",
@@ -102,6 +106,7 @@ const routes: Array<IRoutes> = [
       </Layout>
     ),
     auth: true,
+    permissions: [Permission.READ_ALL_MARKUPS, Permission.READ_MARKUPS],
   },
   {
     path: "/markups/:id",
@@ -114,6 +119,7 @@ const routes: Array<IRoutes> = [
       </Layout>
     ),
     auth: true,
+    permissions: [Permission.READ_ALL_MARKUPS, Permission.READ_MARKUPS],
   },
   {
     path: "/admin",
@@ -125,7 +131,7 @@ const routes: Array<IRoutes> = [
       </Layout>
     ),
     auth: true,
-    permissions: [Permission.EDIT_RECORDS],
+    permissions: [Permission.EX_MACHINA],
   },
   {
     path: "/profile",

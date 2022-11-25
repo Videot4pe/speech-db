@@ -34,8 +34,18 @@ func NewSpeakersHandler(ctx context.Context, storage *Storage, logger *logging.L
 	}
 }
 
+var getListUrlRoles = []string{
+	roles.CreateSpeakers,
+	roles.ReadSpeakers,
+	roles.ReadAllSpeakers,
+	roles.UpdateSpeakers,
+	roles.UpdateAllSpeakers,
+	roles.DeleteSpeakers,
+	roles.DeleteAllSpeakers,
+}
+
 func (h *Handler) Register(router *httprouter.Router) {
-	router.GET(speakersURL, auth.RequireAuth(h.All, nil))
+	router.GET(speakersURL, auth.RequireAuth(h.All, getListUrlRoles))
 	router.GET(speakerURL, auth.RequireAuth(h.View, nil))
 	router.POST(speakersURL, auth.RequireAuth(h.Create, []string{roles.CreateSpeakers}))
 	router.PATCH(speakerURL, auth.RequireAuth(h.Update, []string{roles.UpdateSpeakers, roles.UpdateAllSpeakers}))
