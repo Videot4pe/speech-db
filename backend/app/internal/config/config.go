@@ -66,7 +66,7 @@ type Config struct {
 		ServerIP string `env:"FRONTEND_SERVER_IP" env-default:"https://videot4pe.dev"`
 	}
 	WaveformGenerator struct {
-		IP string `env:"WAVEFORM_GENERATOR_IP" env-default:"http://waveform-generator"`
+		IP string `env:"WAVEFORM_GENERATOR_IP" env-default:"https://videot4pe.dev"`
 	}
 }
 
