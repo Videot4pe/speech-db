@@ -1,6 +1,8 @@
 FROM node:17
 
-RUN apt install ffmpeg
+RUN apt-get -y update
+RUN apt-get -y upgrade
+RUN apt-get install -y ffmpeg
 
 WORKDIR /app
 
