@@ -25,7 +25,7 @@ fastify.setErrorHandler(function (error, request, reply) {
 
 const start = async () => {
   try {
-    await fastify.listen({ port: 5006 });
+    await fastify.listen({ hostname: '0.0.0.0', port: 5006 });
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
