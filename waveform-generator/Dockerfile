@@ -1,6 +1,6 @@
 FROM node:17
 
-RUN sudo apt install FFmpeg
+RUN apt install FFmpeg
 
 WORKDIR /app
 
