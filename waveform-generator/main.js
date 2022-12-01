@@ -6,10 +6,14 @@ const fastify = require("fastify")({ logger: true });
 const errorCodes = require("fastify").errorCodes;
 
 fastify.post("/generate", async (request, reply) => {
-  console.log("\n\nGENERATE\n\n")
+  console.log("\n\nGENERATE\n\n");
 
   const { body } = request;
   generator.create(body);
+});
+
+fastify.get("/generate/heartbeat", async (request, reply) => {
+  return { status: "ok" };
 });
 
 fastify.setErrorHandler(function (error, request, reply) {
