@@ -6,7 +6,7 @@ const fastify = require("fastify")({ logger: true });
 const errorCodes = require("fastify").errorCodes;
 
 fastify.post("/generate", async (request, reply) => {
-  console.log("\n\nGENERATE\n\n");
+  console.log("\n\nGENERATE\n\n")
 
   const { body } = request;
   generator.create(body);
