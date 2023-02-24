@@ -43,6 +43,7 @@ const speakersTableColumns = (
       width: "42px",
       // TODO fix data type
       Cell: (data: any) => {
+        console.log(data.row);
         return (
           <IconButton
             aria-label="edit"

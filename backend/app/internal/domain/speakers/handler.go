@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -72,14 +73,15 @@ func (h *Handler) All(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 }
 
 func (h *Handler) View(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	id := r.Context().Value("userId").(uint16)
-	user, err := h.storage.GetById(id)
+	//userId := r.Context().Value("userId").(uint16)
+	id, err := strconv.ParseUint(ps.ByName("speakerId"), 10, 64)
+	speaker, err := h.storage.GetById(uint16(id))
 
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 		return
 	}
-	utils.WriteResponse(w, http.StatusOK, user)
+	utils.WriteResponse(w, http.StatusOK, speaker)
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
