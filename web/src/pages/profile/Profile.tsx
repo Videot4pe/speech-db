@@ -89,7 +89,7 @@ const Profile = (props: HTMLChakraProps<"form">) => {
           <Modal isOpen={isOpen} onClose={onClose}>
             <ModalOverlay />
             <ModalContent>
-              <ModalHeader>Pick image</ModalHeader>
+              <ModalHeader>Выберите картинку</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
                 <Center>
@@ -104,16 +104,16 @@ const Profile = (props: HTMLChakraProps<"form">) => {
               </ModalBody>
               <ModalFooter justifyContent="space-between">
                 <Button variant="ghost" onClick={onClose}>
-                  Close
+                  Закрыть
                 </Button>
                 <Button colorScheme="blue" onClick={onConfirmImage}>
-                  Confirm
+                  Сохранить
                 </Button>
               </ModalFooter>
             </ModalContent>
           </Modal>
           <FormControl id="email">
-            <FormLabel>Email address</FormLabel>
+            <FormLabel>Email</FormLabel>
             <Input
               value={user.email}
               onChange={(event) =>
@@ -127,7 +127,7 @@ const Profile = (props: HTMLChakraProps<"form">) => {
             />
           </FormControl>
           <FormControl id="name">
-            <FormLabel>Name</FormLabel>
+            <FormLabel>Имя</FormLabel>
             <Input
               value={user.name}
               onChange={(event) =>
@@ -139,7 +139,7 @@ const Profile = (props: HTMLChakraProps<"form">) => {
             />
           </FormControl>
           <FormControl id="name">
-            <FormLabel>Surname</FormLabel>
+            <FormLabel>Фамилия</FormLabel>
             <Input
               value={user.surname}
               onChange={(event) =>
@@ -151,7 +151,7 @@ const Profile = (props: HTMLChakraProps<"form">) => {
             />
           </FormControl>
           <FormControl id="username">
-            <FormLabel>Username</FormLabel>
+            <FormLabel>Логин</FormLabel>
             <Input
               value={user.username}
               onChange={(event) =>
@@ -163,7 +163,7 @@ const Profile = (props: HTMLChakraProps<"form">) => {
             />
           </FormControl>
           <Button type="submit" colorScheme="blue" size="lg" fontSize="md">
-            Update
+            Обновить
           </Button>
         </Stack>
       </chakra.form>

@@ -101,25 +101,25 @@ const Record = ({ onClose, onRecordSave, isOpen, activeId }: RecordProps) => {
     >
       <ModalOverlay />
       <ModalContent maxH="calc(100% - 120px)">
-        <ModalHeader>Record</ModalHeader>
+        <ModalHeader>Запись</ModalHeader>
         <ModalCloseButton />
         <ModalBody overflowY="scroll">
           <FormControl id="record">
-            <FormLabel>Record</FormLabel>
+            <FormLabel>Запись</FormLabel>
             <Uploader onFileUpload={onFileUpload} />
           </FormControl>
           <FormControl id="speaker">
-            <FormLabel>Speaker</FormLabel>
+            <FormLabel>Диктор</FormLabel>
             <AsyncSelect
               cacheOptions
               defaultOptions
               loadOptions={fetchSpeakers}
               onChange={onSpeakerSelect}
-              menuPosition='fixed'
+              menuPosition="fixed"
             />
           </FormControl>
           <FormControl id="username">
-            <FormLabel>Name</FormLabel>
+            <FormLabel>Логин</FormLabel>
             <Input
               value={record.name}
               onChange={(event) =>
@@ -134,7 +134,7 @@ const Record = ({ onClose, onRecordSave, isOpen, activeId }: RecordProps) => {
         <ModalFooter justifyContent="space-between">
           <Spacer />
           <Button isLoading={isLoading} onClick={onSave}>
-            Save
+            Сохранить
           </Button>
         </ModalFooter>
       </ModalContent>

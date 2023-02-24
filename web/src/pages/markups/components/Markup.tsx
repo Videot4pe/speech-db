@@ -94,27 +94,27 @@ const Markup = ({ onClose, onMarkupSave, isOpen, activeId }: MarkupProps) => {
     >
       <ModalOverlay />
       <ModalContent maxH="calc(100% - 120px)">
-        <ModalHeader>Markup</ModalHeader>
+        <ModalHeader>Разметка</ModalHeader>
         <ModalCloseButton />
         <ModalBody overflowY="scroll">
           <FormControl id="record">
-            <FormLabel>Record</FormLabel>
+            <FormLabel>Запись</FormLabel>
             <AsyncSelect
               cacheOptions
               defaultOptions
               loadOptions={fetchRecords}
               onChange={onRecordSelect}
-              menuPosition='fixed'
+              menuPosition="fixed"
             />
           </FormControl>
-          <FormControl my={12} id="record">
-            <FormLabel>Params</FormLabel>
+          <FormControl my={12} id="params">
+            <FormLabel>Параметры</FormLabel>
           </FormControl>
         </ModalBody>
         <ModalFooter justifyContent="space-between">
           <Spacer />
           <Button isLoading={isLoading} onClick={onSave}>
-            Save
+            Сохранить
           </Button>
         </ModalFooter>
       </ModalContent>

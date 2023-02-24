@@ -40,8 +40,9 @@ const StyledTablePagination = ({
   return (
     <Flex my={my || 0} align="center" justify="space-between">
       <Text color={mode("gray.600", "gray.400")} fontSize="sm">
-        Total {meta.totalItems || 0} elements | Total {meta.totalPages || 0}{" "}
-        pages | Current page {queryParams.page}
+        {/*// TODO plural*/}
+        Всего {meta.totalItems || 0} элементов | Всего {meta.totalPages || 0}{" "}
+        страниц | Текущая страница {queryParams.page}
       </Text>
       <HStack>
         <Select
@@ -55,10 +56,10 @@ const StyledTablePagination = ({
         </Select>
         <ButtonGroup variant="outline">
           <Button as="a" rel="prev" onClick={() => changePage(-1)}>
-            Previous
+            Туда
           </Button>
           <Button as="a" rel="next" onClick={() => changePage(1)}>
-            Next
+            Сюда
           </Button>
         </ButtonGroup>
       </HStack>

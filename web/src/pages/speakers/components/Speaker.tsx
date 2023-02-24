@@ -93,11 +93,11 @@ const Speaker = ({
     >
       <ModalOverlay />
       <ModalContent maxH="calc(100% - 120px)">
-        <ModalHeader>Speaker</ModalHeader>
+        <ModalHeader>Диктор</ModalHeader>
         <ModalCloseButton />
         <ModalBody overflowY="scroll">
           <FormControl id="username">
-            <FormLabel>Name</FormLabel>
+            <FormLabel>Имя</FormLabel>
             <Input
               value={speaker.name}
               onChange={(event) =>
@@ -109,7 +109,7 @@ const Speaker = ({
             />
           </FormControl>
           <FormControl id="age">
-            <FormLabel>Age</FormLabel>
+            <FormLabel>Возраст</FormLabel>
             <NumberInput
               value={speaker.properties.age}
               min={1}
@@ -135,7 +135,7 @@ const Speaker = ({
         <ModalFooter justifyContent="space-between">
           <Spacer />
           <Button isLoading={isLoading} onClick={onSave}>
-            Save
+            Сохранить
           </Button>
         </ModalFooter>
       </ModalContent>
