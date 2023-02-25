@@ -110,7 +110,6 @@ const routes: Array<IRoutes> = [
   },
   {
     path: "/markups/:id",
-    icon: FiMousePointer,
     name: Page.Markup,
     internal: true,
     element: (
