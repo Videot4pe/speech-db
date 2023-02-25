@@ -162,7 +162,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 }
 
 func (h *Handler) InitWebsocket(_ http.ResponseWriter, _ *http.Request, ps httprouter.Params) func(ws *websocket2.Websocket) error {
-	id, err := strconv.ParseUint(ps.ByName("id"), 16, 16)
+	id, err := strconv.ParseUint(ps.ByName("id"), 10, 16)
 	if err != nil {
 		h.logger.Error(err)
 	}
