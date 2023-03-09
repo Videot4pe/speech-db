@@ -1,5 +1,24 @@
 import Konva from "konva";
-import { EntityDto } from "models/markup";
+import { EntityDto, EntityType } from "models/markup";
+
+function getColorFromType(type?: EntityType) {
+  console.log('type:', type)
+
+  switch (type) {
+    case "Allophone": {
+      return 'green'
+    }
+    case "Word": {
+      return 'orange'
+    }
+    case "Sentence": {
+      return 'blue'
+    }
+    default: {
+      return 'grey'
+    }
+  }
+}
 
 export function mapTimeToStagePosition(time: number, duration: number, stageWidth: number): number {
   return time / duration * stageWidth
@@ -17,8 +36,7 @@ export function mapEntityDtoToRectConfig(entityDto: EntityDto, duration: number,
     scaleX: mapTimeToStagePosition(entityDto.endTime - entityDto.beginTime, duration, stageWidth),
     name: entityDto.value,
     height: stageHeight,
-    // TODO выбирать по типу сущности
-    fill: 'green',
+    fill: getColorFromType(entityDto.type),
     opacity: 0.2,
     draggable: true,
   }

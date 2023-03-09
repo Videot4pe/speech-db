@@ -145,7 +145,7 @@ const Edit = forwardRef(
       x: number,
       width: number,
       text: string = "",
-      fillColor = "yellow"
+      fillColor = "white"
     ): Konva.RectConfig {
       return {
         id: "new",
