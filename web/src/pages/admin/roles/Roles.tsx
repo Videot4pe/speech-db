@@ -32,7 +32,7 @@ const Roles = () => {
   const { queryParams, setPage, setLimit } = useTablePagination();
   const { sortParams, setSortParams } = useTableSort();
   const { filterParams, arrayFilterParams, setFilterParams } = useTableFilter();
-  const { data, meta, refetch, tableQuery } = useTableData<RoleDto>(
+  const { data, meta, refetch, isLoading, isError } = useTableData<RoleDto>(
     RolesApi.roles.list,
     queryParams,
     arrayFilterParams,
@@ -66,7 +66,8 @@ const Roles = () => {
       <StyledTable
         columns={columns}
         data={data}
-        isLoading={tableQuery.isLoading}
+        isLoading={isLoading}
+        isError={isError}
         filterParams={filterParams}
         setSortParams={setSortParams}
         setFilterParams={setFilterParams}
@@ -77,7 +78,7 @@ const Roles = () => {
               <IconButton
                 icon={<AddIcon />}
                 aria-label="add record"
-                isLoading={tableQuery.isLoading}
+                isLoading={isLoading}
                 onClick={onOpen}
               />
             </Center>

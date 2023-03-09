@@ -44,6 +44,8 @@ export const useTableData = <T>(
   const refetch = useCallback(() => tableQuery.refetch() || [], [tableQuery]);
 
   return {
+    isLoading: tableQuery.isLoading,
+    isError: tableQuery.isError,
     data,
     meta,
     refetch,

@@ -27,21 +27,6 @@ const Signin = () => (
       </Text>
       <Card>
         <SigninForm />
-        <DividerWithText mt="6">or continue with</DividerWithText>
-        <SimpleGrid mt="6" columns={3} spacing="3">
-          <Button color="currentColor" variant="outline">
-            <VisuallyHidden>Signin with Facebook</VisuallyHidden>
-            <FaFacebook />
-          </Button>
-          <Button color="currentColor" variant="outline">
-            <VisuallyHidden>Signin with Google</VisuallyHidden>
-            <FaGoogle />
-          </Button>
-          <Button color="currentColor" variant="outline">
-            <VisuallyHidden>Signin with Github</VisuallyHidden>
-            <FaGithub />
-          </Button>
-        </SimpleGrid>
       </Card>
     </Box>
   </Box>

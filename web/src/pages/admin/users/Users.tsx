@@ -24,7 +24,7 @@ const Users = () => {
   const { queryParams, setPage, setLimit } = useTablePagination();
   const { sortParams, setSortParams } = useTableSort();
   const { filterParams, arrayFilterParams, setFilterParams } = useTableFilter();
-  const { data, meta, refetch, tableQuery } = useTableData<UserDto>(
+  const { data, meta, refetch, isLoading, isError } = useTableData<UserDto>(
     UsersApi.list,
     queryParams,
     arrayFilterParams,
@@ -57,7 +57,8 @@ const Users = () => {
       <StyledTable
         columns={columns}
         data={data}
-        isLoading={tableQuery.isLoading}
+        isLoading={isLoading}
+        isError={isError}
         filterParams={filterParams}
         setSortParams={setSortParams}
         setFilterParams={setFilterParams}

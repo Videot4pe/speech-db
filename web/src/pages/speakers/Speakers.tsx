@@ -36,7 +36,7 @@ const Speakers = () => {
   const { queryParams, setPage, setLimit } = useTablePagination();
   const { sortParams, setSortParams } = useTableSort();
   const { filterParams, arrayFilterParams, setFilterParams } = useTableFilter();
-  const { data, meta, refetch, tableQuery } = useTableData<SpeakerDto>(
+  const { data, meta, refetch, isLoading, isError } = useTableData<SpeakerDto>(
     SpeakersApi.list,
     queryParams,
     arrayFilterParams,
@@ -68,12 +68,13 @@ const Speakers = () => {
       <StyledTableHeader
         title="Дикторы"
         onOpen={onOpen}
-        isLoading={tableQuery.isLoading}
+        isLoading={isLoading}
       />
       <StyledTable
         columns={columns}
         data={data}
-        isLoading={tableQuery.isLoading}
+        isLoading={isLoading}
+        isError={isError}
         filterParams={filterParams}
         setSortParams={setSortParams}
         setFilterParams={setFilterParams}

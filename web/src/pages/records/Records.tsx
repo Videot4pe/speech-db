@@ -22,7 +22,7 @@ const Records = () => {
   const { queryParams, setPage, setLimit } = useTablePagination();
   const { sortParams, setSortParams } = useTableSort();
   const { filterParams, arrayFilterParams, setFilterParams } = useTableFilter();
-  const { data, meta, refetch, tableQuery } = useTableData<RecordDto>(
+  const { data, meta, refetch, isLoading, isError } = useTableData<RecordDto>(
     RecordsApi.list,
     queryParams,
     arrayFilterParams,
@@ -51,15 +51,12 @@ const Records = () => {
 
   return (
     <TablePageLayout>
-      <StyledTableHeader
-        title="Записи"
-        onOpen={onOpen}
-        isLoading={tableQuery.isLoading}
-      />
+      <StyledTableHeader title="Записи" onOpen={onOpen} isLoading={isLoading} />
       <StyledTable
         columns={columns}
         data={data}
-        isLoading={tableQuery.isLoading}
+        isLoading={isLoading}
+        isError={isError}
         filterParams={filterParams}
         setSortParams={setSortParams}
         setFilterParams={setFilterParams}

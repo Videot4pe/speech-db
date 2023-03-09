@@ -6,6 +6,7 @@ interface TablePageLayoutProps {
 }
 
 const TablePageLayout = ({ children }: TablePageLayoutProps) => {
+  // @ts-ignore
   return (
     <Box as="section" mr={2}>
       <Box maxW={{ base: "xl", md: "7xl" }} mx="auto">

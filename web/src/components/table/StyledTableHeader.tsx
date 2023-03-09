@@ -1,6 +1,8 @@
 import {
+  Box,
   Button,
   ButtonGroup,
+  Center,
   Flex,
   Heading,
   HStack,
@@ -13,6 +15,7 @@ import React from "react";
 import type { Meta } from "../../api/client/json-api-document";
 import type { TablePagination } from "../../hooks/use-table-pagination";
 import { AddIcon } from "@chakra-ui/icons";
+import { Audio } from "react-loader-spinner";
 
 interface StyledTableHeaderProps {
   title: string;
@@ -28,7 +31,14 @@ const StyledTableHeader = ({
   return (
     <Flex justify="space-between" mb={2}>
       <Heading size="lg" mb="2">
-        <div>{title}</div>
+        <Box display="flex">
+          {title}
+          {isLoading && (
+            <Center ml={2}>
+              <Audio height="28" width="28" color="grey" ariaLabel="loading" />
+            </Center>
+          )}
+        </Box>
       </Heading>
       {onOpen && (
         <Button isLoading={isLoading} onClick={onOpen}>

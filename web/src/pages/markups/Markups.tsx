@@ -1,13 +1,4 @@
-import { AddIcon } from "@chakra-ui/icons";
-import {
-  Box,
-  Center,
-  Heading,
-  IconButton,
-  Td,
-  Tr,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { useDisclosure } from "@chakra-ui/react";
 import React, { useState } from "react";
 
 import MarkupsApi from "../../api/markups-api";
@@ -34,7 +25,7 @@ const Markups = () => {
   const { queryParams, setPage, setLimit } = useTablePagination();
   const { sortParams, setSortParams } = useTableSort();
   const { filterParams, arrayFilterParams, setFilterParams } = useTableFilter();
-  const { data, meta, refetch, tableQuery } = useTableData<MarkupDto>(
+  const { data, meta, refetch, isLoading, isError } = useTableData<MarkupDto>(
     MarkupsApi.list,
     queryParams,
     arrayFilterParams,
@@ -66,12 +57,13 @@ const Markups = () => {
       <StyledTableHeader
         title="Разметки"
         onOpen={onOpen}
-        isLoading={tableQuery.isLoading}
+        isLoading={isLoading}
       />
       <StyledTable
         columns={columns}
         data={data}
-        isLoading={tableQuery.isLoading}
+        isLoading={isLoading}
+        isError={isError}
         filterParams={filterParams}
         setSortParams={setSortParams}
         setFilterParams={setFilterParams}

@@ -1,4 +1,8 @@
-import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
+import {
+  TriangleDownIcon,
+  TriangleUpIcon,
+  WarningTwoIcon,
+} from "@chakra-ui/icons";
 import {
   TableContainer,
   Table,
@@ -10,6 +14,8 @@ import {
   chakra,
   Input,
   InputGroup,
+  Center,
+  Text,
 } from "@chakra-ui/react";
 import type { ReactNode } from "react";
 import React, { useEffect } from "react";
@@ -17,7 +23,7 @@ import type { Column } from "react-table";
 import { useSortBy, useTable } from "react-table";
 
 import type { InternalTableFilter } from "../../hooks/use-table-filter";
-import type { ReactTableSort, TableSort } from "../../hooks/use-table-sort";
+import type { ReactTableSort } from "../../hooks/use-table-sort";
 
 class DebouncedFunc<T> {}
 
@@ -25,6 +31,7 @@ interface StyledTableProps {
   columns: Column[];
   data: any[];
   isLoading: boolean;
+  isError?: boolean;
   children?: ReactNode;
   filterParams: InternalTableFilter;
   setSortParams: DebouncedFunc<(params: ReactTableSort[]) => void>;
@@ -36,6 +43,7 @@ const StyledTable = ({
   columns,
   data,
   isLoading,
+  isError = false,
   setSortParams,
   setFilterParams,
 }: StyledTableProps) => {
@@ -121,25 +129,57 @@ const StyledTable = ({
             </Tr>
           ))}
         </Thead>
-        <Tbody {...getTableBodyProps()}>
-          {rows.map((row) => {
-            prepareRow(row);
-            return (
-              <Tr {...row.getRowProps()}>
-                {row.cells.map((cell) => (
-                  <Td
-                    {...cell.getCellProps()}
-                    maxWidth={cell.column.width}
-                    isNumeric={cell.column.isNumeric}
-                  >
-                    {cell.render("Cell")}
-                  </Td>
-                ))}
-              </Tr>
-            );
-          })}
-          {children}
-        </Tbody>
+        {/*{isLoading && (*/}
+        {/*  <Tbody>*/}
+        {/*    <Tr>*/}
+        {/*      <Td colSpan={columns.length}>*/}
+        {/*        <Center>*/}
+        {/*          <Audio*/}
+        {/*            height="100"*/}
+        {/*            width="100"*/}
+        {/*            color="grey"*/}
+        {/*            ariaLabel="loading"*/}
+        {/*          />*/}
+        {/*        </Center>*/}
+        {/*      </Td>*/}
+        {/*    </Tr>*/}
+        {/*  </Tbody>*/}
+        {/*)}*/}
+        {isError && (
+          <Tbody>
+            <Tr>
+              <Td colSpan={columns.length}>
+                <Center flexDirection="column">
+                  <WarningTwoIcon w={12} h={12} color="red.500" />
+                  <Text mt={3} fontWeight={800}>
+                    Не загрузилосъ :c
+                  </Text>
+                </Center>
+              </Td>
+            </Tr>
+          </Tbody>
+        )}
+        {!isError && (
+          <Tbody {...getTableBodyProps()}>
+            {rows.map((row) => {
+              prepareRow(row);
+              return (
+                <Tr {...row.getRowProps()}>
+                  {row.cells.map((cell) => (
+                    <Td
+                      {...cell.getCellProps()}
+                      maxWidth={cell.column.width}
+                      isNumeric={cell.column.isNumeric}
+                    >
+                      {cell.render("Cell")}
+                    </Td>
+                  ))}
+                </Tr>
+              );
+            })}
+            {children}
+          </Tbody>
+        )}
       </Table>
     </TableContainer>
   );

@@ -4,11 +4,15 @@ import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"net/http"
+	"strings"
 )
 
 const (
 	// FilterTypeEQ Значение равно
 	FilterTypeEQ FilterType = iota
+
+	// FilterTypeID Поиск по ID
+	FilterTypeID FilterType = iota
 
 	// FilterTypeNotEQ Значение не равно
 	FilterTypeNotEQ
@@ -71,12 +75,18 @@ func NewFilters(r *http.Request) ([]*Filter, error) {
 		keyValue := fmt.Sprintf("filter[%d][value]", i)
 		value := queryValues.Get(keyValue)
 
+		// TODO FIX
+		filterType := FilterTypeILike
+		if strings.Contains(column, "id") {
+			filterType = FilterTypeEQ
+		}
+
 		if column == "" {
 			break
 		}
 
 		// TODO fix ilike
-		filters = append(filters, NewFilter(column, FilterTypeILike, value))
+		filters = append(filters, NewFilter(column, filterType, value))
 	}
 
 	return filters, nil
