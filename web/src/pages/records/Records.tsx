@@ -36,12 +36,13 @@ const Records = () => {
       .catch(errorHandler);
   };
 
-  const onEdit = (id: number) => {
-    setActiveId(id);
-    onOpen();
+  const onRegenerate = (id: number) => {
+    RecordsApi.generate(id)
+      .then(() => refetch())
+      .catch(errorHandler);
   };
 
-  const columns = recordsTableColumns(onRemove, onEdit);
+  const columns = recordsTableColumns(onRemove, onRegenerate);
 
   const onRecordSave = async () => {
     onClose();

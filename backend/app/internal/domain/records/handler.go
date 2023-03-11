@@ -156,8 +156,9 @@ func (h *Handler) Generate(w http.ResponseWriter, r *http.Request, ps httprouter
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	file, err := h.filesStorage.GetById(*record.FileId)
 	callbackUrl := fmt.Sprintf("%v/api/records/set-image/%v", h.config.Listen.ServerIP, recordId)
-	go h.waveformClient.SendAudioUrl(record.File, callbackUrl)
+	go h.waveformClient.SendAudioUrl(file, callbackUrl)
 }
 
 func (h *Handler) SetImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

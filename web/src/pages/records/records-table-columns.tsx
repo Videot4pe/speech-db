@@ -1,5 +1,5 @@
-import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import { Center, IconButton } from "@chakra-ui/react";
+import { RepeatIcon } from "@chakra-ui/icons";
+import { Center, Flex, IconButton } from "@chakra-ui/react";
 import moment from "moment";
 
 import type { RecordDto } from "../../models/record";
@@ -7,7 +7,7 @@ import { MarkupDto } from "../../models/markup";
 
 const recordsTableColumns = (
   onRemove: (id: number) => void,
-  onEdit: (id: number) => void
+  onRegenerate: (id: number) => void
 ) => {
   const columns: any[] = [
     {
@@ -20,10 +20,27 @@ const recordsTableColumns = (
     },
     {
       Header: "Статус",
-      name: "status",
-      accessor: (row: MarkupDto) => (row.image ? "Готово" : "В процессе"),
-      filter: false,
       width: "90px",
+      filter: false,
+      Cell: (data: any) => {
+        const { original } = data.row;
+        if (original.image) {
+          return <div>Готово</div>;
+        } else {
+          return (
+            <Flex justify="space-between">
+              <Center>В процессе</Center>
+              <IconButton
+                aria-label="regenerate"
+                icon={<RepeatIcon />}
+                ml={4}
+                size="xs"
+                onClick={() => onRegenerate(original.id)}
+              />
+            </Flex>
+          );
+        }
+      },
     },
     {
       Header: "Название",

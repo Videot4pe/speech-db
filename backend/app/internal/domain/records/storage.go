@@ -177,7 +177,7 @@ func (s *Storage) GetById(id uint64) (*NewRecord, error) {
 
 	var record NewRecord
 
-	query := s.queryBuilder.Select("id", "name", "speaker_id", "file_id", "image_id", "created_by").
+	query := s.queryBuilder.Select("id", "name", "speaker_id", "file_id", "created_by").
 		From(table).
 		Where(sq.Eq{"id": id})
 

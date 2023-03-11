@@ -11,9 +11,6 @@ const (
 	// FilterTypeEQ Значение равно
 	FilterTypeEQ FilterType = iota
 
-	// FilterTypeID Поиск по ID
-	FilterTypeID FilterType = iota
-
 	// FilterTypeNotEQ Значение не равно
 	FilterTypeNotEQ
 
