@@ -128,7 +128,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request, ps httprouter.P
 		return
 	}
 
-	err = h.storage.Update(uint16(id), speaker)
+	err = h.storage.Update(speaker)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

@@ -9,6 +9,7 @@ import (
 	"math"
 
 	db "backend/pkg/client/postgresql/model"
+
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -171,12 +172,12 @@ func (s *Storage) GetById(id uint16) (*Speaker, error) {
 	return &speaker, nil
 }
 
-func (s *Storage) Update(id uint16, speaker Speaker) error {
+func (s *Storage) Update(speaker Speaker) error {
 
 	query := s.queryBuilder.Update(table).
 		Set("name", speaker.Name).
 		Set("properties", speaker.Properties).
-		Where(sq.Eq{"id": id})
+		Where(sq.Eq{"id": speaker.Id})
 
 	sql, args, err := query.ToSql()
 	logger := s.queryLogger(sql, table, args)
@@ -186,7 +187,7 @@ func (s *Storage) Update(id uint16, speaker Speaker) error {
 		return err
 	}
 
-	logger.Trace("do query")
+	logger.Trace("Updating speaker")
 	_, err = s.client.Exec(s.ctx, sql, args...)
 
 	if err != nil {
