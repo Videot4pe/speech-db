@@ -52,7 +52,7 @@ func (s *Storage) queryLogger(sql, table string, args []interface{}) *logging.Lo
 }
 
 func (s *Storage) List(filters []*db.Filter, pagination *db.Pagination, sorts ...*db.Sort) ([]User, *utils.Meta, error) {
-	query := s.queryBuilder.Select("id", "email", "username", "name", "surname", "patronymic", "is_active", "avatar_id", "created_at", "updated_at").
+	query := s.queryBuilder.Select("id", "email", "username", "name", "surname", "patronymic", "is_active", "avatar_id", "created_at", "updated_at", "role_id").
 		From(scheme + "." + table)
 
 	for _, filter := range filters {
@@ -92,7 +92,7 @@ func (s *Storage) List(filters []*db.Filter, pagination *db.Pagination, sorts ..
 	for rows.Next() {
 		p := User{}
 		if err = rows.Scan(
-			&p.Id, &p.Email, &p.Username, &p.Name, &p.Surname, &p.Patronymic, &p.IsActive, &p.AvatarId, &p.CreatedAt, &p.UpdatedAt,
+			&p.Id, &p.Email, &p.Username, &p.Name, &p.Surname, &p.Patronymic, &p.IsActive, &p.AvatarId, &p.CreatedAt, &p.UpdatedAt, &p.Role,
 		); err != nil {
 			err = db.ErrScan(err)
 			logger.Error(err)

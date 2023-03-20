@@ -106,7 +106,11 @@ const User = ({ onClose, onUserSave, isOpen, activeId }: UserProps) => {
           <ModalBody overflowY="scroll">
             <Center>
               <SkeletonCircle isLoaded={!isLoading} size="200">
-                <Avatar width={200} height={200} src={user.avatar} />
+                <Avatar
+                  width={200}
+                  height={200}
+                  src={user.avatar || undefined}
+                />
               </SkeletonCircle>
             </Center>
             <FormControl mb={4} id="email">
@@ -117,7 +121,9 @@ const User = ({ onClose, onUserSave, isOpen, activeId }: UserProps) => {
                   onChange={(e) => setUser({ ...user, role: +e.target.value })}
                 >
                   {roles.map((role) => (
-                    <option value={role.id}>{role.name}</option>
+                    <option disabled={role.name === "admin"} value={role.id}>
+                      {role.name}
+                    </option>
                   ))}
                 </Select>
               </Skeleton>
@@ -151,16 +157,16 @@ const User = ({ onClose, onUserSave, isOpen, activeId }: UserProps) => {
               </Skeleton>
             </FormControl>
             <FormControl mb={4} id="username">
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Email</FormLabel>
               <Skeleton isLoaded={!isLoading}>
                 <Input
-                  value={user.username}
+                  value={user.email}
                   onChange={(event) =>
-                    setUser({ ...user, username: event.target.value })
+                    setUser({ ...user, email: event.target.value })
                   }
-                  name="username"
-                  type="username"
-                  autoComplete="username"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
                 />
               </Skeleton>
             </FormControl>

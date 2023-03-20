@@ -1,11 +1,15 @@
-import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { EditIcon } from "@chakra-ui/icons";
 import { Avatar, Center, IconButton } from "@chakra-ui/react";
 import { AiOutlineUser } from "react-icons/ai";
+import { UserDto } from "../../../models/user";
+import { useAtom } from "jotai";
+import { rolesAtom } from "../../../store";
 
 const usersTableColumns = (
   onRemove: (id: number) => void,
   onEdit: (id: number) => void
 ) => {
+  const [roles] = useAtom(rolesAtom);
   const columns: any[] = [
     {
       Header: "Аватар",
@@ -25,25 +29,16 @@ const usersTableColumns = (
       filter: true,
     },
     {
-      Header: "Имя",
-      accessor: "name",
-      name: "name",
-      sortable: true,
-      filter: true,
-    },
-    {
-      Header: "Фамилия",
-      accessor: "surname",
-      name: "surname",
-      sortable: true,
-      filter: true,
-    },
-    {
       Header: "Email",
       accessor: "email",
       name: "email",
       sortable: true,
       filter: true,
+    },
+    {
+      Header: "Роль",
+      accessor: (row: UserDto) =>
+        roles.find((role) => role.id === row.role)?.name,
     },
     {
       Header: " ",

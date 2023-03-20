@@ -5,6 +5,7 @@ import RolesApi from "../api/roles-api";
 import type { UserDto } from "../models/user";
 import { Collections } from "../models/collection";
 import CollectionsApi from "../api/collections-api";
+import { RoleDto } from "../models/role";
 
 const token = atom<string | undefined>(
   localStorage.getItem("jwt-token") ?? undefined
@@ -14,7 +15,7 @@ const refreshToken = atom<string | undefined>(
 );
 const collections = atom<Collections | undefined>(undefined);
 const permissions = atom<{ id: number; name: string }[]>([]);
-const roles = atom<{ id: number; name: string; permissions: number[] }[]>([]);
+const roles = atom<RoleDto[]>([]);
 const self = atom<UserDto | undefined>(undefined);
 
 export const jwtToken = atom(
