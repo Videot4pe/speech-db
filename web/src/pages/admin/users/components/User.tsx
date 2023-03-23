@@ -113,7 +113,7 @@ const User = ({ onClose, onUserSave, isOpen, activeId }: UserProps) => {
                 />
               </SkeletonCircle>
             </Center>
-            <FormControl mb={4} id="email">
+            <FormControl mb={4} id="role">
               <FormLabel>Role</FormLabel>
               <Skeleton isLoaded={!isLoading}>
                 <Select
@@ -142,7 +142,7 @@ const User = ({ onClose, onUserSave, isOpen, activeId }: UserProps) => {
                 />
               </Skeleton>
             </FormControl>
-            <FormControl mb={4} id="name">
+            <FormControl mb={4} id="surname">
               <FormLabel>Surname</FormLabel>
               <Skeleton isLoaded={!isLoading}>
                 <Input
@@ -156,7 +156,7 @@ const User = ({ onClose, onUserSave, isOpen, activeId }: UserProps) => {
                 />
               </Skeleton>
             </FormControl>
-            <FormControl mb={4} id="username">
+            <FormControl mb={4} id="email">
               <FormLabel>Email</FormLabel>
               <Skeleton isLoaded={!isLoading}>
                 <Input
