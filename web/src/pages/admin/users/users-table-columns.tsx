@@ -5,11 +5,12 @@ import { UserDto } from "../../../models/user";
 import { useAtom } from "jotai";
 import { rolesAtom } from "../../../store";
 import { translate } from "../../../utils/translate";
+import moment from "moment";
 
 const usersTableColumns = (
   onRemove: (id: number) => void,
   onEdit: (id: number) => void
-) => {  
+) => {
   const [roles] = useAtom(rolesAtom);
   const columns: any[] = [
     {
@@ -40,7 +41,13 @@ const usersTableColumns = (
     {
       Header: "Роль",
       accessor: (row: UserDto) =>
-        translate(roles.find((role) => role.id === row.role)?.name ?? 'неизвестно'),
+        translate(
+          roles.find((role) => role.id === row.role)?.name ?? "неизвестно"
+        ),
+    },
+    {
+      Header: "Дата Регистрации",
+      accessor: (row: UserDto) => moment(row.createdAt).format("DD.MM.YYYY"),
     },
     {
       Header: " ",
