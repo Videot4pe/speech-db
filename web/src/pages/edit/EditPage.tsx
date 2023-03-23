@@ -80,7 +80,7 @@ const EditPage = () => {
     setSelectedEntity({ ...selectedEntity, [key]: value });
   };
 
-  const socketUrl = `${import.meta.env.VITE_WS}${
+  const socketUrl = `${import.meta.env.DEV ? '' : import.meta.env.VITE_WS}${
     import.meta.env.VITE_WS_URL
   }/api/ws/markups/${markupId}`;
 

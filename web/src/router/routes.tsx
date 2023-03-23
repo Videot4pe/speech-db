@@ -19,7 +19,6 @@ const Records = lazy(() => import("../pages/records/Records"));
 const Admin = lazy(() => import("../pages/admin/Index"));
 const Home = lazy(() => import("../pages/home/Home"));
 const Markups = lazy(() => import("../pages/markups/Markups"));
-const Markup = lazy(() => import("../pages/markup/Markup"));
 const EditPage = lazy(() => import("../pages/edit/EditPage"));
 const ActivationLinkExpired = lazy(
   () => import("../pages/auth/ActivationLinkExpired")
