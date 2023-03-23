@@ -4,11 +4,12 @@ import { AiOutlineUser } from "react-icons/ai";
 import { UserDto } from "../../../models/user";
 import { useAtom } from "jotai";
 import { rolesAtom } from "../../../store";
+import { translate } from "../../../utils/translate";
 
 const usersTableColumns = (
   onRemove: (id: number) => void,
   onEdit: (id: number) => void
-) => {
+) => {  
   const [roles] = useAtom(rolesAtom);
   const columns: any[] = [
     {
@@ -23,6 +24,7 @@ const usersTableColumns = (
     },
     {
       Header: "ID",
+      width: "50px",
       accessor: "id",
       name: "id",
       sortable: true,
@@ -38,7 +40,7 @@ const usersTableColumns = (
     {
       Header: "Роль",
       accessor: (row: UserDto) =>
-        roles.find((role) => role.id === row.role)?.name,
+        translate(roles.find((role) => role.id === row.role)?.name ?? 'неизвестно'),
     },
     {
       Header: " ",

@@ -1,10 +1,10 @@
 import { Permission } from "../models/common";
 
 const dict: Record<string, string> = {
-  [Permission.EDIT_RECORDS]: "Edit records",
-  [Permission.EDIT_MARKUPS]: "Edit markups",
-  [Permission.EDIT_USERS]: "Edit users",
-  [Permission.EDIT_SPEAKERS]: "Edit speakers",
+  [Permission.UPDATE_RECORDS]: "Изменять свои записи",
+  [Permission.UPDATE_MARKUPS]: "Изменять свои разметки",
+  [Permission.UPDATE_USERS]: "Изменять пользователей",
+  [Permission.UPDATE_SPEAKERS]: "Изменять своих дикторов",
   
   // Ударения
   'None': 'Нет',
@@ -16,6 +16,11 @@ const dict: Record<string, string> = {
   'Word': 'Слово',
   'Sentence': 'Предложение',
   'All': 'Любой',
+
+  // Роли
+  'readonly': 'READ-ONLY',
+  'student': 'Студент',
+  'admin': 'Администратор',
 };
 
 export const translate = (value: string) => {
